@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.viewpager2.widget.ViewPager2
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_recording_system.*
@@ -34,13 +35,16 @@ class RecordingSystem : AppCompatActivity() {
 
         Log.i("State", "ViewPager is done")
 
-        output = File("/sdcard/test.aac")
+        output = File("/sdcard/test1.mp4a")
 
+        @TargetApi(Build.VERSION_CODES.O)
         mediaRecorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setOutputFile(output)
+            setAudioSamplingRate(48000);
+            setAudioEncodingBitRate(128000);
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setOutputFile(output)
         }
 
         Log.i("State", "Creating mediaRecorder DONE")
@@ -49,26 +53,27 @@ class RecordingSystem : AppCompatActivity() {
             startRecording()
         }
 
+        button_pause_recording.setOnClickListener {
+            pauseRecording()
+        }
+
         button_stop_recording.setOnClickListener{
             stopRecording()
         }
 
-        button_pause_recording.setOnClickListener {
-            pauseRecording()
-        }
+
     }
 
     private fun startRecording() {
         try {
             mediaRecorder?.apply {
-                prepare()
-                /*
+               // prepare()
+
                 try {
                     prepare()
                 } catch (e: IOException) {
                     Log.i("State", "prepare() failed")
                 }
-                */
 
                 start()
             }
@@ -108,8 +113,11 @@ class RecordingSystem : AppCompatActivity() {
     private fun stopRecording(){
         if(state){
             mediaRecorder?.stop()
+            mediaRecorder?.reset()
             mediaRecorder?.release()
+            mediaRecorder = null
             state = false
+            Toast.makeText(this,"Stopped!", Toast.LENGTH_SHORT).show()
             Log.i("State", "Recording stoped")
         }else{
             Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()

@@ -14,7 +14,7 @@ class ViewPagerAdapter : RecyclerView.Adapter<PagerVH>() {
         PagerVH(LayoutInflater.from(parent.context).inflate(R.layout.item_page, parent, false))
 
     //get the size of color array
-    override fun getItemCount(): Int = Int.MAX_VALUE
+    override fun getItemCount(): Int = 3
 
     //binding the screen with view
     override fun onBindViewHolder(holder: PagerVH, position: Int) = holder.itemView.run {
