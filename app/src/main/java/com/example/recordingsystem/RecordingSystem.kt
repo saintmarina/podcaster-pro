@@ -18,10 +18,11 @@ import java.io.IOException
 class RecordingSystem : AppCompatActivity() {
     private var output: File? = null
     private var mediaRecorder: MediaRecorder? = null
-    private var state: Boolean = false
-    private var recordingStopped: Boolean = false
+    private var isRecording: Boolean = false
+    private var recordingPaused: Boolean = false
 
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recording_system)
@@ -50,78 +51,51 @@ class RecordingSystem : AppCompatActivity() {
         Log.i("State", "Creating mediaRecorder DONE")
 
         button_start_recording.setOnClickListener {
-            startRecording()
+            startOrStopRecording()
         }
 
         button_pause_recording.setOnClickListener {
-            pauseRecording()
+            pauseResumeRecording()
         }
-
-        button_stop_recording.setOnClickListener{
-            stopRecording()
-        }
-
-
     }
 
-    private fun startRecording() {
-        try {
+    private fun startOrStopRecording() {
+        if (!isRecording) {
             mediaRecorder?.apply {
-               // prepare()
-
-                try {
-                    prepare()
-                } catch (e: IOException) {
-                    Log.i("State", "prepare() failed")
-                }
-
+                prepare()
                 start()
+                isRecording = true
+                button_start_recording.text = "Stop"
             }
-            state = true
             Toast.makeText(this, "Recording started!", Toast.LENGTH_SHORT).show()
-        } catch (e: IllegalStateException) {
-            e.printStackTrace()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
-
-    @SuppressLint("RestrictedApi", "SetTextI18n")
-    @TargetApi(Build.VERSION_CODES.N)
-    private fun pauseRecording() {
-        if(state) {
-            if(!recordingStopped){
-                Toast.makeText(this,"Stopped!", Toast.LENGTH_SHORT).show()
-                mediaRecorder?.pause()
-                recordingStopped = true
-                button_pause_recording.text = "Resume"
-            }else{
-                resumeRecording()
-            }
-        }
-    }
-
-    @SuppressLint("RestrictedApi", "SetTextI18n")
-    @TargetApi(Build.VERSION_CODES.N)
-    private fun resumeRecording() {
-        Toast.makeText(this,"Resume!", Toast.LENGTH_SHORT).show()
-        mediaRecorder?.resume()
-        button_pause_recording.text = "Pause"
-        recordingStopped = false
-    }
-
-    private fun stopRecording(){
-        if(state){
+        } else {
             mediaRecorder?.stop()
             mediaRecorder?.reset()
             mediaRecorder?.release()
             mediaRecorder = null
-            state = false
-            Toast.makeText(this,"Stopped!", Toast.LENGTH_SHORT).show()
-            Log.i("State", "Recording stoped")
-        }else{
-            Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()
+            isRecording = false
+            button_start_recording.text = "Start"
+            Toast.makeText(this, "Stopped!", Toast.LENGTH_SHORT).show()
+
         }
     }
 
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun pauseResumeRecording() {
+        if(isRecording) {
+            if(!recordingPaused){
+                mediaRecorder?.pause()
+                recordingPaused = true
+                button_pause_recording.text = "Resume"
+                Toast.makeText(this,"Paused!", Toast.LENGTH_SHORT).show()
+            }else{
+                mediaRecorder?.resume()
+                button_pause_recording.text = "Pause"
+                recordingPaused = false
+                Toast.makeText(this,"Resume!", Toast.LENGTH_SHORT).show()
+            }
+        }
+        Toast.makeText(this,"You are not recording", Toast.LENGTH_SHORT).show()
+    }
 }
