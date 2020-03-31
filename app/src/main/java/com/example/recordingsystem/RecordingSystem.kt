@@ -2,6 +2,8 @@ package com.example.recordingsystem
 
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
+import android.media.AudioFormat
+import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -16,7 +18,30 @@ import java.io.File
 import java.io.IOException
 
 class RecordingSystem : AppCompatActivity() {
-    private var output: File? = null
+    val recorder = AudioRecorder()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_recording_system)
+
+        view_pager2.adapter = ViewPagerAdapter()
+        view_pager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                currentItem.setText((view_pager2.currentItem).toString())
+            }
+        })
+
+        btnStart.setOnClickListener {
+            if (recorder.isRunning) {
+                recorder.stop()
+                btnStart.text = "Start"
+            }
+            else {
+                recorder.start()
+                btnStart.text = "Stop"
+            }
+        }
+    }
+    /*private var output: File? = null
     private var mediaRecorder: MediaRecorder? = null
     private var isRecording: Boolean = false
     private var recordingPaused: Boolean = false
@@ -97,5 +122,5 @@ class RecordingSystem : AppCompatActivity() {
             }
         }
         Toast.makeText(this,"You are not recording", Toast.LENGTH_SHORT).show()
-    }
+    }*/
 }

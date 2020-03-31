@@ -34,26 +34,15 @@
         />
 
     <Button
-        android:id="@+id/button_start_recording"
+        android:id="@+id/btnStart"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_weight="0.1"
-
         android:text="Start"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="32dp"
         android:layout_centerVertical="true"/>
 
-    <Button
-        android:id="@+id/button_pause_recording"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="0.1"
-
-        android:text="Pause"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="32dp"/>
 
 
 </LinearLayout>
