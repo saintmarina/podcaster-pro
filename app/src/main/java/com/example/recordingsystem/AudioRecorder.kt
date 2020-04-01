@@ -3,59 +3,109 @@ package com.example.recordingsystem
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.media.audiofx.Visualizer
 import android.util.Log
 import java.lang.IllegalStateException
+import java.lang.Math.abs
+import kotlin.reflect.typeOf
+
+const val audioSource: Int = MediaRecorder.AudioSource.MIC
+const val sampleRate: Int = 44100
+const val channelConfig: Int = AudioFormat.CHANNEL_IN_MONO
+const val audioFormat: Int = AudioFormat.ENCODING_PCM_16BIT
+const val bufferSize: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioFlinger dies with error -12 (ENOMEM) error
+const val LOG_TAG = "AudioRecorder"
 
 class AudioRecorder {
-    var isRunning: Boolean = false
+    var stopRequested = false
+    var bufSize: Int = 1*1024
     var thread: Thread? = null
-    private var RECORDER_SAMPLERATE: Int = 48000
-    private var RECORDER_CHANNELS: Int = AudioFormat.CHANNEL_IN_MONO
-    private var RECORDER_AUDIO_ENCODING: Int = AudioFormat.ENCODING_PCM_16BIT
-    var bufferSize: Int = 1024*1024
+    var peak: Short = 0
 
-    // TODO raise IllegalStateException when start is called twice in a row without a stop.
-    // Same for stop().
-    fun start() {
-        if (isRunning) throw IllegalStateException("start() was called twice in a row without calling stop()")
+    val isRecording: Boolean
+        get() {
+            return thread != null;
+        }
 
-        isRunning = true
-        var recorder = AudioRecord(MediaRecorder.AudioSource.MIC,
-            RECORDER_SAMPLERATE,
-            RECORDER_CHANNELS,
-            RECORDER_AUDIO_ENCODING,
-            bufferSize)
+    fun startRecording() {
+        if (thread != null)
+            throw IllegalStateException("start() was called twice in a row without calling stop()")
 
-        var state = recorder.state
-        if (recorder.state == 1)
+        stopRequested = false
+        thread = Thread {
+            val recorder = initRecorder()
             recorder.startRecording()
 
-        thread = Thread{
-            writeAudioDataToFile()
+            val buf = ShortArray(bufSize)
+            while (!stopRequested) {
+                val len = safeAudioRecordRead(recorder, buf)
+                peak = getPeak(buf, len)
+                Log.i(LOG_TAG, "Peak is $peak")
+            }
         }
-        thread?.start()
+        thread!!.apply {
+            name = "AudioRecorder pump"
+            start()
+        }
         Log.i("State", "Started!")
     }
 
-fun writeAudioDataToFile () {
+    private fun initRecorder(): AudioRecord {
+        val recorder = AudioRecord(
+            audioSource,
+            sampleRate,
+            channelConfig,
+            audioFormat,
+            bufferSize
+        )
 
-}
+        if (recorder.state != AudioRecord.STATE_INITIALIZED)
+            throw IllegalStateException("AudioRecord failed to initialize")
 
-
-
-
-
-    fun stop() {
-        if (!isRunning) throw IllegalStateException("stop() was called twice in a row without calling start()")
-
-        thread.let {
-            isRunning = false
-            it.join()
-            thread = null
-            Log.i("State", "Stop")
-        }
+        return recorder
     }
 
+    private fun safeAudioRecordRead(recorder: AudioRecord, buf: ShortArray): Int {
+        val len = recorder.read(buf, 0, bufSize)
+
+        if (len <= 0)
+            throw IllegalStateException("AudioRecord.read() failed with $len")
+
+        return len
+    }
+
+    private fun getPeak(buf: ShortArray, len: Int): Short {
+        var maxValue: Short = 0
+        buf.take(len).forEach {
+            var value: Short = it
+
+            if (value < 0)
+                value = (-value).toShort()
+
+            if (maxValue < value)
+                maxValue = value
+
+        }
+        return maxValue
+    }
+
+    fun writeAudioDataToFile() {
+        //TODO
+    }
+
+    fun stop() {
+        if (thread == null || stopRequested)
+            throw IllegalStateException("stop() was called twice in a row without calling start()")
+
+        Log.i(LOG_TAG, "Stop requested")
+        stopRequested = true
+
+        thread!!.join()
+        thread = null
+
+        Log.i(LOG_TAG, "Thread stopped")
+    }
+}
 
 /*
 
@@ -379,4 +429,3 @@ fun start() {
     };
 }
 */
-}
