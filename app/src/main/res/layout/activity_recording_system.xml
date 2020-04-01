@@ -43,13 +43,23 @@
         android:layout_marginBottom="32dp"
         android:layout_centerVertical="true"/>
 
+    <com.example.recordingsystem.SoundVisualizer
+        android:id="@+id/soundVisualizer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.1"/>
+
+
+
     <TextView
         android:id="@+id/peakTextView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="0.1"
         android:text="TextView"
         android:textSize="36sp"
         android:textStyle="bold" />
+
 
 
 </LinearLayout>

@@ -1,26 +1,17 @@
 package com.example.recordingsystem
 
-import android.annotation.SuppressLint
-import android.annotation.TargetApi
-import android.media.AudioFormat
-import android.media.AudioRecord
-import android.media.MediaRecorder
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.widget.Toast
-import androidx.annotation.RequiresApi
+import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_recording_system.*
-import java.io.File
-import java.io.IOException
 
 class RecordingSystem : AppCompatActivity() {
     val recorder = AudioRecorder()
+
     lateinit var mainHandler: Handler
 
     private val updateText = object: Runnable {
@@ -28,6 +19,7 @@ class RecordingSystem : AppCompatActivity() {
         override fun run() {
             count++;
             peakTextView.text = "$count -- ${recorder.peak}"
+            soundVisualizer.volume = recorder.peak
             Log.i("state", "TextView updated")
             mainHandler.postDelayed(this, 30)
         }
