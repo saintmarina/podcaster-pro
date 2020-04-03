@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
                 return
             }
         }
-        val intent = Intent(this, RecordingSystem::class.java)
+        val intent = Intent(this, RecordingSystemActivity::class.java)
         startActivity(intent);
     }
 
@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "Permission DENIED", Toast.LENGTH_SHORT).show()
                     Log.i("Status", "Permission has been denied by user")
                 } else {
-                    val intent = Intent(this, RecordingSystem::class.java)
+                    val intent = Intent(this, RecordingSystemActivity::class.java)
                     startActivity(intent);
                     Toast.makeText(this, "Permission GRANTED", Toast.LENGTH_SHORT).show()
                     Log.i("Status", "Permission has been granted by user")

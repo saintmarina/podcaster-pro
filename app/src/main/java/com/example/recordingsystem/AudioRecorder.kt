@@ -3,18 +3,22 @@ package com.example.recordingsystem
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import android.media.audiofx.Visualizer
 import android.util.Log
-import java.lang.IllegalStateException
-import java.lang.Math.abs
-import kotlin.reflect.typeOf
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.*
 
-const val audioSource: Int = MediaRecorder.AudioSource.MIC
-const val sampleRate: Int = 44100
-const val channelConfig: Int = AudioFormat.CHANNEL_IN_MONO
-const val audioFormat: Int = AudioFormat.ENCODING_PCM_16BIT
-const val bufferSize: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioFlinger dies with error -12 (ENOMEM) error
+const val AUDIO_SOURCE: Int = MediaRecorder.AudioSource.MIC
+const val SAMPLE_RATE: Int = 48000
+const val CHANNEL_CONFIG: Int = AudioFormat.CHANNEL_IN_MONO
+const val AUDIO_FORMAT: Int = AudioFormat.ENCODING_PCM_16BIT
+const val BUFFER_SIZE: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioFlinger die with error -12 (ENOMEM) error
 const val LOG_TAG = "AudioRecorder"
+const val NANOS_IN_SEC: Long = 1_000_000_000
+const val AUDIORECORD_INIT_TIMEOUT: Long = 5*NANOS_IN_SEC
+
 
 class AudioRecorder {
     var stopRequested = false
@@ -39,9 +43,14 @@ class AudioRecorder {
             val buf = ShortArray(bufSize)
             while (!stopRequested) {
                 val len = safeAudioRecordRead(recorder, buf)
+                val fileOutStream = createFileOutputStream()
+                fileOutStream.write(buf)
+
                 peak = getPeak(buf, len)
-                Log.i(LOG_TAG, "Peak is $peak")
             }
+
+            recorder.stop()
+            recorder.release()
         }
         thread!!.apply {
             name = "AudioRecorder pump"
@@ -51,18 +60,27 @@ class AudioRecorder {
     }
 
     private fun initRecorder(): AudioRecord {
-        val recorder = AudioRecord(
-            audioSource,
-            sampleRate,
-            channelConfig,
-            audioFormat,
-            bufferSize
-        )
+        /*
+         * Sometimes the initialization of AudioRecord fails with ENOMEM
+         * So we keep trying to initialize it with a 5 second timeout
+         */
 
-        if (recorder.state != AudioRecord.STATE_INITIALIZED)
-            throw IllegalStateException("AudioRecord failed to initialize")
+        val startTime = System.nanoTime()
+        while (System.nanoTime() - startTime < AUDIORECORD_INIT_TIMEOUT) {
+            val recorder = AudioRecord(
+                AUDIO_SOURCE,
+                SAMPLE_RATE,
+                CHANNEL_CONFIG,
+                AUDIO_FORMAT,
+                BUFFER_SIZE
+            )
 
-        return recorder
+            if (recorder.state == AudioRecord.STATE_INITIALIZED)
+                return recorder
+
+            Thread.sleep(100)
+        }
+        throw IllegalStateException("AudioRecord failed to initialize")
     }
 
     private fun safeAudioRecordRead(recorder: AudioRecord, buf: ShortArray): Int {
@@ -90,7 +108,36 @@ class AudioRecorder {
     }
 
     fun writeAudioDataToFile() {
-        //TODO
+        var fileOutputStream = createFile()
+
+
+
+    }
+
+    fun createFileOutputStream() : FileOutputStream {
+        //Filename in a date format
+        val date = getCurrentDateTime()
+        val dateInString = date.toString("yyyy-MM-dd HH:mm:ss")
+        var filename = "${dateInString}.wav"
+
+        // Creating Recording directory if it doesn't exist
+        val recordingsDir = File("/sdcard/Recordings/")
+        if (!recordingsDir.exists()) {
+            recordingsDir.mkdirs()
+        }
+
+        // Create a File
+        val outputFile = File(recordingsDir, filename)
+        return FileOutputStream(outputFile)
+    }
+
+    fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String {
+        val formatter = SimpleDateFormat(format, locale)
+        return formatter.format(this)
+    }
+
+    fun getCurrentDateTime(): Date {
+        return Calendar.getInstance().time
     }
 
     fun stop() {
@@ -105,6 +152,8 @@ class AudioRecorder {
 
         Log.i(LOG_TAG, "Thread stopped")
     }
+
+
 }
 
 /*
@@ -123,11 +172,11 @@ private void writeAudioDataToFile(){
 
     int read = 0;
 
-    if(null != os){
+    if (null != os){
         while(isRecording){
             read = recorder.read(data, 0, bufferSize);
 
-            if(AudioRecord.ERROR_INVALID_OPERATION != read){
+            if (AudioRecord.ERROR_INVALID_OPERATION != read){
                 try {
                     os.write(data);
                 } catch (IOException e) {
