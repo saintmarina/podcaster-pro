@@ -7,6 +7,9 @@ import android.util.Log
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.ShortBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -37,20 +40,30 @@ class AudioRecorder {
 
         stopRequested = false
         thread = Thread {
+            val file = createFileOutputStream()
+
             val recorder = initRecorder()
             recorder.startRecording()
 
             val buf = ShortArray(bufSize)
             while (!stopRequested) {
                 val len = safeAudioRecordRead(recorder, buf)
-                val fileOutStream = createFileOutputStream()
-                fileOutStream.write(buf)
+
+                // Sadly, we must do a memory copy due to the endianness
+                val byteBuf = ByteBuffer.allocate(2*len)
+                    .order(ByteOrder.LITTLE_ENDIAN)
+                    .apply {
+                        asShortBuffer().put(buf, 0, len)
+                    }
+                file.channel.write(byteBuf)
 
                 peak = getPeak(buf, len)
             }
 
             recorder.stop()
             recorder.release()
+
+            file.close()
         }
         thread!!.apply {
             name = "AudioRecorder pump"
@@ -107,24 +120,14 @@ class AudioRecorder {
         return maxValue
     }
 
-    fun writeAudioDataToFile() {
-        var fileOutputStream = createFile()
-
-
-
-    }
-
     fun createFileOutputStream() : FileOutputStream {
         //Filename in a date format
         val date = getCurrentDateTime()
-        val dateInString = date.toString("yyyy-MM-dd HH:mm:ss")
-        var filename = "${dateInString}.wav"
+        val filename = date.toString("yyyy-MM-dd_HH-mm-ss.wav")
 
         // Creating Recording directory if it doesn't exist
         val recordingsDir = File("/sdcard/Recordings/")
-        if (!recordingsDir.exists()) {
-            recordingsDir.mkdirs()
-        }
+        recordingsDir.mkdirs()
 
         // Create a File
         val outputFile = File(recordingsDir, filename)
