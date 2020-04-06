@@ -13,14 +13,23 @@ import java.nio.ShortBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 
-const val AUDIO_SOURCE: Int = MediaRecorder.AudioSource.MIC
-const val SAMPLE_RATE: Int = 48000
-const val CHANNEL_CONFIG: Int = AudioFormat.CHANNEL_IN_MONO
-const val AUDIO_FORMAT: Int = AudioFormat.ENCODING_PCM_16BIT
-const val BUFFER_SIZE: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioFlinger die with error -12 (ENOMEM) error
 const val LOG_TAG = "AudioRecorder"
+const val AR_AUDIO_SOURCE: Int = MediaRecorder.AudioSource.MIC
+const val SAMPLE_RATE: Int = 48000
+const val AR_CHANNEL: Int = AudioFormat.CHANNEL_IN_MONO
+const val AR_ENCODING: Int = AudioFormat.ENCODING_PCM_16BIT
+const val AR_BUFFER_SIZE: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioFlinger die with error -12 (ENOMEM) error
+
 const val NANOS_IN_SEC: Long = 1_000_000_000
-const val AUDIORECORD_INIT_TIMEOUT: Long = 5*NANOS_IN_SEC
+const val AR_INIT_TIMEOUT: Long = 5*NANOS_IN_SEC
+
+const val HEADER_SIZE: Int = 44
+const val BITS_PER_SAMPLE: Short = 16
+const val NUM_CHANNELS: Short = 1
+
+//const val FILE_NAME_FMT: String = "yyyy-MM-dd_HH-mm-ss'.wav'"
+const val RECORDINGS_DIR_PATH: String = "/sdcard/Recordings/"
+const val FILE_NAME_FMT: String = "'test.wav'"
 
 
 class AudioRecorder {
@@ -40,29 +49,15 @@ class AudioRecorder {
 
         stopRequested = false
         thread = Thread {
-            val file = createFileOutputStream()
+            val file = createDatedFile()
+            file.channel.position(HEADER_SIZE.toLong())
 
-            val recorder = initRecorder()
-            recorder.startRecording()
+            recordAudio(file)
 
-            val buf = ShortArray(bufSize)
-            while (!stopRequested) {
-                val len = safeAudioRecordRead(recorder, buf)
+            val header = generateWavHeader(file.channel.position().toInt() - HEADER_SIZE)
+            file.channel.write(header, 0)
 
-                // Sadly, we must do a memory copy due to the endianness
-                val byteBuf = ByteBuffer.allocate(2*len)
-                    .order(ByteOrder.LITTLE_ENDIAN)
-                    .apply {
-                        asShortBuffer().put(buf, 0, len)
-                    }
-                file.channel.write(byteBuf)
-
-                peak = getPeak(buf, len)
-            }
-
-            recorder.stop()
-            recorder.release()
-
+            file.flush()
             file.close()
         }
         thread!!.apply {
@@ -71,21 +66,40 @@ class AudioRecorder {
         }
         Log.i("State", "Started!")
     }
+    private fun recordAudio (file: FileOutputStream) {
+        val recorder = initRecorder()
+        recorder.startRecording()
+
+        val buf = ShortArray(bufSize)
+        while (!stopRequested) {
+            val len = safeAudioRecordRead(recorder, buf)
+
+            // Sadly, we must do a memory copy due to the endianness
+            val byteBuf = ByteBuffer.allocate(2*len)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .apply {
+                    asShortBuffer().put(buf, 0, len)
+                }
+            file.channel.write(byteBuf)
+            peak = getPeak(buf, len)
+        }
+        recorder.stop()
+        recorder.release()
+    }
 
     private fun initRecorder(): AudioRecord {
         /*
          * Sometimes the initialization of AudioRecord fails with ENOMEM
          * So we keep trying to initialize it with a 5 second timeout
          */
-
         val startTime = System.nanoTime()
-        while (System.nanoTime() - startTime < AUDIORECORD_INIT_TIMEOUT) {
+        while (System.nanoTime() - startTime < AR_INIT_TIMEOUT) {
             val recorder = AudioRecord(
-                AUDIO_SOURCE,
+                AR_AUDIO_SOURCE,
                 SAMPLE_RATE,
-                CHANNEL_CONFIG,
-                AUDIO_FORMAT,
-                BUFFER_SIZE
+                AR_CHANNEL,
+                AR_ENCODING,
+                AR_BUFFER_SIZE
             )
 
             if (recorder.state == AudioRecord.STATE_INITIALIZED)
@@ -120,17 +134,18 @@ class AudioRecorder {
         return maxValue
     }
 
-    fun createFileOutputStream() : FileOutputStream {
+    private fun createDatedFile() : FileOutputStream {
         //Filename in a date format
         val date = getCurrentDateTime()
-        val filename = date.toString("yyyy-MM-dd_HH-mm-ss.wav")
+        val filename = date.toString(FILE_NAME_FMT)
 
         // Creating Recording directory if it doesn't exist
-        val recordingsDir = File("/sdcard/Recordings/")
+        val recordingsDir = File(RECORDINGS_DIR_PATH)
         recordingsDir.mkdirs()
 
         // Create a File
         val outputFile = File(recordingsDir, filename)
+
         return FileOutputStream(outputFile)
     }
 
@@ -156,8 +171,31 @@ class AudioRecorder {
         Log.i(LOG_TAG, "Thread stopped")
     }
 
+    private fun generateWavHeader(dataSize: Int): ByteBuffer {
+        return ByteBuffer.allocate(HEADER_SIZE)
+            .apply {
+                order(ByteOrder.LITTLE_ENDIAN)
+                putInt(0x46464952) // "RIFF"
+                putInt(dataSize + HEADER_SIZE)
+                putInt(0x45564157) // "WAVE"
+                putInt(0x20746d66) // "fmt "
+                putInt(16) // Length of format data
+                putShort(1) // PCM
+                putShort(NUM_CHANNELS)
+                putInt(SAMPLE_RATE)
+                putInt(SAMPLE_RATE * BITS_PER_SAMPLE/8 * NUM_CHANNELS)
+                putShort((BITS_PER_SAMPLE/8 * NUM_CHANNELS).toShort())
+                putShort(BITS_PER_SAMPLE)
+                putInt(0x61746164) // "data"
+                putInt(dataSize)
 
+                assert(position() == HEADER_SIZE)
+                position(0)
+            }
+    }
 }
+
+
 
 /*
 
