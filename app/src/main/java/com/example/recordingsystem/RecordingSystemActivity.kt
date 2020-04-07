@@ -13,8 +13,7 @@ const val BUF_SIZE = 1024*100
 
 class RecordingSystemActivity : AppCompatActivity() {
     val recorder = AudioRecorder()
-
-
+    private var outputFile: WavFileOutput? = null
     lateinit var mainHandler: Handler
 
     private val updateText = object: Runnable {
@@ -29,16 +28,6 @@ class RecordingSystemActivity : AppCompatActivity() {
         }
     }
 
-    /*private val updateMaxSoundBar = object: Runnable {
-        var count = 0
-        override fun run() {
-            count++
-            soundVisualizer.maxVolume = recorder.peak
-            maxSoundTextView.text = "$count"
-            mainHandler.postDelayed(this, 700)
-        }
-    }*/
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recording_system)
@@ -51,21 +40,42 @@ class RecordingSystemActivity : AppCompatActivity() {
         })
 
         btnStart.setOnClickListener {
-            if (recorder.isRecording) {
-                recorder.stop()
-                btnStart.text = "Start"
-                soundVisualizer.volume = 0
-                if (soundVisualizer.didClip) {soundVisualizer.didClip = false}
-                mainHandler.removeCallbacks(updateText)
-                //mainHandler.removeCallbacks(updateMaxSoundBar)
-            }
-            else {
-                recorder.startRecording()
-                btnStart.text = "Stop"
-                mainHandler.post(updateText)
-               // mainHandler.post(updateMaxSoundBar)
+            if (outputFile == null ) {
+                handleStart()
+            } else {
+                handleStop()
             }
         }
+
         mainHandler = Handler(Looper.getMainLooper())
+        mainHandler.post(updateText)
+    }
+    private fun handleStart() {
+        outputFile = WavFileOutput()
+        recorder.outputFile = outputFile
+        btnStart.text = "Stop"
+    }
+
+    private fun handleStop() {
+        recorder.outputFile = null
+        outputFile?.close()
+        outputFile = null
+
+        btnStart.text = "Start"
+        soundVisualizer.didClip = false
+    }
+
+    private fun handlePause() {
+        recorder.outputFile = null
+    }
+
+    private fun handleResume() {
+        recorder.outputFile = outputFile
+    }
+
+    override fun onStop() {
+        super.onStop()
+        recorder.close()
     }
 }
+
