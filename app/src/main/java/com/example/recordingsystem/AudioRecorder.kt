@@ -1,9 +1,15 @@
 package com.example.recordingsystem
 
+import android.content.Context
+import android.content.ContextWrapper
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.os.Build
 import android.util.Log
+import android.view.View
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import java.io.Closeable
 import java.io.File
 import java.io.FileNotFoundException
@@ -11,6 +17,7 @@ import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
+import java.security.AccessController.getContext
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -26,7 +33,8 @@ const val NANOS_IN_SEC: Long = 1_000_000_000
 const val INIT_TIMEOUT: Long = 5*NANOS_IN_SEC
 
 
-class AudioRecorder : Closeable {
+@RequiresApi(Build.VERSION_CODES.P)
+class AudioRecorder() : Closeable {
     private var thread: Thread
     var outputFile: WavFileOutput? = null
         @Synchronized set

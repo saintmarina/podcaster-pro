@@ -17,10 +17,11 @@ class CheckPermissionsActivity : AppCompatActivity() {
     val permissions = arrayOf(
         Manifest.permission.RECORD_AUDIO,
         Manifest.permission.READ_EXTERNAL_STORAGE,
-        Manifest.permission.WRITE_EXTERNAL_STORAGE
+        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        Manifest.permission.ACCESS_NETWORK_STATE
     )
 
-    val REQUEST_CODE: Int = 0
+    private val REQUEST_CODE: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +49,6 @@ class CheckPermissionsActivity : AppCompatActivity() {
                                             permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
             REQUEST_CODE -> {
-
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED) {
                     permission_denied.setVisibility(View.VISIBLE)
                     Toast.makeText(this, "Permission DENIED", Toast.LENGTH_SHORT).show()

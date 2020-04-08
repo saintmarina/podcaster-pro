@@ -43,6 +43,16 @@
         android:layout_marginBottom="32dp"
         android:layout_centerVertical="true"/>
 
+    <Button
+        android:id="@+id/btnPause"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="0.1"
+        android:text="Pause"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="32dp"
+        android:layout_centerVertical="true"/>
+
     <com.example.recordingsystem.SoundVisualizer
         android:id="@+id/soundVisualizer"
         android:layout_width="match_parent"
@@ -61,7 +71,19 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/maxSoundTextView"
+        android:id="@+id/powerTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/micTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/internetTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="TextView" />
