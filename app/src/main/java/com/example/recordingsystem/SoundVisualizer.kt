@@ -34,11 +34,6 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
         canvas?.let {
 
             val maxPx = DbToPx(sampleToDb(volume))
-
-            //Log.i("SoundVisualizer", "maxDb is $maxDb")
-            //Log.i("SoundVisualizer", "dB of volume is ${shortIntoDb(volume)}")
-            //Log.i("SoundVisualizer", "max is ${max}")
-            //val maxMaxVolume = (width*maxVolume)/Short.MAX_VALUE
             val spacer = 3
             val rectWidth = 7
             val fullRectWidth = spacer + rectWidth
@@ -62,7 +57,7 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
         }
     }
 
-    fun DbToPx(dB: Double): Int {
+    private fun DbToPx(dB: Double): Int {
         return (width*(MIN_DB - dB)/MIN_DB).roundToInt()
     }
 

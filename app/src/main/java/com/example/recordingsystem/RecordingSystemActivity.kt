@@ -14,9 +14,9 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
 const val BUF_SIZE = 1024*100
 // Check for Internet
 // Internet, Mic and power should go into a separate class. Like soundVisualizer class
-// Fix Clipping bug. Don't clip when not recording
+
 // Add max sound bar for the past two seconds
-// Status should of mic, power and internet should be indicated with:
+// Status of mic, power and internet should be indicated with:
 // green - when all three work
 // flashing red  - when power or internet are not working
 // warning message - when the mic is out. Stop recording before. Message should stay there until the mic is detected.
@@ -29,7 +29,7 @@ class RecordingSystemActivity : AppCompatActivity() {
     var recorder = AudioRecorder()
     private var outputFile: WavFileOutput? = null
     lateinit var mainHandler: Handler
-    private var status = StatusChecker()
+    private var statusChecker = StatusChecker()
     var context: Context = this
 
     private val updateText = object : Runnable {
@@ -39,13 +39,16 @@ class RecordingSystemActivity : AppCompatActivity() {
             count++
             peakTextView.text = "$count -- ${recorder.peak}"
             soundVisualizer.volume = recorder.peak
+            statusIndicator.mic = statusChecker.mic
+            statusIndicator.power = statusChecker.power
+            statusIndicator.internet = statusChecker.internet
             if (recorder.peak == Short.MAX_VALUE && outputFile != null) {
                 soundVisualizer.didClip = true
             }
-            // Log.i("state", "TextView updated")
-            powerTextView.text = "power = ${status.power.toString()}"
-            micTextView.text = "mic = ${status.mic.toString()}"
-            internetTextView.text = "internet = ${status.checkNetworkState(context)}"
+
+            powerTextView.text = "power = ${statusChecker.power.toString()}"
+            micTextView.text = "mic = ${statusChecker.mic.toString()}"
+            internetTextView.text = "internet = ${statusChecker.checkNetworkState(context)}"
             mainHandler.postDelayed(this, 30)
         }
     }
@@ -113,7 +116,7 @@ class RecordingSystemActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        registerReceiver(status, status.getIntentFilter())
+        registerReceiver(statusChecker, statusChecker.getIntentFilter())
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
@@ -131,13 +134,13 @@ class RecordingSystemActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        unregisterReceiver(status)
+        unregisterReceiver(statusChecker)
         mainHandler.removeCallbacks(updateText)
     }
 
     override fun onResume() {
         super.onResume()
-        registerReceiver(status, status.getIntentFilter())
+        registerReceiver(statusChecker, statusChecker.getIntentFilter())
         mainHandler.post(updateText)
     }
 }

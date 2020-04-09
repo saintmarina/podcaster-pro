@@ -9,14 +9,12 @@ import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat.getSystemService
-import java.net.InetAddress
-
 
 class StatusChecker(): BroadcastReceiver() {
     var power: Boolean = false
     var mic: Boolean = false
     var internet: Boolean = false
+
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -45,7 +43,7 @@ class StatusChecker(): BroadcastReceiver() {
 
     @RequiresApi(Build.VERSION_CODES.M)
     fun checkNetworkState(context: Context): Boolean {
-        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = connectivityManager.activeNetwork ?: return false
         val actNw = connectivityManager.getNetworkCapabilities(network) ?: return false
         return when {

@@ -1,92 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:layout_centerHorizontal="true"
     tools:context=".RecordingSystemActivity">
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager2"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.3"/>
+        android:layout_height="375dp">
+    </androidx.viewpager2.widget.ViewPager2>
+
+    <TableRow
+        android:id="@+id/title_row"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="2"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/view_pager2"
+        android:paddingRight="200dp"
+        android:paddingLeft="200dp">
+
+        <TextView
+            android:id="@+id/textview_sound_recorder_heading"
+            android:text="Sound Recorder"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.5"
+            android:textColor="#000"
+            android:textSize="40sp"
+            android:textStyle="bold" />
+
+        <com.example.recordingsystem.StatusIndicator
+            android:id="@+id/statusIndicator"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5" />
+    </TableRow>
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/currentItem"
-        android:textSize="@android:dimen/notification_large_icon_width"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.1"/>
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/title_row"
+        android:layout_centerHorizontal="true"
+        android:textSize="30sp" />
 
     <TextView
-        android:id="@+id/textview_sound_recorder_heading"
+        android:id="@+id/internetTextView"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="0.1"
-        android:text="Sound Recorder"
+        android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:textSize="32dp"
-        android:textStyle="bold"
-        android:textColor="#000"
-        android:layout_marginTop="32dp"
-        />
+        android:textSize="30sp"
+        android:layout_below="@+id/currentItem"/>
 
-    <Button
-        android:id="@+id/btnStart"
+    <TextView
+        android:id="@+id/powerTextView"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="0.1"
-        android:text="Start"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="32dp"
-        android:layout_centerVertical="true"/>
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:textSize="30sp"
+        android:layout_below="@+id/internetTextView" />
 
-    <Button
-        android:id="@+id/btnPause"
+    <TextView
+        android:id="@+id/micTextView"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="0.1"
-        android:text="Pause"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="32dp"
-        android:layout_centerVertical="true"/>
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:textSize="30sp"
+        android:layout_below="@+id/powerTextView" />
 
     <com.example.recordingsystem.SoundVisualizer
         android:id="@+id/soundVisualizer"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.02"/>
-
-
+        android:layout_height="45dp"
+        android:layout_above="@+id/peakTextView"/>
 
     <TextView
         android:id="@+id/peakTextView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.1"
-        android:text="TextView"
-        android:textSize="36sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/powerTextView"
-        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TextView" />
+        android:textSize="30dp"
+        android:layout_above="@+id/button_row"/>
 
-    <TextView
-        android:id="@+id/micTextView"
-        android:layout_width="match_parent"
+    <TableRow
+        android:id="@+id/button_row"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="TextView" />
+        android:weightSum="2"
+        android:layout_alignParentBottom="true">
 
-    <TextView
-        android:id="@+id/internetTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="TextView" />
+        <Button
+            android:id="@+id/btnStart"
+            android:text="Start"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="30dp" />
+
+        <Button
+            android:id="@+id/btnPause"
+            android:text="Pause"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="30dp" />
+    </TableRow>
 
 
-</LinearLayout>
+</RelativeLayout>
