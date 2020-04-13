@@ -103,11 +103,10 @@ class RecordingSystemActivity : AppCompatActivity() {
         noMicPopup = NoMicPopup(window.decorView.rootView)
 
         statusChecker.onChange = {
-            powerTextView.text = "power = ${it.power.toString()}"
-            micTextView.text = "mic = ${it.mic.toString()}"
-            internetTextView.text = "internet = ${it.internet}"
+            statusIndicator.internet = it.internet
+            statusIndicator.power = it.power
 
-            noMicPopup?.isMicPresent = it.mic
+           // noMicPopup?.isMicPresent = it.mic
             /* TODO Stop recording if !mic and we are recording */
         }
 

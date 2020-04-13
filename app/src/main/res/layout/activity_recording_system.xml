@@ -18,7 +18,6 @@
         android:id="@+id/title_row"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:weightSum="2"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/view_pager2"
         android:paddingRight="200dp"
@@ -26,52 +25,21 @@
 
         <TextView
             android:id="@+id/textview_sound_recorder_heading"
-            android:text="Sound Recorder"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1.5"
+            android:text="Sound Recorder"
             android:textColor="#000"
             android:textSize="40sp"
             android:textStyle="bold" />
 
-        <com.example.recordingsystem.StatusIndicator
-            android:id="@+id/statusIndicator"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5" />
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/currentItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:textSize="30sp" />
+
     </TableRow>
-
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/currentItem"
-        android:layout_width="60dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/title_row"
-        android:layout_centerHorizontal="true"
-        android:textSize="30sp" />
-
-    <TextView
-        android:id="@+id/internetTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:textSize="30sp"
-        android:layout_below="@+id/currentItem"/>
-
-    <TextView
-        android:id="@+id/powerTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:textSize="30sp"
-        android:layout_below="@+id/internetTextView" />
-
-    <TextView
-        android:id="@+id/micTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:textSize="30sp"
-        android:layout_below="@+id/powerTextView" />
 
     <com.example.recordingsystem.SoundVisualizer
         android:id="@+id/soundVisualizer"
@@ -84,7 +52,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="30dp"
-        android:layout_above="@+id/button_row"/>
+        android:layout_above="@+id/status_row"
+        />
+
+    <TableRow
+        android:id="@+id/status_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/button_row">
+
+        <com.example.recordingsystem.StatusIndicator
+            android:id="@+id/statusIndicator"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_above="@+id/button_row"
+            />
+
+        <TextView
+            android:id="@+id/statusTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:textSize="30sp"
+            android:layout_toRightOf="@+id/statusIndicator" />
+
+    </TableRow>
 
     <TableRow
         android:id="@+id/button_row"
