@@ -1,36 +1,35 @@
 package com.example.recordingsystem
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.*
-import android.util.Log
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import kotlinx.android.synthetic.main.activity_recording_system.*
 
 
-const val BUF_SIZE = 1024*100
-// Check for Internet
-// Internet, Mic and power should go into a separate class. Like soundVisualizer class
+// Make sure that the sound recorded on software on the device is the same as recorded on tablet
+// Status power and internet should be indicated with one indicator. Add text on the side when something is wrong
+// App should keep recording in the background, when killed. Possibly need background service.
+// Play sounds when start or stop recording
+// Implement a timer. OnStop, stop the time and leave the time of a recording for 5 minutes. Make the timer blink onPause.
+// 3 hours max recording.
+// Order usbhub "Passthrough power"
+// Case for tablet and a stand
+// Focusrite Dual with 48V button pressable in
 
+// Sound notification when recording time reached 2:45 hrs
 // Add max sound bar for the past two seconds
-// Status of mic, power and internet should be indicated with:
-// green - when all three work
-// flashing red  - when power or internet are not working
-// warning message - when the mic is out. Stop recording before. Message should stay there until the mic is detected.
-// add onPause/onResume lifecycle elements. App should preserve state and keep running in the background
-
-
+// Card view instead of viewPager2
 
 class RecordingSystemActivity : AppCompatActivity() {
-    @RequiresApi(Build.VERSION_CODES.P)
-    var recorder = AudioRecorder()
+    lateinit var recorder: AudioRecorder
+    lateinit var visualizerTimer: Handler
     private var outputFile: WavFileOutput? = null
-    lateinit var mainHandler: Handler
     private var statusChecker = StatusChecker()
-    var context: Context = this
+    private var noMicPopup: NoMicPopup? = null
 
     private val updateText = object : Runnable {
         var count = 0
@@ -39,22 +38,41 @@ class RecordingSystemActivity : AppCompatActivity() {
             count++
             peakTextView.text = "$count -- ${recorder.peak}"
             soundVisualizer.volume = recorder.peak
-            statusIndicator.mic = statusChecker.mic
-            statusIndicator.power = statusChecker.power
-            statusIndicator.internet = statusChecker.internet
             if (recorder.peak == Short.MAX_VALUE && outputFile != null) {
                 soundVisualizer.didClip = true
             }
-
-            powerTextView.text = "power = ${statusChecker.power.toString()}"
-            micTextView.text = "mic = ${statusChecker.mic.toString()}"
-            internetTextView.text = "internet = ${statusChecker.checkNetworkState(context)}"
-            mainHandler.postDelayed(this, 30)
+            visualizerTimer.postDelayed(this, 30)
         }
     }
 
+    private fun handleStart() {
+        outputFile = WavFileOutput()
+        recorder.outputFile = outputFile
+        btnStart.text = "Stop"
+    }
 
-    @RequiresApi(Build.VERSION_CODES.M)
+    private fun handleStop() {
+        recorder.outputFile = null
+        outputFile?.close()
+        outputFile = null
+
+        btnStart.text = "Start"
+        soundVisualizer.didClip = false
+    }
+
+    private fun handlePause() {
+        recorder.outputFile = null
+        btnPause.text = "Resume"
+    }
+
+    private fun handleResume() {
+        recorder.outputFile = outputFile
+        btnPause.text = "Pause"
+    }
+
+    // Lifecycle methods
+
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recording_system)
@@ -82,66 +100,31 @@ class RecordingSystemActivity : AppCompatActivity() {
             }
         }
 
-        mainHandler = Handler(Looper.getMainLooper())
-        mainHandler.post(updateText)
-    }
+        noMicPopup = NoMicPopup(window.decorView.rootView)
 
-    private fun handleStart() {
-        outputFile = WavFileOutput()
-        recorder.outputFile = outputFile
-        btnStart.text = "Stop"
-    }
+        statusChecker.onChange = {
+            powerTextView.text = "power = ${it.power.toString()}"
+            micTextView.text = "mic = ${it.mic.toString()}"
+            internetTextView.text = "internet = ${it.internet}"
 
-    private fun handleStop() {
-        recorder.outputFile = null
-        outputFile?.close()
-        outputFile = null
+            noMicPopup?.isMicPresent = it.mic
+            /* TODO Stop recording if !mic and we are recording */
+        }
 
-        btnStart.text = "Start"
-        soundVisualizer.didClip = false
-    }
-
-    private fun handlePause() {
-        recorder.outputFile = null
-        btnPause.text = "Resume"
-
-    }
-
-    private fun handleResume() {
-        recorder.outputFile = outputFile
-        btnPause.text = "Pause"
-    }
-
-    // Lifecycle methods
-
-    override fun onStart() {
-        super.onStart()
-        registerReceiver(statusChecker, statusChecker.getIntentFilter())
-    }
-
-    @RequiresApi(Build.VERSION_CODES.P)
-    override fun onStop() {
-        super.onStop()
-        recorder.close()
-
-    }
-
-    @RequiresApi(Build.VERSION_CODES.P)
-    override fun onRestart() {
-        super.onRestart()
+        visualizerTimer = Handler(Looper.getMainLooper())
         recorder = AudioRecorder()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        unregisterReceiver(statusChecker)
-        mainHandler.removeCallbacks(updateText)
     }
 
     override fun onResume() {
         super.onResume()
-        registerReceiver(statusChecker, statusChecker.getIntentFilter())
-        mainHandler.post(updateText)
+        statusChecker.startMonitoring(this)
+        visualizerTimer.post(updateText)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        statusChecker.stopMonitoring(this)
+        visualizerTimer.removeCallbacks(updateText)
     }
 }
 

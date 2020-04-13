@@ -8,17 +8,31 @@ import android.util.AttributeSet
 import android.view.View
 
 class StatusIndicator(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
-    private val painterGreen = Paint().apply { color = Color.parseColor("#32CD32"); isAntiAlias =
-        true }
-    private val painterOrange = Paint().apply { color = Color.parseColor("#FC6A03"); isAntiAlias =
-        true }
-    private val painterRed = Paint().apply { color = Color.parseColor("#FF0000"); isAntiAlias =
-        true }
+    private val painterGreen = Paint().apply {
+        color = Color.parseColor("#32CD32")
+        isAntiAlias = true }
+    private val painterOrange = Paint().apply {
+        color = Color.parseColor("#FC6A03")
+        isAntiAlias = true }
+    private val painterRed = Paint().apply {
+        color = Color.parseColor("#FF0000")
+        isAntiAlias = true }
 
     var power: Boolean = false
+        set(value) {
+            field = value
+            invalidate()
+        }
     var mic: Boolean = false
+        set(value) {
+            field = value
+            invalidate()
+        }
     var internet: Boolean = false
-
+        set(value) {
+            field = value
+            invalidate()
+        }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)

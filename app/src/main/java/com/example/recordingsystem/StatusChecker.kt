@@ -8,48 +8,56 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 
+
 class StatusChecker(): BroadcastReceiver() {
-    var power: Boolean = false
-    var mic: Boolean = false
-    var internet: Boolean = false
+    var power: Boolean = true
+    var mic: Boolean = true
+    var internet: Boolean = true
+    var onChange: ((StatusChecker) -> Unit)? = null
 
+    fun startMonitoring(context: Context) {
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_BATTERY_CHANGED)
+            addAction(Intent.ACTION_HEADSET_PLUG)
+        }
+        context.registerReceiver(this, filter)
+    }
 
+    fun stopMonitoring(context: Context) {
+        context.unregisterReceiver(this)
+    }
+
+    /* TODO We are not getting the headset plug intent on emulator ? */
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onReceive(context: Context?, intent: Intent?) {
-        internet = checkNetworkState(context!!)
+        context?.let { internet = isInternetWorking(it) }
 
         when (intent?.action) {
             Intent.ACTION_BATTERY_CHANGED -> {
                 val status: Int = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-                val isCharging: Boolean = status == BatteryManager.BATTERY_STATUS_CHARGING
-                        || status == BatteryManager.BATTERY_STATUS_FULL
-                power = isCharging
+                power = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                        status == BatteryManager.BATTERY_STATUS_FULL
             }
             Intent.ACTION_HEADSET_PLUG -> {
-                var state: Int =  intent.getIntExtra("state", 4);
+                val state: Int =  intent.getIntExtra("state", -1);
                 mic = state == 1
             }
         }
-    }
 
-    fun getIntentFilter(): IntentFilter {
-        return IntentFilter().apply {
-            addAction(Intent.ACTION_BATTERY_CHANGED)
-            addAction(Intent.ACTION_HEADSET_PLUG)
-        }
+        Log.i("Intent", "Getting: $intent")
+
+        onChange?.invoke(this)
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    fun checkNetworkState(context: Context): Boolean {
+    private fun isInternetWorking(context: Context): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = connectivityManager.activeNetwork ?: return false
-        val actNw = connectivityManager.getNetworkCapabilities(network) ?: return false
-        return when {
-            actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-            else -> false
-        }
-    }
 
+        val network = connectivityManager.activeNetwork ?: return false
+        return connectivityManager.getNetworkCapabilities(network)
+            ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
+    }
 }
