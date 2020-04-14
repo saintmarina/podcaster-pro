@@ -5,17 +5,16 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import kotlinx.android.synthetic.main.activity_recording_system.*
 
+
 // Make sure that the sound recorded on software on the device is the same as recorded on tablet
 // App should keep recording in the background, when killed. Possibly need background service.
-// Make the timer blink onPause.
 // 3 hours max recording.
-// Order usbhub "Passthrough power"
+
 // Case for tablet and a stand
 // Focusrite Dual with 48V button pressable in
 
@@ -23,15 +22,21 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
 // Add max sound bar for the past two seconds
 // Card view instead of viewPager2
 
+const val MILLIS_DELAY: Long = 30
+
 class RecordingSystemActivity : AppCompatActivity() {
     lateinit var recorder: AudioRecorder
     lateinit var visualizerTimer: Handler
     private var outputFile: WavFileOutput? = null
     private var statusChecker = StatusChecker()
     private var noMicPopup: NoMicPopup? = null
-    private var startSound: MediaPlayer? = null
-    private var stopSound: MediaPlayer? = null
+    private lateinit var soundEffect: SoundEffect
+
     private lateinit var chronoMeter: CMeter
+    var timer = RecordingTimeOut()
+
+
+
     private var stopped = false
     private var pausePressed = false
     private var recordingStarted = false
@@ -49,13 +54,13 @@ class RecordingSystemActivity : AppCompatActivity() {
             if (stopped) {
                 if (chronoMeter?.maybeResetToZero()) stopped  = false
             }
-            visualizerTimer.postDelayed(this, 30)
+            visualizerTimer.postDelayed(this, MILLIS_DELAY)
         }
     }
 
-    private fun handleStart() {
-        startSound = MediaPlayer.create(this, R.raw.start_recording)
-        startSound!!.start()
+
+    private fun handleStart() { // Yes
+        soundEffect.playStartSound()
 
         recordingStarted = true
         stopped = false
@@ -65,13 +70,12 @@ class RecordingSystemActivity : AppCompatActivity() {
         recorder.outputFile = outputFile
 
         btnStart.text = "Stop"
+
+        timer.startTimer({ handleStop() })
     }
 
-    private fun handleStop() {
-        if (stopSound == null) {
-            stopSound = MediaPlayer.create(this, R.raw.stop_recording)
-        }
-        stopSound!!.start()
+    private fun handleStop() { // Yes
+        soundEffect.playStopSound()
 
         chronoMeter.stopChronometer()
         stopped = true
@@ -83,28 +87,30 @@ class RecordingSystemActivity : AppCompatActivity() {
 
         btnStart.text = "Start"
         soundVisualizer.didClip = false
+
+        timer.stopTimer()
     }
 
     private fun handlePause() {
-        if (stopSound == null) {
-            stopSound = MediaPlayer.create(this, R.raw.stop_recording)
-        }
-        stopSound!!.start()
+        soundEffect.playStopSound()
 
         chronoMeter.pauseChronometer()
 
         recorder.outputFile = null
         btnPause.text = "Resume"
+
+        timer.stopTimer()
     }
 
     private fun handleResume() {
-        if (startSound != null)
-            startSound!!.start()
+        soundEffect.playStartSound()
 
         chronoMeter.resumeChronometer()
 
         recorder.outputFile = outputFile
         btnPause.text = "Pause"
+
+        timer.startTimer({ handleStop() }, chronoMeter.getCurTime())
     }
 
     // Lifecycle methods
@@ -124,7 +130,6 @@ class RecordingSystemActivity : AppCompatActivity() {
         btnStart.setOnClickListener {
             if (outputFile == null) {
                 handleStart()
-
             } else {
                 handleStop()
             }
@@ -155,6 +160,7 @@ class RecordingSystemActivity : AppCompatActivity() {
 
         chronoMeter = CMeter(c_meter)
         visualizerTimer = Handler(Looper.getMainLooper())
+        soundEffect = SoundEffect(this)
         recorder = AudioRecorder()
     }
 
@@ -173,8 +179,7 @@ class RecordingSystemActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        startSound!!.release()
-        stopSound!!.release()
+        soundEffect.releaseSoundEffects()
     }
 }
 

@@ -8,7 +8,7 @@ import android.os.SystemClock
 import android.util.Log
 import android.widget.Chronometer
 
-class CMeter(c_meter: Chronometer){
+class CMeter(c_meter: Chronometer) {
     private var timeWhenStopped: Long = 0
     private var chronometer: Chronometer = c_meter
     private var isRecording: Boolean = false
@@ -70,5 +70,9 @@ class CMeter(c_meter: Chronometer){
             return true
         }
         return false
+    }
+
+    public fun getCurTime(): Long {
+        return SystemClock.elapsedRealtime() - chronometer.base
     }
 }
