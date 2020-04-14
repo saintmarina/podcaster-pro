@@ -41,6 +41,14 @@
 
     </TableRow>
 
+    <Chronometer
+        android:id="@+id/c_meter"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/soundVisualizer"
+        android:textSize="100dp"/>
+
     <com.example.recordingsystem.SoundVisualizer
         android:id="@+id/soundVisualizer"
         android:layout_width="match_parent"

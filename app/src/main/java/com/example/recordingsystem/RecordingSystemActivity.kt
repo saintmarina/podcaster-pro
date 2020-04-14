@@ -1,20 +1,19 @@
 package com.example.recordingsystem
 
+import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import kotlinx.android.synthetic.main.activity_recording_system.*
 
-
 // Make sure that the sound recorded on software on the device is the same as recorded on tablet
-// Status power and internet should be indicated with one indicator. Add text on the side when something is wrong
 // App should keep recording in the background, when killed. Possibly need background service.
-// Play sounds when start or stop recording
-// Implement a timer. OnStop, stop the time and leave the time of a recording for 5 minutes. Make the timer blink onPause.
+// Make the timer blink onPause.
 // 3 hours max recording.
 // Order usbhub "Passthrough power"
 // Case for tablet and a stand
@@ -30,6 +29,12 @@ class RecordingSystemActivity : AppCompatActivity() {
     private var outputFile: WavFileOutput? = null
     private var statusChecker = StatusChecker()
     private var noMicPopup: NoMicPopup? = null
+    private var startSound: MediaPlayer? = null
+    private var stopSound: MediaPlayer? = null
+    private lateinit var chronoMeter: CMeter
+    private var stopped = false
+    private var pausePressed = false
+    private var recordingStarted = false
 
     private val updateText = object : Runnable {
         var count = 0
@@ -41,17 +46,37 @@ class RecordingSystemActivity : AppCompatActivity() {
             if (recorder.peak == Short.MAX_VALUE && outputFile != null) {
                 soundVisualizer.didClip = true
             }
+            if (stopped) {
+                if (chronoMeter?.maybeResetToZero()) stopped  = false
+            }
             visualizerTimer.postDelayed(this, 30)
         }
     }
 
     private fun handleStart() {
+        startSound = MediaPlayer.create(this, R.raw.start_recording)
+        startSound!!.start()
+
+        recordingStarted = true
+        stopped = false
+        chronoMeter.startChronometer()
+
         outputFile = WavFileOutput()
         recorder.outputFile = outputFile
+
         btnStart.text = "Stop"
     }
 
     private fun handleStop() {
+        if (stopSound == null) {
+            stopSound = MediaPlayer.create(this, R.raw.stop_recording)
+        }
+        stopSound!!.start()
+
+        chronoMeter.stopChronometer()
+        stopped = true
+        recordingStarted = false
+
         recorder.outputFile = null
         outputFile?.close()
         outputFile = null
@@ -61,11 +86,23 @@ class RecordingSystemActivity : AppCompatActivity() {
     }
 
     private fun handlePause() {
+        if (stopSound == null) {
+            stopSound = MediaPlayer.create(this, R.raw.stop_recording)
+        }
+        stopSound!!.start()
+
+        chronoMeter.pauseChronometer()
+
         recorder.outputFile = null
         btnPause.text = "Resume"
     }
 
     private fun handleResume() {
+        if (startSound != null)
+            startSound!!.start()
+
+        chronoMeter.resumeChronometer()
+
         recorder.outputFile = outputFile
         btnPause.text = "Pause"
     }
@@ -80,23 +117,29 @@ class RecordingSystemActivity : AppCompatActivity() {
         view_pager2.adapter = ViewPagerAdapter()
         view_pager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                currentItem.setText((view_pager2.currentItem).toString())
+                currentItem.text = (view_pager2.currentItem).toString()
             }
         })
 
         btnStart.setOnClickListener {
             if (outputFile == null) {
                 handleStart()
+
             } else {
                 handleStop()
             }
         }
 
         btnPause.setOnClickListener {
-            if (recorder.outputFile != null) {
-                handlePause()
-            } else {
-                handleResume()
+            when {
+                (outputFile != null && recordingStarted && !pausePressed) -> {
+                    handlePause()
+                    pausePressed = true
+                }
+                (outputFile != null && recordingStarted && pausePressed) -> {
+                    handleResume()
+                    pausePressed = false
+                }
             }
         }
 
@@ -106,13 +149,15 @@ class RecordingSystemActivity : AppCompatActivity() {
             statusIndicator.internet = it.internet
             statusIndicator.power = it.power
 
-           // noMicPopup?.isMicPresent = it.mic
+           // noMicPopup?.isMicPresent = it.mic // Comment this line out if app needs to be tested on a Tablet
             /* TODO Stop recording if !mic and we are recording */
         }
 
+        chronoMeter = CMeter(c_meter)
         visualizerTimer = Handler(Looper.getMainLooper())
         recorder = AudioRecorder()
     }
+
 
     override fun onResume() {
         super.onResume()
@@ -124,6 +169,12 @@ class RecordingSystemActivity : AppCompatActivity() {
         super.onPause()
         statusChecker.stopMonitoring(this)
         visualizerTimer.removeCallbacks(updateText)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        startSound!!.release()
+        stopSound!!.release()
     }
 }
 

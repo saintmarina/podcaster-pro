@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Recording system</string>
-    <string name="lorem_ipsum">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce fringilla sollicitudin convallis. Etiam finibus in sem sed ultricies. Aliquam vel velit at nibh hendrerit hendrerit ut eu urna. Quisque elementum volutpat quam, a pellentesque neque malesuada at. Duis erat odio, vestibulum dictum imperdiet quis, commodo et purus. .</string>
     <string name="DeniedPermission">Permission denied</string>
     <string name="DeniePermissionMessage">Essential permissions were dennied. Without these permissions the app won\'t be able to operate as intended. </string>
 </resources>
