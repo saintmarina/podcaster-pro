@@ -18,7 +18,8 @@ class CheckPermissionsActivity : AppCompatActivity() {
         Manifest.permission.RECORD_AUDIO,
         Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.ACCESS_NETWORK_STATE
+        Manifest.permission.ACCESS_NETWORK_STATE,
+        Manifest.permission.FOREGROUND_SERVICE
     )
 
     private val REQUEST_CODE: Int = 0

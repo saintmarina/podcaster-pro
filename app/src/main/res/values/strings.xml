@@ -2,4 +2,7 @@
     <string name="app_name">Recording system</string>
     <string name="DeniedPermission">Permission denied</string>
     <string name="DeniePermissionMessage">Essential permissions were dennied. Without these permissions the app won\'t be able to operate as intended. </string>
+    <string name="channel_name">Recording System</string>
+    <string name="channel_description">Recording an audio</string>
+    <string name="lbl_btn_sticky_notification_open_app">Open Application</string>
 </resources>

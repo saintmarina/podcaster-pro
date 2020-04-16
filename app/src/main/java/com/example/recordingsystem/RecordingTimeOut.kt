@@ -2,7 +2,7 @@ package com.example.recordingsystem
 
 import java.util.*
 
-const val MAX_RECORDING_TIME: Long = 5000//3 * (1000 * 60 * 60) // 3 hours
+const val MAX_RECORDING_TIME: Long = 3 * (1000 * 60 * 60) // 3 hours 5000//
 
 class RecordingTimeOut {
     var timer: Timer? = null
