@@ -50,7 +50,6 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                     rootView.statusTextView.text = "All good."
                 }
             }
-
             it.drawCircle(x, y, radius, paint);
         }
     }

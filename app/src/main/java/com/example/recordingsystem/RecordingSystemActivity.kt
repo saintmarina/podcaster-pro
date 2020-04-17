@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
@@ -27,19 +28,15 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
 const val MILLIS_DELAY: Long = 30
 
 class RecordingSystemActivity : AppCompatActivity() {
-    private var recorder: AudioRecorder? = null
-    private var visualizerTimer: Handler? = null
+    private lateinit var recorder: AudioRecorder
+    private lateinit var chronoMeter: ChronoMeter
+    private lateinit var volumeBarTimer: Handler
+    private lateinit var soundEffect: SoundEffect
+
+
     private var outputFile: WavFileOutput? = null
     private var statusChecker = StatusChecker()
     private var noMicPopup: NoMicPopup? = null
-    private  var soundEffect: SoundEffect? = null
-
-    private var notificationButtonClickReceiver: NotificationButtonClickReceiver? = null
-
-    private var chronoMeter: CMeter? = null
-    private var timer:RecordingTimeOut? = null
-
-
 
     private var isRecording = false
     private var pausePressed = false
@@ -50,76 +47,69 @@ class RecordingSystemActivity : AppCompatActivity() {
         override fun run() {
             count++
             peakTextView.text = "$count -- ${recorder!!.peak}"
-            soundVisualizer.volume = recorder!!.peak
-            if (recorder!!.peak == Short.MAX_VALUE && outputFile != null) {
+            soundVisualizer.volume = recorder.peak
+            if (recorder.peak == Short.MAX_VALUE && outputFile != null) {
                 soundVisualizer.didClip = true
             }
             if (!isRecording) {
-                if (chronoMeter!!.maybeResetToZero()) isRecording  = true
+                if (chronoMeter.maybeResetToZero()) isRecording  = true
             }
-            visualizerTimer!!.postDelayed(this, MILLIS_DELAY)
+            volumeBarTimer.postDelayed(this, MILLIS_DELAY)
         }
     }
 
     private fun handleStart() {
-        soundEffect!!.playStartSound()
-
         isRecording = true
-        chronoMeter!!.startChronometer()
+        soundEffect.playStartSound()
+
+        chronoMeter.startChronometer { handleStop() }
 
         outputFile = WavFileOutput()
-        recorder!!.outputFile = outputFile
+        recorder.outputFile = outputFile
 
         btnStart.text = "Stop"
 
-        timer!!.startTimer({ handleStop() })
-
-        var serviceIntent = Intent(this, ForegroundService::class.java)
+        // Start Foreground Service. The app won't get killed while recording.
+        val serviceIntent = Intent(this, ForegroundService::class.java)
         startService(serviceIntent)
-
     }
 
     private fun handleStop() {
-        soundEffect!!.playStopSound()
-
-        chronoMeter!!.stopChronometer()
         isRecording = false
+        soundEffect.playStopSound()
 
-        recorder!!.outputFile = null
+        chronoMeter.stopChronometer()
+
+        recorder.outputFile = null
         outputFile?.close()
         outputFile = null
 
         btnStart.text = "Start"
         soundVisualizer.didClip = false
 
-        timer!!.stopTimer()
-
-        var serviceIntent = Intent(this, ForegroundService::class.java)
+        // Stop Foreground Service.
+        val serviceIntent = Intent(this, ForegroundService::class.java)
         stopService(serviceIntent)
     }
 
     private fun handlePause() {
-        soundEffect!!.playStopSound()
-
-        chronoMeter!!.pauseChronometer()
         pausePressed = true
+        soundEffect.playStopSound()
 
-        recorder!!.outputFile = null
+        chronoMeter.pauseChronometer()
+
+        recorder.outputFile = null
         btnPause.text = "Resume"
-
-        timer!!.stopTimer()
     }
 
     private fun handleResume() {
-        soundEffect!!.playStartSound()
-
-        chronoMeter!!.resumeChronometer()
         pausePressed = false
+        soundEffect.playStartSound()
 
-        recorder!!.outputFile = outputFile
+        chronoMeter.resumeChronometer { handleStop() }
+
+        recorder.outputFile = outputFile
         btnPause.text = "Pause"
-
-        timer!!.startTimer({ handleStop() }, chronoMeter!!.getCurTime())
     }
 
     // Lifecycle methods
@@ -142,8 +132,6 @@ class RecordingSystemActivity : AppCompatActivity() {
             } else {
                 handleStop()
             }
-            var btnStartIntent = Intent(this, ForegroundService::class.java)
-            btnStartIntent.putExtra("start_recording", "start_stop")
         }
 
         btnPause.setOnClickListener {
@@ -155,47 +143,40 @@ class RecordingSystemActivity : AppCompatActivity() {
             }
         }
 
-
-
-       // notificationButtonClickReceiver.onChange = {
-
-        //}
-
         noMicPopup = NoMicPopup(window.decorView.rootView)
         statusChecker.onChange = {
             statusIndicator.internet = it.internet
             statusIndicator.power = it.power
 
-            //noMicPopup?.isMicPresent = it.mic // Comment this line out if app needs to be tested on a Tablet
+            //noMicPopup?.isMicPresent = it.mic // Comment this line out if app needs to be tested on a Tablet without mic
             if (!noMicPopup!!.isMicPresent && isRecording) {
                 handleStop()
+                Toast.makeText(this, "Recording was stopped. Connect the microphone and start again.", Toast.LENGTH_LONG).show()
             }
         }
 
-        if (recorder == null) recorder = AudioRecorder()
-        if (chronoMeter == null) chronoMeter = CMeter(c_meter)
-        if (visualizerTimer == null) visualizerTimer = Handler(Looper.getMainLooper())
-        if (soundEffect == null) soundEffect = SoundEffect(this)
-
-        if (timer == null) timer = RecordingTimeOut()
+        recorder = AudioRecorder()
+        chronoMeter = ChronoMeter(c_meter)
+        volumeBarTimer = Handler(Looper.getMainLooper())
+        soundEffect = SoundEffect(this)
     }
 
 
     override fun onResume() {
         super.onResume()
         statusChecker.startMonitoring(this)
-        visualizerTimer!!.post(updateText)
+        volumeBarTimer.post(updateText)
     }
 
     override fun onPause() {
         super.onPause()
         statusChecker.stopMonitoring(this)
-        visualizerTimer!!.removeCallbacks(updateText)
+        volumeBarTimer.removeCallbacks(updateText)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-      //restore   soundEffect.releaseSoundEffects()
+        soundEffect.releaseSoundEffects()
     }
 }
 

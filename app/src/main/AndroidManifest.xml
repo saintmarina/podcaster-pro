@@ -32,11 +32,6 @@
             </intent-filter>
         </activity>
         <receiver android:name=".StatusChecker" />
-        <receiver android:name=".NotificationButtonClickReceiver">
-            <intent-filter>
-                <action android:name="buttonClicked"/>
-            </intent-filter>
-        </receiver>
         <service android:name=".ForegroundService"
                  android:stopWithTask="false"
                  android:exported="false" />

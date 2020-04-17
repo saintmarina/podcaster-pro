@@ -30,7 +30,6 @@ class StatusChecker(): BroadcastReceiver() {
         context.unregisterReceiver(this)
     }
 
-    /* TODO We are not getting the headset plug intent on emulator ? */
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onReceive(context: Context?, intent: Intent?) {
         context?.let { internet = isInternetWorking(it) }
@@ -46,9 +45,6 @@ class StatusChecker(): BroadcastReceiver() {
                 mic = state == 1
             }
         }
-
-        Log.i("Intent", "Getting: $intent")
-
         onChange?.invoke(this)
     }
 
