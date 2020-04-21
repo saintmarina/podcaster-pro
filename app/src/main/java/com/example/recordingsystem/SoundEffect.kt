@@ -22,8 +22,8 @@ class SoundEffect(val context: Context) {
     }
 
     fun releaseSoundEffects() {
-        startSound!!.release()
-        stopSound!!.release()
+        startSound?.release()
+        stopSound?.release()
     }
 
 

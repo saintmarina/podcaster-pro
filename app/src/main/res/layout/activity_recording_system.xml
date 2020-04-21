@@ -40,13 +40,14 @@
 
     </TableRow>
 
-    <Chronometer
-        android:id="@+id/c_meter"
-        android:gravity="center"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/timer"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/soundVisualizer"
-        android:textSize="100dp"/>
+        android:gravity="center"
+        android:textColor="@android:color/black"
+        android:textSize="100dp" />
 
     <com.example.recordingsystem.SoundVisualizer
         android:id="@+id/soundVisualizer"

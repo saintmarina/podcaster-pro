@@ -1,16 +1,21 @@
 package com.example.recordingsystem
 
+import android.animation.ArgbEvaluator
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.media.MediaPlayer
+import android.content.ServiceConnection
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.IBinder
+import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationCompat
 import androidx.viewpager2.widget.ViewPager2
 import kotlinx.android.synthetic.main.activity_recording_system.*
 
@@ -25,158 +30,204 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
 // Add max sound bar for the past two seconds
 // Card view instead of viewPager2
 
-const val MILLIS_DELAY: Long = 30
+class RecordingSystemActivity : AppCompatActivity(), ForegroundService.Callbacks {
+    lateinit var fService: ForegroundService
 
-class RecordingSystemActivity : AppCompatActivity() {
-    private lateinit var recorder: AudioRecorder
-    private lateinit var chronoMeter: ChronoMeter
-    private lateinit var volumeBarTimer: Handler
-    private lateinit var soundEffect: SoundEffect
-
-
-    private var outputFile: WavFileOutput? = null
     private var statusChecker = StatusChecker()
     private var noMicPopup: NoMicPopup? = null
-
-    private var isRecording = false
-    private var pausePressed = false
-
-    private val updateText = object : Runnable {
-        var count = 0
-        @RequiresApi(Build.VERSION_CODES.M)
-        override fun run() {
-            count++
-            peakTextView.text = "$count -- ${recorder!!.peak}"
-            soundVisualizer.volume = recorder.peak
-            if (recorder.peak == Short.MAX_VALUE && outputFile != null) {
-                soundVisualizer.didClip = true
-            }
-            if (!isRecording) {
-                if (chronoMeter.maybeResetToZero()) isRecording  = true
-            }
-            volumeBarTimer.postDelayed(this, MILLIS_DELAY)
-        }
-    }
-
-    private fun handleStart() {
-        isRecording = true
-        soundEffect.playStartSound()
-
-        chronoMeter.startChronometer { handleStop() }
-
-        outputFile = WavFileOutput()
-        recorder.outputFile = outputFile
-
-        btnStart.text = "Stop"
-
-        // Start Foreground Service. The app won't get killed while recording.
-        val serviceIntent = Intent(this, ForegroundService::class.java)
-        startService(serviceIntent)
-    }
-
-    private fun handleStop() {
-        isRecording = false
-        soundEffect.playStopSound()
-
-        chronoMeter.stopChronometer()
-
-        recorder.outputFile = null
-        outputFile?.close()
-        outputFile = null
-
-        btnStart.text = "Start"
-        soundVisualizer.didClip = false
-
-        // Stop Foreground Service.
-        val serviceIntent = Intent(this, ForegroundService::class.java)
-        stopService(serviceIntent)
-    }
-
-    private fun handlePause() {
-        pausePressed = true
-        soundEffect.playStopSound()
-
-        chronoMeter.pauseChronometer()
-
-        recorder.outputFile = null
-        btnPause.text = "Resume"
-    }
-
-    private fun handleResume() {
-        pausePressed = false
-        soundEffect.playStartSound()
-
-        chronoMeter.resumeChronometer { handleStop() }
-
-        recorder.outputFile = outputFile
-        btnPause.text = "Pause"
-    }
-
+    private var colorAnimation: ObjectAnimator? = null
     // Lifecycle methods
 
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recording_system)
-
-        view_pager2.adapter = ViewPagerAdapter()
-        view_pager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                currentItem.text = (view_pager2.currentItem).toString()
-            }
-        })
-
-        btnStart.setOnClickListener {
-            if (outputFile == null) {
-                handleStart()
-            } else {
-                handleStop()
-            }
-        }
-
-        btnPause.setOnClickListener {
-            when {
-                (outputFile != null && isRecording && !pausePressed) ->
-                    handlePause()
-                (outputFile != null && isRecording && pausePressed) ->
-                    handleResume()
-            }
-        }
+        startForegroundService()
 
         noMicPopup = NoMicPopup(window.decorView.rootView)
         statusChecker.onChange = {
             statusIndicator.internet = it.internet
             statusIndicator.power = it.power
 
-            //noMicPopup?.isMicPresent = it.mic // Comment this line out if app needs to be tested on a Tablet without mic
-            if (!noMicPopup!!.isMicPresent && isRecording) {
-                handleStop()
-                Toast.makeText(this, "Recording was stopped. Connect the microphone and start again.", Toast.LENGTH_LONG).show()
+            noMicPopup?.isMicPresent = it.mic // Comment this line out if app needs to be tested on a Tablet without mic
+            if (!noMicPopup!!.isMicPresent && fService.isRecording) {
+                fService.handleStop()
+                Toast.makeText(
+                    this,
+                    "Recording was stopped. Connect the microphone and start again.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+
+    private fun startForegroundService() {
+        val serviceIntent = Intent(this, ForegroundService::class.java)
+        bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE)
+        startService(serviceIntent)
+        Log.e("XXX", "inside startForegroundService")
+    }
+
+    private val mConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            Log.e("XXX", "inside mConnection")
+            // Bind to LocalService, cast the IBinder and get LocalService instance
+            val binder: ForegroundService.LocalBinder = service as ForegroundService.LocalBinder
+            fService = binder.serviceInstance //Get instance of your service!
+            Log.e("XXX", "inside mConnection fService = $fService")
+            fService.registerClient(this@RecordingSystemActivity) //Activity register in the service as client for callabcks!
+            initUI()
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            Toast.makeText(this@RecordingSystemActivity, "onServiceDisconnected called", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    private fun initUI() {
+        view_pager2.adapter = ViewPagerAdapter()
+        view_pager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                currentItem.text = (view_pager2.currentItem).toString()
+            }
+        })
+        Log.e("XXX", "inside initUI after viewpager2")
+        Log.e("XXX", "inside initUI fService = $fService")
+        // Setting text for Start Button
+        if (fService.isRecording) {
+            btnStart.text = "Stop"
+        } else {
+            btnStart.text = "Start"
+        }
+
+        // Setting text for Pause Button
+        if (fService.pausePressed) {
+            btnPause.text = "Resume"
+        } else {
+            btnPause.text = "Pause"
+        }
+
+        // Setting Click Listener for Start Button
+        btnStart.setOnClickListener {
+            if (fService.outputFile == null) {
+                fService.handleStart()
+                btnStart.text = "Stop"
+            } else {
+                fService.handleStop()
+                if (colorAnimation != null && colorAnimation!!.isStarted)
+                    stopFlashAnimation()
+                btnStart.text = "Start"
+
+                soundVisualizer.didClip = false
             }
         }
 
-        recorder = AudioRecorder()
-        chronoMeter = ChronoMeter(c_meter)
-        volumeBarTimer = Handler(Looper.getMainLooper())
-        soundEffect = SoundEffect(this)
+        // Setting Click Listener for Pause Button
+        btnPause.setOnClickListener {
+            when {
+                (fService.outputFile != null && fService.isRecording && !fService.pausePressed) -> {
+                    fService.handlePause()
+                    startFlashAnimation()
+                    btnPause.text = "Resume"
+                }
+                (fService.outputFile != null && fService.isRecording && fService.pausePressed) -> {
+                    fService.handleResume()
+                    stopFlashAnimation()
+                    btnPause.text = "Pause"
+                }
+            }
+        }
     }
 
 
-    override fun onResume() {
-        super.onResume()
-        statusChecker.startMonitoring(this)
-        volumeBarTimer.post(updateText)
+
+    override fun updateClient(count: Int, peak: Short) {
+        peakTextView.text = "$count -- $peak"
+        soundVisualizer.volume = peak
+        if (peak == Short.MAX_VALUE && fService.outputFile != null) {
+            soundVisualizer.didClip = true
+        }
+
+        timer.text = timeToFormatString(fService.time)
     }
 
-    override fun onPause() {
-        super.onPause()
-        statusChecker.stopMonitoring(this)
-        volumeBarTimer.removeCallbacks(updateText)
+    private fun timeToFormatString(totalSeconds: Int): String {
+        val seconds = totalSeconds % 60
+        val minutes = totalSeconds / 60 % 60
+        val hours = totalSeconds / (60 * 60)
+
+        return if (hours > 0)
+            String.format("%02d:%02d:%02d", hours, minutes, seconds)
+        else
+            String.format("%02d:%02d", minutes, seconds)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        soundEffect.releaseSoundEffects()
+    private fun startFlashAnimation() {
+        colorAnimation = ObjectAnimator.ofInt(
+            timer,
+            "textColor",
+            Color.BLACK,
+            Color.TRANSPARENT).apply {
+            duration = 600
+            setEvaluator(ArgbEvaluator())
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            start()
+        }
+    }
+
+    private fun stopFlashAnimation() {
+        colorAnimation!!.end()
+        colorAnimation = null
+        timer.setTextColor(Color.BLACK)
+    }
+
+
+}
+
+
+
+/*
+
+noMicPopup = NoMicPopup(window.decorView.rootView)
+statusChecker.onChange = {
+    statusIndicator.internet = it.internet
+    statusIndicator.power = it.power
+
+    //noMicPopup?.isMicPresent = it.mic // Comment this line out if app needs to be tested on a Tablet without mic
+    if (!noMicPopup!!.isMicPresent && isRecording) {
+        handleStop()
+        Toast.makeText(this, "Recording was stopped. Connect the microphone and start again.", Toast.LENGTH_LONG).show()
     }
 }
+
+recorder = AudioRecorder()
+chronoMeter = ChronoMeter(c_meter)
+volumeBarTimer = Handler(Looper.getMainLooper())
+soundEffect = SoundEffect(this)
+
+*/
+
+
+
+/* override fun onResume() {
+     super.onResume()
+     statusChecker.startMonitoring(this)
+     volumeBarTimer.post(updateText)
+ }
+
+ override fun onPause() {
+     super.onPause()
+     statusChecker.stopMonitoring(this)
+     volumeBarTimer.removeCallbacks(updateText)
+ }
+
+ override fun onDestroy() {
+     super.onDestroy()
+     soundEffect.releaseSoundEffects()
+ }
+
+ */
 

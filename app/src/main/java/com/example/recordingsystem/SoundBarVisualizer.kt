@@ -19,20 +19,17 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
     private val painterYellow = Paint().apply { color = Color.parseColor("#888800") }
     private val painterRed = Paint().apply { color = Color.parseColor("#FF0000") }
 
+    var didClip: Boolean = false
     var volume: Short = 0
         set(value) {
             field = value
             invalidate()
         }
 
-    var didClip: Boolean = false
-
-
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
         canvas?.let {
-
             val maxPx = DbToPx(sampleToDb(volume))
             val spacer = 3
             val rectWidth = 7
@@ -65,6 +62,3 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
         return 20 * ln(value.toDouble()/Short.MAX_VALUE) / ln(10.0)
     }
 }
-//TODO always indicate the highest volume ever recorded. If the highest volume ever recorded reached 32K - display thick squares in the end of the SoundBar
-//TODO convert all the values in db
-//db = 10*Math.log(volume/Short.MAX_VALUE)/Math.log(10) //The width is max - -46  - 0

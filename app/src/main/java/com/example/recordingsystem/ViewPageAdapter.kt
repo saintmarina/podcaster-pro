@@ -14,25 +14,10 @@ class ViewPagerAdapter : RecyclerView.Adapter<PagerVH>() {
 
     //binding the screen with view
     override fun onBindViewHolder(holder: PagerVH, position: Int) = holder.itemView.run {
-        if(position == 0){
-
-            ivImage.setImageResource(R.drawable.country_1)
-
-        }
-        if(position == 1) {
-
-            ivImage.setImageResource(R.drawable.country_2)
-
-        }
-        if(position == 2) {
-
-        ivImage.setImageResource(R.drawable.country_3)
-
-    }
-        if(position == 3) {
-
-            ivImage.setImageResource(R.drawable.country_1)
-
+        when(position) {
+            0 -> ivImage.setImageResource(R.drawable.country_1)
+            1 -> ivImage.setImageResource(R.drawable.country_2)
+            2-> ivImage.setImageResource(R.drawable.country_3)
         }
     }
 }
