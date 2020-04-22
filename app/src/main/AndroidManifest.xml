@@ -32,7 +32,7 @@
             </intent-filter>
         </activity>
         <receiver android:name=".StatusChecker" />
-        <service android:name=".ForegroundService"
+        <service android:name=".RecordingService"
                  android:stopWithTask="false"
                  android:exported="false" />
         <meta-data

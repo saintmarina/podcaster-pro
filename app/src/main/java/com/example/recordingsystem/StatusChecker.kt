@@ -22,6 +22,7 @@ class StatusChecker(): BroadcastReceiver() {
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_BATTERY_CHANGED)
             addAction(Intent.ACTION_HEADSET_PLUG)
+
         }
         context.registerReceiver(this, filter)
     }
@@ -33,7 +34,7 @@ class StatusChecker(): BroadcastReceiver() {
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onReceive(context: Context?, intent: Intent?) {
         context?.let { internet = isInternetWorking(it) }
-
+        Log.e("XXX", "inside onReceive 1")
         when (intent?.action) {
             Intent.ACTION_BATTERY_CHANGED -> {
                 val status: Int = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
@@ -45,6 +46,7 @@ class StatusChecker(): BroadcastReceiver() {
                 mic = state == 1
             }
         }
+        Log.e("XXX", "inside onReceive 2")
         onChange?.invoke(this)
     }
 

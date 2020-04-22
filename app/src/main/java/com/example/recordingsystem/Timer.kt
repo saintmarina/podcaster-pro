@@ -11,7 +11,7 @@ import android.os.SystemClock
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 
-const val ONE_MILISEC = 1000
+private const val SEC_IN_MILLIS = 1000
 
 class Timer {
     var time = 0
