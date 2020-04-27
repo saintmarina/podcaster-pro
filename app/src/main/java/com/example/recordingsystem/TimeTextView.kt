@@ -1,7 +1,5 @@
 package com.example.recordingsystem
 
-import android.R
-import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -9,33 +7,11 @@ import android.graphics.Paint
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.TextView
-
 
 private const val TAG = "timeTextView"
-private var colorAnimation: ObjectAnimator? = null
 
 class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
-    private val painterBlack = Paint().apply {
-        color = Color.BLACK
-        isAntiAlias = true
-        style = Paint.Style.FILL
-        textSize = 100F
-    }
-
-    private val painterTransparent = Paint().apply {
-        color = Color.TRANSPARENT
-        isAntiAlias = true
-        style = Paint.Style.FILL
-        textSize = 100F
-    }
-
-    var color: Paint = painterBlack
-
     var time: Int = 0
         set(value) {
             if (value != time) {
@@ -52,17 +28,32 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
             }
         }
 
+    private val painterBlack = Paint().apply {
+        color = Color.BLACK
+        isAntiAlias = true
+        style = Paint.Style.FILL
+        textSize = 250F
+    }
 
+    private val painterTransparent = Paint().apply {
+        color = Color.TRANSPARENT
+        isAntiAlias = true
+        style = Paint.Style.FILL
+        textSize = 250F
+    }
+
+    var paint: Paint = painterBlack
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        val timeString = timeToFormatString(time)
-        Log.e(TAG, "inside onDraw, time is $timeString")
-        canvas?.save();
-        canvas?.translate(100F, 200F);
-        canvas?.drawText(timeString, 0F, 0F, color);
-    }
 
+        val timeString = timeToFormatString(time)
+        val xPos = (width - paint.measureText(timeString)) / 2
+        val yPos = 0F
+
+        canvas?.translate(0F, 200F)
+        canvas?.drawText(timeString, xPos.toFloat(), yPos, paint)
+    }
 
     private fun timeToFormatString(totalSeconds: Int): String {
         val seconds = totalSeconds % 60
@@ -79,7 +70,7 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
         private val handler = Handler(Looper.getMainLooper())
 
         override fun run() {
-            color = if (color == painterBlack) painterTransparent else painterBlack
+            paint = if (paint == painterBlack) painterTransparent else painterBlack
             handler.postDelayed(this, 400L)
             invalidate()
         }
@@ -90,59 +81,7 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
 
         fun disable() {
             handler.removeCallbacksAndMessages(null)
-            color = painterBlack
+            paint = painterBlack
         }
     }
 }
-/*
-class TimeTextView(timeTextView: TextView, time: Int, state: RecordingService.State) {
-    init {
-        timeTextView.text = timeToFormatString(time)
-        when (state) {
-            RecordingService.State.IDLE ->
-                stopTimerAnimation(timeTextView)
-            RecordingService.State.RECORDING ->
-                stopTimerAnimation(timeTextView)
-            RecordingService.State.PAUSED ->
-                startTimerAnimation(timeTextView)
-        }
-    }
-
-    private fun timeToFormatString(totalSeconds: Int): String {
-        val seconds = totalSeconds % 60
-        val minutes = totalSeconds / 60 % 60
-        val hours = totalSeconds / (60 * 60)
-
-        return if (hours > 0)
-            String.format("%02d:%02d:%02d", hours, minutes, seconds)
-        else
-            String.format("%02d:%02d", minutes, seconds)
-    }
-
-    private fun startTimerAnimation(textView: TextView) {
-        Log.e(TAG, "start Animation")
-        if (colorAnimation != null) return
-
-        colorAnimation = ObjectAnimator.ofInt(
-            textView,
-            "textColor",
-            Color.BLACK,
-            Color.TRANSPARENT
-        ).apply {
-            duration = 600
-            setEvaluator(ArgbEvaluator())
-            repeatCount = ValueAnimator.INFINITE
-            repeatMode = ValueAnimator.REVERSE
-            start()
-        }
-    }
-
-    private fun stopTimerAnimation(textView: TextView) {
-        Log.e(TAG, "stop Animation")
-        if (colorAnimation != null && colorAnimation!!.isStarted) {
-            colorAnimation!!.end()
-            colorAnimation = null
-            textView.setTextColor(Color.BLACK)
-        }
-}
-}*/
