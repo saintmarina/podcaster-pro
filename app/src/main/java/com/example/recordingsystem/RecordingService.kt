@@ -5,15 +5,13 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.*
 import android.telephony.AvailableNetworkInfo.PRIORITY_HIGH
-import android.telephony.TelephonyManager
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-
+import java.util.concurrent.TimeUnit
 
 // Make sure that the sound recorded on software on the device is the same as recorded on tablet
 
@@ -23,146 +21,146 @@ import androidx.core.app.NotificationCompat
 // Add max sound bar for the past two seconds
 // Card view instead of viewPager2
 
+// Check what happens to UI if an exception in raised in service onCreate
+// Wake lock
+
+
 const val FOREGROUND_ID = 1
+const val MAX_RECORDING_TIME_MILLIS: Long = 3 * 3600 * 1000
+private const val TAG: String = "RecordingService"
 
+@RequiresApi(Build.VERSION_CODES.Q)
 class RecordingService(): Service() {
-    var activity: ActivityCallbacks? = null
-    lateinit var recorder: AudioRecorder
-    private lateinit var handler: Handler
+    enum class State {
+        IDLE,
+        RECORDING,
+        PAUSED
+    }
+
+    private var activity: ActivityCallbacks? = null
+    private lateinit var recorder: AudioRecorder
     private lateinit var soundEffect: SoundEffect
-    private lateinit var timer: Timer
+    private var stopWatch: StopWatch = StopWatch()
     private var statusChecker = StatusChecker()
+    private var outputFile: WavFileOutput? = null
+    private var state: State = State.IDLE
 
+    inner class API : Binder() {
+        fun getAudioPeek(): Short { return recorder.peak }
+        fun getState(): State { return state }
+        fun getTime(): Long { return stopWatch.getElapsedTimeNanos()}
+        fun getReceiverState(): Map<String, Boolean> {
+            return mapOf("internet" to statusChecker.internet,
+                "power" to statusChecker.power, "mic" to statusChecker.mic)
+        }
 
-    var outputFile: WavFileOutput? = null
-    var time = 0
-    var state: StateEnum? = null
-
-    private val serviceRunnable = object : Runnable {
-
-        @RequiresApi(Build.VERSION_CODES.M)
-        override fun run() {
-            time = timer.time
-            activity?.updateTime(time)
-
-            if (state == StateEnum.IDLE) {
-                timer.maybeResetToZero()
+        fun toggleStartStop() {
+            Log.d(TAG, "inside onStartClick()")
+            when (state) {
+                State.IDLE      -> start()
+                State.RECORDING -> stop()
+                State.PAUSED    -> stop()
             }
-            handler.postDelayed(this, 1000)
+        }
+
+        fun togglePauseResume() {
+            Log.d(TAG, "inside onPauseClick()")
+            when (state) {
+                State.IDLE      -> showToast("You are not recording.")
+                State.RECORDING -> pause()
+                State.PAUSED    -> resume()
+            }
+        }
+
+        fun registerActivity(act: Activity) {
+            Log.d(TAG, "inside registerActivity()")
+            activity = act as ActivityCallbacks
         }
     }
 
-    //returns the instance of the service
-    private val mBinder: IBinder = LocalBinder()
-    inner class LocalBinder : Binder() {
-        val serviceInstance: RecordingService
-            get() = this@RecordingService
+    interface ActivityCallbacks {
+        fun invalidate()
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        return mBinder
+        return API()
     }
 
-    // Here Activity register to the service as Callbacks client
-    fun registerClient(act: Activity) {
-        Log.e("XXX", "inside register client")
-        activity = act as ActivityCallbacks
-        Log.e("XXX", "Activity is set")
-    }
-
-    interface ActivityCallbacks {
-        fun updateTime(time: Int)
-        fun updateUI(state: StateEnum)
-        fun updateStatus(
-            internet: Boolean,
-            power: Boolean,
-            mic: Boolean,
-            state: StateEnum) :Boolean
-    }
-
-    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate() {
         super.onCreate()
+        Log.d(TAG, "inside Service onCreate()")
         recorder = AudioRecorder()
-        state = StateEnum.IDLE
-
-        handler = Handler(Looper.getMainLooper())
         soundEffect = SoundEffect(this)
-        timer = Timer()
-
         statusChecker.startMonitoring(this)
 
         statusChecker.onChange = {
-            var micCameOut = if (activity != null)
-                activity!!.updateStatus(it.internet, it.power, it.mic, state!!)
-            else
-                false
-            Log.e("XXX", "inside statusChecker. internet = ${it.internet}, power = ${it.power}, mic = ${it.mic}")
-            Log.e("XXX", "inside statusChecker, micCameOut = $micCameOut")
-            if (micCameOut) {
-                handleStop()
-                Toast.makeText(
-                    this,
-                    "Recording was stopped. Connect the microphone and start again.",
-                    Toast.LENGTH_SHORT
-                ).show()
+            Log.d(TAG, "inside StatusChecker")
+            activity?.invalidate()
+            if (!it.mic && state == State.RECORDING) {
+                stop()
+                showToast("Recording was stopped. Connect the microphone and start again.")
             }
-            Log.e("XXX", "inside statusChecker, after IF")
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.e("XXX", "inside onStart")
-        handler.post(serviceRunnable)
+        Log.d(TAG, "inside Service onStartCommand()")
         return START_NOT_STICKY
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun onStartClick() {
-        Log.e("XXX", "Inside onStartClick")
-        when (state) {
-            StateEnum.IDLE -> {
-                Log.e("XXX", "Inside onStartClick, IDLE -> handleStart")
-                handleStart()
-            }
-            StateEnum.RECORDING -> {
-                Log.e("XXX", "Inside onStartClick, RECORDING -> handleStart")
-                handleStop()
-            }
-            StateEnum.PAUSED -> {
-                handleStop()
-            }
+    override fun onDestroy() {
+        super.onDestroy()
+        statusChecker.stopMonitoring(this)
+    }
+
+    private val autoStopTimer = object : Runnable {
+        private val handler = Handler(Looper.getMainLooper())
+
+        override fun run() {
+            stop()
+        }
+
+        fun enable() {
+            val deadline = MAX_RECORDING_TIME_MILLIS - TimeUnit.NANOSECONDS.toMillis(stopWatch.getElapsedTimeNanos())
+            handler.postDelayed(this, deadline.coerceAtLeast(0))
+        }
+
+        fun disable() {
+            handler.removeCallbacksAndMessages(null)
         }
     }
 
-    fun onPauseClick() {
-        Log.e("XXX", "Inside onPauseClick")
-        when (state) {
-            StateEnum.RECORDING -> {
-                Log.e("XXX", "Inside onStartClick, RECORDING -> handlePause")
-                handlePause()
-            }
-            StateEnum.PAUSED -> {
-                Log.e("XXX", "Inside onStartClick, PAUSED -> handlePause")
-                handleResume()
-            }
-            StateEnum.IDLE -> {
-                Toast.makeText(
-                    this,
-                    "You are not recording.",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+    private val timerAutoReset = object : Runnable {
+        private val handler = Handler(Looper.getMainLooper())
+
+        override fun run() {
+            stopWatch.reset()
+        }
+
+        fun enable() {
+            val deadline = 5000L
+            handler.postDelayed(this, deadline)
+        }
+
+        fun disable() {
+            handler.removeCallbacksAndMessages(null)
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun handleStart() {
-        timer.startTimer()
+    private fun start() {
+        if (state == State.RECORDING)
+            return
+
+        Log.d(TAG, "inside handleStart()")
+        stopWatch.reset() // Must be first in start() as other depend on the stopWatch.
+        stopWatch.start()
         soundEffect.playStartSound()
 
-        state = StateEnum.RECORDING
-        activity?.updateUI(state!!)
+        autoStopTimer.enable()
+        timerAutoReset.disable()
+
+        state = State.RECORDING
+        activity?.invalidate()
 
         outputFile = WavFileOutput()
         recorder.outputFile = outputFile
@@ -171,12 +169,20 @@ class RecordingService(): Service() {
          startForeground(FOREGROUND_ID, createNotification())
     }
 
-    fun handleStop() {
-        timer.stopTimer()
+
+    private fun stop() {
+        if (state == State.IDLE)
+            return
+
+        Log.d(TAG, "inside handleStop()")
+        stopWatch.stop()
         soundEffect.playStopSound()
 
-        state = StateEnum.IDLE
-        activity?.updateUI(state!!)
+        autoStopTimer.disable()
+        timerAutoReset.enable()
+
+        state = State.IDLE
+        activity?.invalidate()
 
         recorder.outputFile = null
         outputFile?.close()
@@ -186,28 +192,48 @@ class RecordingService(): Service() {
         stopForeground(true)
     }
 
-     fun handlePause() {
-         timer.pauseTimer()
+    private fun pause() {
+        if (state == State.PAUSED)
+            return
+
+         Log.d(TAG, "inside handlePause()")
+         stopWatch.stop()
          soundEffect.playStopSound()
 
-         state = StateEnum.PAUSED
-         activity?.updateUI(state!!)
+         autoStopTimer.disable()
+
+         state = State.PAUSED
+         activity?.invalidate()
 
          recorder.outputFile = null
     }
 
-     fun handleResume() {
-         timer.resumeTime()
+     private fun resume() {
+         if (state == State.RECORDING)
+             return
+
+         Log.d(TAG, "inside handleResume()")
+         stopWatch.start()
          soundEffect.playStartSound()
 
-         state = StateEnum.RECORDING
-         activity?.updateUI(state!!)
+         autoStopTimer.enable()
+
+         state = State.RECORDING
+         activity?.invalidate()
 
          recorder.outputFile = outputFile
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun showToast(message: String) {
+        Toast.makeText(
+            this,
+            message,
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
     private fun createNotification(): Notification {
+        Log.d(TAG, "inside createNotification()")
         val pendingIntent = createContentIntent()
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID).apply {
             setSmallIcon(R.drawable.ic_stat_name)
@@ -224,16 +250,4 @@ class RecordingService(): Service() {
         notificationIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         return PendingIntent.getActivity(applicationContext, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        statusChecker.stopMonitoring(this)
-    }
-
-
-}
-enum class StateEnum {
-    IDLE,
-    RECORDING,
-    PAUSED
 }

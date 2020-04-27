@@ -40,14 +40,12 @@
 
     </TableRow>
 
-    <TextView
-        android:id="@+id/timer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/soundVisualizer"
-        android:gravity="center"
-        android:textColor="@android:color/black"
-        android:textSize="100dp" />
+    <com.example.recordingsystem.TimeTextView
+        android:id="@+id/timeTextView"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_above="@+id/soundVisualizer" />
+
 
     <com.example.recordingsystem.SoundVisualizer
         android:id="@+id/soundVisualizer"
