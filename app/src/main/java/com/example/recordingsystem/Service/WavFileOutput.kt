@@ -1,4 +1,4 @@
-package com.example.recordingsystem
+package com.example.recordingsystem.Service
 
 import java.io.Closeable
 import java.io.File
@@ -47,8 +47,8 @@ class WavFileOutput: Closeable {
                 putShort(1) // PCM
                 putShort(NUM_CHANNELS)
                 putInt(SAMPLE_RATE)
-                putInt(SAMPLE_RATE * BITS_PER_SAMPLE/8 * NUM_CHANNELS)
-                putShort((BITS_PER_SAMPLE/8 * NUM_CHANNELS).toShort())
+                putInt(SAMPLE_RATE * BITS_PER_SAMPLE /8 * NUM_CHANNELS)
+                putShort((BITS_PER_SAMPLE /8 * NUM_CHANNELS).toShort())
                 putShort(BITS_PER_SAMPLE)
                 putInt(0x61746164) // "data"
                 putInt(dataSize)

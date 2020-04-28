@@ -1,6 +1,5 @@
-package com.example.recordingsystem
+package com.example.recordingsystem.Service
 
-import android.net.wifi.WifiManager
 import android.os.SystemClock
 
 class StopWatch {

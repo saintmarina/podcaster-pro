@@ -1,4 +1,4 @@
-package com.example.recordingsystem
+package com.example.recordingsystem.Service
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -11,11 +11,11 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 
-
 class StatusChecker(): BroadcastReceiver() {
     var power: Boolean = true
     var mic: Boolean = true
     var internet: Boolean = true
+
     var onChange: ((StatusChecker) -> Unit)? = null
 
     fun startMonitoring(context: Context) {
@@ -53,7 +53,6 @@ class StatusChecker(): BroadcastReceiver() {
     @RequiresApi(Build.VERSION_CODES.M)
     private fun isInternetWorking(context: Context): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
         val network = connectivityManager.activeNetwork ?: return false
         return connectivityManager.getNetworkCapabilities(network)
             ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false

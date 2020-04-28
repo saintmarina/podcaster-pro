@@ -1,25 +1,11 @@
-package com.example.recordingsystem
+package com.example.recordingsystem.Service
 
-import android.content.Context
-import android.content.ContextWrapper
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
-import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import java.io.Closeable
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.ShortBuffer
-import java.security.AccessController.getContext
-import java.text.SimpleDateFormat
-import java.util.*
 
 const val LOG_TAG = "AudioRecorder"
 const val AUDIO_SOURCE: Int = MediaRecorder.AudioSource.MIC
@@ -30,7 +16,7 @@ const val BUFFER_SIZE: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioF
 const val PUMP_BUF_SIZE: Int = 1*1024
 
 const val NANOS_IN_SEC: Long = 1_000_000_000
-const val INIT_TIMEOUT: Long = 5*NANOS_IN_SEC
+const val INIT_TIMEOUT: Long = 5* NANOS_IN_SEC
 
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -47,7 +33,6 @@ class AudioRecorder() : Closeable {
         val recorder = initRecorder()
         thread = Thread {
             recorder.startRecording()
-
             val buf = ShortArray(PUMP_BUF_SIZE)
             while (!terminationRequested) {
                 val len = safeAudioRecordRead(recorder, buf)
@@ -73,8 +58,13 @@ class AudioRecorder() : Closeable {
          */
         val startTime = System.nanoTime()
         while (System.nanoTime() - startTime < INIT_TIMEOUT) {
-            val recorder = AudioRecord(AUDIO_SOURCE, SAMPLE_RATE,
-                CHANNEL, ENCODING, BUFFER_SIZE)
+            val recorder = AudioRecord(
+                AUDIO_SOURCE,
+                SAMPLE_RATE,
+                CHANNEL,
+                ENCODING,
+                BUFFER_SIZE
+            )
 
             if (recorder.state == AudioRecord.STATE_INITIALIZED)
                 return recorder

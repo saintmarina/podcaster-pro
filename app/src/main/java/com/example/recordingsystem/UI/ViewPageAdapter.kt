@@ -1,14 +1,21 @@
-package com.example.recordingsystem
+package com.example.recordingsystem.UI
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.recordingsystem.R
 import kotlinx.android.synthetic.main.view_pager_items_page.view.*
 
 class ViewPagerAdapter : RecyclerView.Adapter<PagerVH>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PagerVH =
-        PagerVH(LayoutInflater.from(parent.context).inflate(R.layout.view_pager_items_page, parent, false))
+        PagerVH(
+            LayoutInflater.from(parent.context).inflate(
+                R.layout.view_pager_items_page,
+                parent,
+                false
+            )
+        )
 
     override fun getItemCount(): Int = 3
 

@@ -1,4 +1,4 @@
-package com.example.recordingsystem
+package com.example.recordingsystem.Service
 
 import android.app.Activity
 import android.app.Notification
@@ -11,6 +11,8 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import com.example.recordingsystem.R
+import com.example.recordingsystem.UI.RecordingSystemActivity
 import java.util.concurrent.TimeUnit
 
 // Make sure that the sound recorded on software on the device is the same as recorded on tablet
@@ -24,7 +26,7 @@ import java.util.concurrent.TimeUnit
 // Check what happens to UI if an exception in raised in service onCreate
 // Wake lock
 
-
+const val RESET_TIME = 5000L //This value needs to be changed for production
 const val FOREGROUND_ID = 1
 const val MAX_RECORDING_TIME_MILLIS: Long = 3 * 3600 * 1000
 private const val TAG: String = "RecordingService"
@@ -37,38 +39,42 @@ class RecordingService(): Service() {
         PAUSED
     }
 
+    private var state: State = State.IDLE
+    private val health = API().Health()
     private var activity: ActivityCallbacks? = null
+    private var statusChecker = StatusChecker()
+    private var outputFile: WavFileOutput? = null
     private lateinit var recorder: AudioRecorder
     private lateinit var soundEffect: SoundEffect
     private var stopWatch: StopWatch = StopWatch()
-    private var statusChecker = StatusChecker()
-    private var outputFile: WavFileOutput? = null
-    private var state: State = State.IDLE
 
     inner class API : Binder() {
+        inner class Health {
+            var internet: Boolean = true
+            var mic: Boolean = true
+            var power: Boolean = true
+        }
+
         fun getAudioPeek(): Short { return recorder.peak }
         fun getState(): State { return state }
-        fun getTime(): Long { return stopWatch.getElapsedTimeNanos()}
-        fun getReceiverState(): Map<String, Boolean> {
-            return mapOf("internet" to statusChecker.internet,
-                "power" to statusChecker.power, "mic" to statusChecker.mic)
-        }
+        fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos()}
+        fun getHealth(): Health { return health }
 
         fun toggleStartStop() {
             Log.d(TAG, "inside onStartClick()")
             when (state) {
-                State.IDLE      -> start()
+                State.IDLE -> start()
                 State.RECORDING -> stop()
-                State.PAUSED    -> stop()
+                State.PAUSED -> stop()
             }
         }
 
         fun togglePauseResume() {
             Log.d(TAG, "inside onPauseClick()")
             when (state) {
-                State.IDLE      -> showToast("You are not recording.")
+                State.IDLE -> showToast("You are not recording.")
                 State.RECORDING -> pause()
-                State.PAUSED    -> resume()
+                State.PAUSED -> resume()
             }
         }
 
@@ -93,13 +99,18 @@ class RecordingService(): Service() {
         soundEffect = SoundEffect(this)
         statusChecker.startMonitoring(this)
 
-        statusChecker.onChange = {
+        statusChecker.onChange = { status ->
             Log.d(TAG, "inside StatusChecker")
-            activity?.invalidate()
-            if (!it.mic && state == State.RECORDING) {
-                stop()
-                showToast("Recording was stopped. Connect the microphone and start again.")
+            health.apply {
+                this.internet = status.internet
+                this.power = status.power
+                this.mic = status.mic
             }
+            // The UI will display a large popup if mic is out
+            if (!status.mic)
+                stop()
+
+            activity?.invalidate()
         }
     }
 
@@ -130,7 +141,7 @@ class RecordingService(): Service() {
         }
     }
 
-    private val timerAutoReset = object : Runnable {
+    private val autoResetTime = object : Runnable {
         private val handler = Handler(Looper.getMainLooper())
 
         override fun run() {
@@ -138,8 +149,7 @@ class RecordingService(): Service() {
         }
 
         fun enable() {
-            val deadline = 5000L
-            handler.postDelayed(this, deadline)
+            handler.postDelayed(this, RESET_TIME)
         }
 
         fun disable() {
@@ -148,7 +158,7 @@ class RecordingService(): Service() {
     }
 
     private fun start() {
-        if (state == State.RECORDING)
+        if (state != State.IDLE)
             return
 
         Log.d(TAG, "inside handleStart()")
@@ -157,7 +167,7 @@ class RecordingService(): Service() {
         soundEffect.playStartSound()
 
         autoStopTimer.enable()
-        timerAutoReset.disable()
+        autoResetTime.disable()
 
         state = State.RECORDING
         activity?.invalidate()
@@ -179,7 +189,7 @@ class RecordingService(): Service() {
         soundEffect.playStopSound()
 
         autoStopTimer.disable()
-        timerAutoReset.enable()
+        autoResetTime.enable()
 
         state = State.IDLE
         activity?.invalidate()
@@ -193,7 +203,7 @@ class RecordingService(): Service() {
     }
 
     private fun pause() {
-        if (state == State.PAUSED)
+        if (state != State.RECORDING)
             return
 
          Log.d(TAG, "inside handlePause()")
@@ -209,7 +219,7 @@ class RecordingService(): Service() {
     }
 
      private fun resume() {
-         if (state == State.RECORDING)
+         if (state != State.PAUSED)
              return
 
          Log.d(TAG, "inside handleResume()")
@@ -235,7 +245,9 @@ class RecordingService(): Service() {
     private fun createNotification(): Notification {
         Log.d(TAG, "inside createNotification()")
         val pendingIntent = createContentIntent()
-        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID).apply {
+        val notification = NotificationCompat.Builder(applicationContext,
+            CHANNEL_ID
+        ).apply {
             setSmallIcon(R.drawable.ic_stat_name)
             setContentTitle("Recording system")
             setContentText("Currently recording, don't stop talking. Click on this notification to go back to the app.")

@@ -1,7 +1,8 @@
-package com.example.recordingsystem
+package com.example.recordingsystem.Service
 
 import android.content.Context
 import android.media.MediaPlayer
+import com.example.recordingsystem.R
 
 class SoundEffect(val context: Context) {
     private var startSound: MediaPlayer? = null
@@ -9,14 +10,18 @@ class SoundEffect(val context: Context) {
 
     fun playStartSound() {
         if (startSound == null)
-            startSound = MediaPlayer.create(context, R.raw.start_recording)
+            startSound = MediaPlayer.create(context,
+                R.raw.start_recording
+            )
 
         startSound!!.start()
     }
 
     fun playStopSound() {
         if (stopSound == null)
-            stopSound = MediaPlayer.create(context, R.raw.stop_recording)
+            stopSound = MediaPlayer.create(context,
+                R.raw.stop_recording
+            )
 
         stopSound!!.start()
     }

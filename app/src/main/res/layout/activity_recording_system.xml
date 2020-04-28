@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:layout_centerHorizontal="true"
-    tools:context=".RecordingSystemActivity">
+    tools:context=".UI.RecordingSystemActivity">
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager2"
@@ -40,7 +40,7 @@
 
     </TableRow>
 
-    <com.example.recordingsystem.TimeTextView
+    <com.example.recordingsystem.UI.TimeTextView
         android:id="@+id/timeTextView"
         android:layout_width="match_parent"
         android:layout_height="120dp"
@@ -48,7 +48,7 @@
         android:layout_centerHorizontal="true" />
 
 
-    <com.example.recordingsystem.SoundVisualizer
+    <com.example.recordingsystem.UI.SoundVisualizer
         android:id="@+id/soundVisualizer"
         android:layout_width="match_parent"
         android:layout_height="45dp"
@@ -68,7 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/button_row">
 
-        <com.example.recordingsystem.StatusIndicator
+        <com.example.recordingsystem.UI.StatusIndicator
             android:id="@+id/statusIndicator"
             android:layout_width="50dp"
             android:layout_height="50dp"

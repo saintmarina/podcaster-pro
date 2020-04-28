@@ -1,4 +1,4 @@
-package com.example.recordingsystem
+package com.example.recordingsystem.UI
 
 import android.content.Context
 import android.graphics.Canvas
@@ -6,9 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
-import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.roundToInt
 
@@ -55,7 +53,7 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
     }
 
     private fun DbToPx(dB: Double): Int {
-        return (width*(MIN_DB - dB)/MIN_DB).roundToInt()
+        return (width*(MIN_DB - dB)/ MIN_DB).roundToInt()
     }
 
     private fun sampleToDb(value: Short) : Double {

@@ -1,9 +1,10 @@
-package com.example.recordingsystem
+package com.example.recordingsystem.UI
 
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
@@ -12,9 +13,9 @@ import android.view.View
 private const val TAG = "timeTextView"
 
 class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
-    var time: Int = 0
+    var timeSec: Int = 0
         set(value) {
-            if (value != time) {
+            if (field != value) {
                 field = value
                 invalidate()
             }
@@ -22,9 +23,9 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
 
     var isFlashing = false
         set(value) {
-            if (value != isFlashing) {
+            if (field != value) {
                 field = value
-                if (value) flash.enable() else flash.disable()
+                if (value) flashAnimation.enable() else flashAnimation.disable()
             }
         }
 
@@ -35,24 +36,26 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
         textSize = 250F
     }
 
-    private val painterTransparent = Paint().apply {
+    private val painterTransparent = Paint(painterBlack).apply {
         color = Color.TRANSPARENT
-        isAntiAlias = true
-        style = Paint.Style.FILL
-        textSize = 250F
     }
 
-    var paint: Paint = painterBlack
+    private var paint: Paint = painterBlack
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
+        val timeString = timeToFormatString(timeSec)
+        val bounds = Rect()
+        paint.getTextBounds(timeString, 0, timeString.length, bounds)
 
-        val timeString = timeToFormatString(time)
-        val xPos = (width - paint.measureText(timeString)) / 2
-        val yPos = 0F
+        val textHeight = bounds.height().toFloat()
+        val textWidth = paint.measureText(timeString)
 
-        canvas?.translate(0F, 200F)
-        canvas?.drawText(timeString, xPos.toFloat(), yPos, paint)
+        val x = (width - textWidth) / 2
+        val y = 0F
+
+        canvas?.translate(0F, textHeight)
+        canvas?.drawText(timeString, x, y, paint)
     }
 
     private fun timeToFormatString(totalSeconds: Int): String {
@@ -66,13 +69,13 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
             String.format("%02d:%02d", minutes, seconds)
     }
 
-    private val flash = object : Runnable {
+    private val flashAnimation = object : Runnable {
         private val handler = Handler(Looper.getMainLooper())
 
         override fun run() {
             paint = if (paint == painterBlack) painterTransparent else painterBlack
-            handler.postDelayed(this, 400L)
             invalidate()
+            handler.postDelayed(this, 400L)
         }
 
         fun enable() {
@@ -82,6 +85,7 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
         fun disable() {
             handler.removeCallbacksAndMessages(null)
             paint = painterBlack
+            invalidate()
         }
     }
 }

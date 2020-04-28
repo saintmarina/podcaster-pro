@@ -1,4 +1,4 @@
-package com.example.recordingsystem
+package com.example.recordingsystem.UI
 
 import android.content.Context
 import android.graphics.Canvas
