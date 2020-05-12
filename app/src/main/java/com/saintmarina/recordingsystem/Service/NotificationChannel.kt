@@ -1,4 +1,4 @@
-package com.example.recordingsystem.Service
+package com.saintmarina.recordingsystem.Service
 
 import android.app.Application
 import android.app.NotificationChannel
@@ -8,7 +8,7 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
-import com.example.recordingsystem.R
+import com.saintmarina.recordingsystem.R
 
 
 const val CHANNEL_ID: String = "1001"

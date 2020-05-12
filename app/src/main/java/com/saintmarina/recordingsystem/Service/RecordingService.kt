@@ -1,9 +1,10 @@
-package com.example.recordingsystem.Service
+package com.saintmarina.recordingsystem.Service
 
 import android.app.Activity
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.telephony.AvailableNetworkInfo.PRIORITY_HIGH
@@ -11,8 +12,12 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import com.example.recordingsystem.R
-import com.example.recordingsystem.UI.RecordingSystemActivity
+import com.google.api.client.http.FileContent
+import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
+import com.saintmarina.recordingsystem.R
+import com.saintmarina.recordingsystem.UI.RecordingSystemActivity
+import com.saintmarina.recordingsystem.Util
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 // Make sure that the sound recorded on software on the device is the same as recorded on tablet
@@ -26,7 +31,6 @@ import java.util.concurrent.TimeUnit
 // Check what happens to UI if an exception in raised in service onCreate
 // Wake lock
 
-const val RESET_TIME = 5000L //This value needs to be changed for production
 const val FOREGROUND_ID = 1
 const val MAX_RECORDING_TIME_MILLIS: Long = 3 * 3600 * 1000
 private const val TAG: String = "RecordingService"
@@ -47,18 +51,21 @@ class RecordingService(): Service() {
     private lateinit var recorder: AudioRecorder
     private lateinit var soundEffect: SoundEffect
     private var stopWatch: StopWatch = StopWatch()
+    private var timeWhenStopped: Date? = null
 
     inner class API : Binder() {
         inner class Health {
             var internet: Boolean = true
             var mic: Boolean = true
             var power: Boolean = true
+            var recordingDuration: Long = 0
         }
 
         fun getAudioPeek(): Short { return recorder.peak }
         fun getState(): State { return state }
-        fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos()}
+        fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos() }
         fun getHealth(): Health { return health }
+        fun getTimeWhenStopped(): Date? {return timeWhenStopped}
 
         fun toggleStartStop() {
             Log.d(TAG, "inside onStartClick()")
@@ -141,22 +148,6 @@ class RecordingService(): Service() {
         }
     }
 
-    private val autoResetTime = object : Runnable {
-        private val handler = Handler(Looper.getMainLooper())
-
-        override fun run() {
-            stopWatch.reset()
-        }
-
-        fun enable() {
-            handler.postDelayed(this, RESET_TIME)
-        }
-
-        fun disable() {
-            handler.removeCallbacksAndMessages(null)
-        }
-    }
-
     private fun start() {
         if (state != State.IDLE)
             return
@@ -167,7 +158,6 @@ class RecordingService(): Service() {
         soundEffect.playStartSound()
 
         autoStopTimer.enable()
-        autoResetTime.disable()
 
         state = State.RECORDING
         activity?.invalidate()
@@ -189,14 +179,22 @@ class RecordingService(): Service() {
         soundEffect.playStopSound()
 
         autoStopTimer.disable()
-        autoResetTime.enable()
 
+        health.recordingDuration = stopWatch.getElapsedTimeNanos()
+        stopWatch.reset()
+
+        timeWhenStopped = Date()
+        Log.e(TAG, "Service timeWhenStopped = $timeWhenStopped")
         state = State.IDLE
         activity?.invalidate()
+
+       // var mediaContent: FileContent = FileContent("audio/wav", recorder.outputFile)
 
         recorder.outputFile = null
         outputFile?.close()
         outputFile = null
+
+
 
         // Stop Foreground Service.
         stopForeground(true)
@@ -234,14 +232,6 @@ class RecordingService(): Service() {
          recorder.outputFile = outputFile
     }
 
-    private fun showToast(message: String) {
-        Toast.makeText(
-            this,
-            message,
-            Toast.LENGTH_SHORT
-        ).show()
-    }
-
     private fun createNotification(): Notification {
         Log.d(TAG, "inside createNotification()")
         val pendingIntent = createContentIntent()
@@ -261,5 +251,13 @@ class RecordingService(): Service() {
         val notificationIntent = Intent(applicationContext, RecordingSystemActivity::class.java)
         notificationIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         return PendingIntent.getActivity(applicationContext, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+
+    private fun showToast( message: String) {
+        Toast.makeText(
+            this,
+            message,
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }

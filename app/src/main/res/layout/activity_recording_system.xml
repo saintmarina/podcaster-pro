@@ -40,7 +40,7 @@
 
     </TableRow>
 
-    <com.example.recordingsystem.UI.TimeTextView
+    <com.saintmarina.recordingsystem.UI.TimeTextView
         android:id="@+id/timeTextView"
         android:layout_width="match_parent"
         android:layout_height="120dp"
@@ -48,7 +48,7 @@
         android:layout_centerHorizontal="true" />
 
 
-    <com.example.recordingsystem.UI.SoundVisualizer
+    <com.saintmarina.recordingsystem.UI.SoundVisualizer
         android:id="@+id/soundVisualizer"
         android:layout_width="match_parent"
         android:layout_height="45dp"
@@ -68,7 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/button_row">
 
-        <com.example.recordingsystem.UI.StatusIndicator
+        <com.saintmarina.recordingsystem.UI.StatusIndicator
             android:id="@+id/statusIndicator"
             android:layout_width="50dp"
             android:layout_height="50dp"

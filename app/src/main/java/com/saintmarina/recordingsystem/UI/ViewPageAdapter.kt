@@ -1,10 +1,10 @@
-package com.example.recordingsystem.UI
+package com.saintmarina.recordingsystem.UI
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.recordingsystem.R
+import com.saintmarina.recordingsystem.R
 import kotlinx.android.synthetic.main.view_pager_items_page.view.*
 
 class ViewPagerAdapter : RecyclerView.Adapter<PagerVH>() {

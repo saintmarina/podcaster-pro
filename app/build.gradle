@@ -7,7 +7,7 @@ android {
     buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "com.example.recordingsystem"
+        applicationId "com.saintmarina.recordingsystem"
         minSdkVersion 19
         targetSdkVersion 29
         versionCode 1
@@ -25,6 +25,14 @@ android {
 
 }
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -34,7 +42,14 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    implementation 'androidx.viewpager2:viewpager2:1.0.0-beta02'
+    implementation 'androidx.viewpager2:viewpager2:1.1.0-alpha01'
     implementation 'androidx.cardview:cardview:1.0.0'
-
+    implementation 'com.google.api-client:google-api-client:1.23.0'
+    implementation 'com.google.oauth-client:google-oauth-client-jetty:1.23.0'
+    implementation 'com.google.apis:google-api-services-drive:v3-rev110-1.23.0'
+    implementation 'org.ocpsoft.prettytime:prettytime:4.0.4.Final'
+    implementation 'com.google.apis:google-api-services-gmail:v1-rev29-1.20.0'
 }
+
+//139590077792-khsm6tpa3dd1cvq609oa3koj3s93eaua.apps.googleusercontent.com
+  //      {"installed":{"client_id":"139590077792-khsm6tpa3dd1cvq609oa3koj3s93eaua.apps.googleusercontent.com","project_id":"quickstart-1588177761813","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","redirect_uris":["urn:ietf:wg:oauth:2.0:oob","http://localhost"]}}

@@ -1,4 +1,4 @@
-package com.example.recordingsystem.UI
+package com.saintmarina.recordingsystem.UI
 
 import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.PopupWindow
 import android.widget.RelativeLayout
-import com.example.recordingsystem.R
+import com.saintmarina.recordingsystem.R
 import kotlinx.android.synthetic.main.pop_up_mic_out.view.*
 
 class NoMicPopup(private val rootView: View) {

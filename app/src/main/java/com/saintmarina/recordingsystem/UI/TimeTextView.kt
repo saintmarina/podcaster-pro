@@ -1,4 +1,4 @@
-package com.example.recordingsystem.UI
+package com.saintmarina.recordingsystem.UI
 
 import android.content.Context
 import android.graphics.Canvas
@@ -9,6 +9,8 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import android.view.View
+import com.saintmarina.recordingsystem.Util
+import org.ocpsoft.prettytime.PrettyTime
 
 private const val TAG = "timeTextView"
 
@@ -44,7 +46,7 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        val timeString = timeToFormatString(timeSec)
+        val timeString = Util.formatAudioDuration(timeSec)
         val bounds = Rect()
         paint.getTextBounds(timeString, 0, timeString.length, bounds)
 
@@ -56,17 +58,6 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
 
         canvas?.translate(0F, textHeight)
         canvas?.drawText(timeString, x, y, paint)
-    }
-
-    private fun timeToFormatString(totalSeconds: Int): String {
-        val seconds = totalSeconds % 60
-        val minutes = totalSeconds / 60 % 60
-        val hours = totalSeconds / (60 * 60)
-
-        return if (hours > 0)
-            String.format("%02d:%02d:%02d", hours, minutes, seconds)
-        else
-            String.format("%02d:%02d", minutes, seconds)
     }
 
     private val flashAnimation = object : Runnable {

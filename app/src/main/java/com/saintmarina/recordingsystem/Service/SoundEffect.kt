@@ -1,8 +1,8 @@
-package com.example.recordingsystem.Service
+package com.saintmarina.recordingsystem.Service
 
 import android.content.Context
 import android.media.MediaPlayer
-import com.example.recordingsystem.R
+import com.saintmarina.recordingsystem.R
 
 class SoundEffect(val context: Context) {
     private var startSound: MediaPlayer? = null

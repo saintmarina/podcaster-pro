@@ -1,4 +1,4 @@
-package com.example.recordingsystem
+package com.saintmarina.recordingsystem
 
 import org.junit.Test
 

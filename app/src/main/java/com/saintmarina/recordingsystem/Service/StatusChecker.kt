@@ -1,4 +1,4 @@
-package com.example.recordingsystem.Service
+package com.saintmarina.recordingsystem.Service
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -34,7 +34,6 @@ class StatusChecker(): BroadcastReceiver() {
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onReceive(context: Context?, intent: Intent?) {
         context?.let { internet = isInternetWorking(it) }
-        Log.e("XXX", "inside onReceive 1")
         when (intent?.action) {
             Intent.ACTION_BATTERY_CHANGED -> {
                 val status: Int = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
@@ -46,7 +45,6 @@ class StatusChecker(): BroadcastReceiver() {
                 mic = state == 1
             }
         }
-        Log.e("XXX", "inside onReceive 2")
         onChange?.invoke(this)
     }
 

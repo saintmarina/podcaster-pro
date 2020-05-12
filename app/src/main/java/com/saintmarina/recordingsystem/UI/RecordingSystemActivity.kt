@@ -1,4 +1,4 @@
-package com.example.recordingsystem.UI
+package com.saintmarina.recordingsystem.UI
 
 import android.content.ComponentName
 import android.content.Context
@@ -9,9 +9,12 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
-import com.example.recordingsystem.R
-import com.example.recordingsystem.Service.RecordingService
+import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
+import com.saintmarina.recordingsystem.R
+import com.saintmarina.recordingsystem.Service.RecordingService
+import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
+import java.security.AccessController.getContext
 
 /*
  * TODO:
@@ -24,7 +27,7 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  * Card view instead of viewPager2
  */
 
-private const val SEC_IN_NANO: Long = 1_000_000_000
+
 const val UI_REFRESH_DELAY: Long = 30
 private const val TAG: String = "RecordingActivity"
 
@@ -32,6 +35,7 @@ class RecordingSystemActivity : AppCompatActivity(),
     RecordingService.ActivityCallbacks {
     private var service: RecordingService.API? = null
     private var noMicPopup: NoMicPopup? = null
+    private var drive: GoogleDrive? = null
 
     private val UIUpdater = object : Runnable {
         private var handler = Handler(Looper.getMainLooper())
@@ -40,8 +44,11 @@ class RecordingSystemActivity : AppCompatActivity(),
         override fun run() {
             service?.let { s ->
                 count++
-                timeTextView.timeSec = (s.getElapsedTime() / SEC_IN_NANO).toInt() // Nanoseconds to seconds
+                timeTextView.timeSec = Util.nanosToSec(s.getElapsedTime()) // Nanoseconds to seconds
                 timeTextView.isFlashing = s.getState() == RecordingService.State.PAUSED
+
+                statusIndicator.timeAgo = s.getTimeWhenStopped()
+                //Log.e(TAG, "inside Runnable s.getTimeWhenStopped() ${s.getTimeWhenStopped()}")
 
                 peakTextView.text = "$count -- ${s.getAudioPeek()}"
                 soundVisualizer.volume = s.getAudioPeek()
@@ -63,6 +70,7 @@ class RecordingSystemActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recording_system)
         Log.d(TAG, "inside onCreate")
+        drive = GoogleDrive(this)
         startRecordingService()
 
         view_pager2.adapter = ViewPagerAdapter()
@@ -144,6 +152,9 @@ class RecordingSystemActivity : AppCompatActivity(),
             val health = s.getHealth()
             statusIndicator.internet = health.internet
             statusIndicator.power = health.power
+            statusIndicator.previousRecordingTime = Util.nanosToSec(health.recordingDuration)
+            //statusIndicator.timeAgo = s.getTimeWhenStopped()
+            //Log.e(TAG, "inside invalidate s.getTimeWhenStopped() ${s.getTimeWhenStopped()}")
             //noMicPopup?.isMicPresent = health.mic // Comment this line out if app needs to be tested on a Tablet without mic
         }
     }
