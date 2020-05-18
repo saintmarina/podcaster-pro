@@ -49,6 +49,7 @@ dependencies {
     implementation 'com.google.apis:google-api-services-drive:v3-rev110-1.23.0'
     implementation 'org.ocpsoft.prettytime:prettytime:4.0.4.Final'
     implementation 'com.google.apis:google-api-services-gmail:v1-rev29-1.20.0'
+    implementation 'com.google.code.gson:gson:2.8.5'
 }
 
 //139590077792-khsm6tpa3dd1cvq609oa3koj3s93eaua.apps.googleusercontent.com

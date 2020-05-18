@@ -14,6 +14,7 @@ import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.Service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
+import java.io.File
 import java.security.AccessController.getContext
 
 /*
@@ -33,9 +34,9 @@ private const val TAG: String = "RecordingActivity"
 
 class RecordingSystemActivity : AppCompatActivity(),
     RecordingService.ActivityCallbacks {
+    private lateinit var serviceConnection: ServiceConnection
     private var service: RecordingService.API? = null
     private var noMicPopup: NoMicPopup? = null
-    private var drive: GoogleDrive? = null
 
     private val UIUpdater = object : Runnable {
         private var handler = Handler(Looper.getMainLooper())
@@ -70,7 +71,6 @@ class RecordingSystemActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recording_system)
         Log.d(TAG, "inside onCreate")
-        drive = GoogleDrive(this)
         startRecordingService()
 
         view_pager2.adapter = ViewPagerAdapter()
@@ -87,7 +87,7 @@ class RecordingSystemActivity : AppCompatActivity(),
     private fun startRecordingService() {
         Log.d(TAG, "inside startRecordingService()")
 
-        val serviceConnection = object : ServiceConnection {
+        serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName, serviceAPI: IBinder) {
                 Log.d(TAG, "inside onServiceConnected")
 
@@ -137,7 +137,6 @@ class RecordingSystemActivity : AppCompatActivity(),
                     btnStart.text = "Start"
                     btnPause.text = "Pause"
                     soundVisualizer.didClip = false
-
                 }
                 RecordingService.State.RECORDING -> {
                     btnStart.text = "Stop"
@@ -162,6 +161,7 @@ class RecordingSystemActivity : AppCompatActivity(),
     override fun onDestroy() {
         super.onDestroy()
         UIUpdater.stop()
+        unbindService(serviceConnection)
     }
 
 }

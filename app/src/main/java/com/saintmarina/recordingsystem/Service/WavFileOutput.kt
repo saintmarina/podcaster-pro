@@ -13,26 +13,26 @@ const val BITS_PER_SAMPLE: Short = 16
 const val NUM_CHANNELS: Short = 1
 
 const val FILE_NAME_FMT: String = "yyyy-MM-dd_HH-mm-ss'.wav'"
-//const val FILE_NAME_FMT: String = "'test.wav'"
 const val RECORDINGS_DIR_PATH: String = "/sdcard/Recordings/"
 
 class WavFileOutput: Closeable {
-    var file: FileOutputStream
+    var output: FileOutputStream
+    lateinit var path: File
 
     private fun getDataSize(): Int {
-        return file.channel.position().toInt() - HEADER_SIZE
+        return output.channel.position().toInt() - HEADER_SIZE
     }
 
     init {
-        file = createDatedFile()
-        file.channel.position(HEADER_SIZE.toLong())
+        output = createDatedFile()
+        output.channel.position(HEADER_SIZE.toLong())
     }
 
     override fun close() {
         val header = generateWavHeader(getDataSize())
-        file.channel.write(header, 0)
-        file.flush()
-        file.close()
+        output.channel.write(header, 0)
+        output.flush()
+        output.close()
     }
 
     private fun generateWavHeader(dataSize: Int): ByteBuffer {
@@ -65,7 +65,7 @@ class WavFileOutput: Closeable {
             .apply {
                 asShortBuffer().put(buf, 0, len)
             }
-        file.channel.write(byteBuf)
+        output.channel.write(byteBuf)
     }
 
     private fun createDatedFile() : FileOutputStream {
@@ -79,16 +79,17 @@ class WavFileOutput: Closeable {
 
         // Create a File
         val outputFile = File(recordingsDir, filename)
+        path = outputFile
 
         return FileOutputStream(outputFile)
     }
 
-    fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String {
+    private fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String {
         val formatter = SimpleDateFormat(format, locale)
         return formatter.format(this)
     }
 
-    fun getCurrentDateTime(): Date {
+    private fun getCurrentDateTime(): Date {
         return Calendar.getInstance().time
     }
 }

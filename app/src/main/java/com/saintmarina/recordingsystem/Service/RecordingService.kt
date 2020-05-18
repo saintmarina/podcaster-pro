@@ -12,11 +12,12 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import com.google.api.client.http.FileContent
+import com.saintmarina.recordingsystem.GoogleDrive.FilesSync
 import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.UI.RecordingSystemActivity
 import com.saintmarina.recordingsystem.Util
+import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -52,6 +53,7 @@ class RecordingService(): Service() {
     private lateinit var soundEffect: SoundEffect
     private var stopWatch: StopWatch = StopWatch()
     private var timeWhenStopped: Date? = null
+    private lateinit var filesSync: FilesSync
 
     inner class API : Binder() {
         inner class Health {
@@ -106,6 +108,11 @@ class RecordingService(): Service() {
         soundEffect = SoundEffect(this)
         statusChecker.startMonitoring(this)
 
+        val drive = GoogleDrive(this.assets.open("creds.json"))
+        filesSync = FilesSync(drive)
+        filesSync.scanForFiles()
+
+
         statusChecker.onChange = { status ->
             Log.d(TAG, "inside StatusChecker")
             health.apply {
@@ -122,6 +129,7 @@ class RecordingService(): Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
         Log.d(TAG, "inside Service onStartCommand()")
         return START_NOT_STICKY
     }
@@ -188,13 +196,11 @@ class RecordingService(): Service() {
         state = State.IDLE
         activity?.invalidate()
 
-       // var mediaContent: FileContent = FileContent("audio/wav", recorder.outputFile)
+        filesSync.maybeUploadFile(outputFile!!.path) //Upload file to Drive
 
         recorder.outputFile = null
         outputFile?.close()
         outputFile = null
-
-
 
         // Stop Foreground Service.
         stopForeground(true)
@@ -253,7 +259,7 @@ class RecordingService(): Service() {
         return PendingIntent.getActivity(applicationContext, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
-    private fun showToast( message: String) {
+    private fun showToast(message: String) {
         Toast.makeText(
             this,
             message,
