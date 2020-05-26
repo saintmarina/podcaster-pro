@@ -30,35 +30,26 @@ class ConnectionNotEstablished(message: String): Exception(message)
 private const val TOKEN_EXPIRE_TIME_MILLI: Long = 60 * 60 * 1000
 
 class GoogleDrive(var credFile: InputStream) {
-    private var  credential: GoogleCredential
-    private val httpTransport: HttpTransport
-    private var service: Drive
-    private var refreshTokenThread: Thread
-
-
-    // HOMEWORK: How to make sure that when we have a google drive and credentials are not initialized yet
-    // Answer: to initialize all the variables in order we need. We make sure that credentials are initialized before they get used/
-    init {
-        httpTransport = NetHttpTransport() //GoogleNetHttpTransport.newTrustedTransport()
-        credential = GoogleCredential.fromStream(credFile).createScoped(DriveScopes.all())
-        service = Drive.Builder(httpTransport, JacksonFactory.getDefaultInstance(), credential)
-            .setApplicationName("Recording System")
-            .build()
-
-        refreshTokenThread = Thread {
-            while (true) {
-                try {
-                    credential.refreshToken()
-                    Log.i(TAG, "Token refreshed")
-                } catch (e: Exception) {
-                    Log.d(TAG, "Exception caught while refreshing token. $e")
-                }
-                Thread.sleep(TOKEN_EXPIRE_TIME_MILLI/2)
+    private var  credential = GoogleCredential.fromStream(credFile).createScoped(DriveScopes.all())
+    private val httpTransport = NetHttpTransport() //GoogleNetHttpTransport.newTrustedTransport()
+    private var service =  Drive.Builder(httpTransport, JacksonFactory.getDefaultInstance(), credential)
+        .setApplicationName("Recording System")
+        .build()
+    private var refreshTokenThread = Thread {
+        while (true) {
+            try {
+                credential.refreshToken()
+                Log.i(TAG, "Token refreshed")
+            } catch (e: Exception) {
+                Log.d(TAG, "Exception caught while refreshing token. $e")
             }
+            Thread.sleep(TOKEN_EXPIRE_TIME_MILLI/2)
         }
+    }
+    
+    fun prepare() {
         refreshTokenThread.start()
     }
-
 
     fun openRequest(url: URL): HttpURLConnection {
         if (credential.accessToken == null)

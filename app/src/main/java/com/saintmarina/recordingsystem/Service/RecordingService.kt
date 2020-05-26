@@ -117,8 +117,8 @@ class RecordingService(): Service() {
         soundEffect = SoundEffect(this)
         statusChecker.startMonitoring(this)
 
-        val drive = GoogleDrive(this.assets.open("credentials.json"))
-        // TODO drive.prepare() insead of doign work in init { }
+        val drive = GoogleDrive(this.assets.open("credentials.json")).also { it.prepare() }
+
         fileSync = FilesSync(drive)
 
         fileSync.onStatusChange = {
