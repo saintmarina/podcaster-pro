@@ -1,10 +1,8 @@
 package com.saintmarina.recordingsystem.Service
 
-import android.app.Activity
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.telephony.AvailableNetworkInfo.PRIORITY_HIGH
@@ -16,8 +14,7 @@ import com.saintmarina.recordingsystem.GoogleDrive.FilesSync
 import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.UI.RecordingSystemActivity
-import com.saintmarina.recordingsystem.Util
-import java.io.File
+import java.lang.Exception
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -38,67 +35,79 @@ private const val TAG: String = "RecordingService"
 
 @RequiresApi(Build.VERSION_CODES.Q)
 class RecordingService(): Service() {
-    enum class State {
+    enum class RecorderState {
         IDLE,
         RECORDING,
         PAUSED
     }
 
-    private var state: State = State.IDLE
-    private val health = API().Health()
-    private var activity: ActivityCallbacks? = null
+    /* State is shared with the UI */
+    class State {
+        var recorderState: RecorderState = RecorderState.IDLE
+        var internetAvailable: Boolean = true
+        var micPlugged: Boolean = true
+        var powerAvailable: Boolean = true
+        var audioError: String? = null
+        var fileSyncError: String? = null
+        var fileSyncProgress: String? = null
+        var recordingDuration: Long = 0
+    }
+
+    private val state = State()
+
+    private var api: API = API()
+
     private var statusChecker = StatusChecker()
     private var outputFile: WavFileOutput? = null
     private lateinit var recorder: AudioRecorder
     private lateinit var soundEffect: SoundEffect
     private var stopWatch: StopWatch = StopWatch()
     private var timeWhenStopped: Date? = null
-    private lateinit var filesSync: FilesSync
+    private lateinit var fileSync: FilesSync
 
     inner class API : Binder() {
-        inner class Health {
-            var internet: Boolean = true
-            var mic: Boolean = true
-            var power: Boolean = true
-            var recordingDuration: Long = 0
-        }
+        var activityInvalidate: (() -> Unit)? = null;
 
         fun getAudioPeek(): Short { return recorder.peak }
         fun getState(): State { return state }
         fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos() }
-        fun getHealth(): Health { return health }
         fun getTimeWhenStopped(): Date? {return timeWhenStopped}
 
         fun toggleStartStop() {
             Log.d(TAG, "inside onStartClick()")
-            when (state) {
-                State.IDLE -> start()
-                State.RECORDING -> stop()
-                State.PAUSED -> stop()
+            when (state.recorderState) {
+                RecorderState.IDLE -> start()
+                RecorderState.RECORDING -> stop()
+                RecorderState.PAUSED -> stop()
             }
         }
 
         fun togglePauseResume() {
             Log.d(TAG, "inside onPauseClick()")
-            when (state) {
-                State.IDLE -> showToast("You are not recording.")
-                State.RECORDING -> pause()
-                State.PAUSED -> resume()
+            when (state.recorderState) {
+                RecorderState.IDLE -> showToast("You are not recording.")
+                RecorderState.RECORDING -> pause()
+                RecorderState.PAUSED -> resume()
             }
         }
 
-        fun registerActivity(act: Activity) {
+        fun registerActivityInvalidate(cb: () -> Unit) {
             Log.d(TAG, "inside registerActivity()")
-            activity = act as ActivityCallbacks
+            activityInvalidate = cb
         }
     }
 
-    interface ActivityCallbacks {
-        fun invalidate()
+    private fun invalidateActivity() {
+        api.activityInvalidate?.invoke()
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        return API()
+        return api
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        api.activityInvalidate = null
+        return super.onUnbind(intent)
     }
 
     override fun onCreate() {
@@ -108,29 +117,32 @@ class RecordingService(): Service() {
         soundEffect = SoundEffect(this)
         statusChecker.startMonitoring(this)
 
-        val drive = GoogleDrive(this.assets.open("creds.json"))
-        filesSync = FilesSync(drive)
-        filesSync.scanForFiles()
+        val drive = GoogleDrive(this.assets.open("credentials.json"))
+        // TODO drive.prepare() insead of doign work in init { }
+        fileSync = FilesSync(drive)
 
+        fileSync.onStatusChange = {
+            state.fileSyncError = fileSync.uploadStatus
+        }
 
-        statusChecker.onChange = { status ->
+        statusChecker.onChange = {
             Log.d(TAG, "inside StatusChecker")
-            health.apply {
-                this.internet = status.internet
-                this.power = status.power
-                this.mic = status.mic
+            state.apply {
+                internetAvailable = statusChecker.internet
+                powerAvailable = statusChecker.power
+                micPlugged = statusChecker.mic
             }
             // The UI will display a large popup if mic is out
-            if (!status.mic)
+            if (!state.micPlugged)
                 stop()
 
-            activity?.invalidate()
+            invalidateActivity()
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
         Log.d(TAG, "inside Service onStartCommand()")
+        fileSync.scanForFiles()
         return START_NOT_STICKY
     }
 
@@ -157,7 +169,7 @@ class RecordingService(): Service() {
     }
 
     private fun start() {
-        if (state != State.IDLE)
+        if (state.recorderState != RecorderState.IDLE)
             return
 
         Log.d(TAG, "inside handleStart()")
@@ -167,11 +179,16 @@ class RecordingService(): Service() {
 
         autoStopTimer.enable()
 
-        state = State.RECORDING
-        activity?.invalidate()
+        state.recorderState = RecorderState.RECORDING
+        invalidateActivity()
 
-        outputFile = WavFileOutput()
-        recorder.outputFile = outputFile
+        try {
+            outputFile = WavFileOutput()
+            recorder.outputFile = outputFile
+        } catch (e: Exception) {
+            Log.e(TAG, e.message)
+            state.audioError = e.message
+        }
 
          // Start Foreground Service.
          startForeground(FOREGROUND_ID, createNotification())
@@ -179,7 +196,7 @@ class RecordingService(): Service() {
 
 
     private fun stop() {
-        if (state == State.IDLE)
+        if (state.recorderState == RecorderState.IDLE)
             return
 
         Log.d(TAG, "inside handleStop()")
@@ -188,26 +205,32 @@ class RecordingService(): Service() {
 
         autoStopTimer.disable()
 
-        health.recordingDuration = stopWatch.getElapsedTimeNanos()
+        state.recordingDuration = stopWatch.getElapsedTimeNanos()
         stopWatch.reset()
 
         timeWhenStopped = Date()
         Log.e(TAG, "Service timeWhenStopped = $timeWhenStopped")
-        state = State.IDLE
-        activity?.invalidate()
+        state.recorderState = RecorderState.IDLE
+        invalidateActivity()
 
-        filesSync.maybeUploadFile(outputFile!!.path) //Upload file to Drive
+        fileSync.maybeUploadFile(outputFile!!.path) //Upload file to Drive
 
-        recorder.outputFile = null
-        outputFile?.close()
-        outputFile = null
+        try {
+            recorder.outputFile = null
+            outputFile?.close()
+            outputFile = null
+        } catch (e: Exception) {
+            Log.e(TAG, e.message)
+            state.audioError = e.message
+        }
+
 
         // Stop Foreground Service.
         stopForeground(true)
     }
 
     private fun pause() {
-        if (state != State.RECORDING)
+        if (state.recorderState != RecorderState.RECORDING)
             return
 
          Log.d(TAG, "inside handlePause()")
@@ -216,14 +239,19 @@ class RecordingService(): Service() {
 
          autoStopTimer.disable()
 
-         state = State.PAUSED
-         activity?.invalidate()
+         state.recorderState = RecorderState.PAUSED
+        invalidateActivity()
 
-         recorder.outputFile = null
+        try {
+            recorder.outputFile = null
+        } catch (e: Exception) {
+            Log.e(TAG, e.message)
+            state.audioError = e.message
+        }
     }
 
      private fun resume() {
-         if (state != State.PAUSED)
+         if (state.recorderState != RecorderState.PAUSED)
              return
 
          Log.d(TAG, "inside handleResume()")
@@ -232,10 +260,15 @@ class RecordingService(): Service() {
 
          autoStopTimer.enable()
 
-         state = State.RECORDING
-         activity?.invalidate()
+         state.recorderState = RecorderState.RECORDING
+         invalidateActivity()
 
-         recorder.outputFile = outputFile
+         try {
+             recorder.outputFile = outputFile
+         } catch (e: Exception) {
+             Log.e(TAG, e.message)
+             state.audioError = e.message
+         }
     }
 
     private fun createNotification(): Notification {

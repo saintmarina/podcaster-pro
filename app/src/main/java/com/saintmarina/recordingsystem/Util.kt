@@ -1,6 +1,15 @@
 package com.saintmarina.recordingsystem
 
+import android.util.Log
+import com.google.gson.Gson
+import com.saintmarina.recordingsystem.GoogleDrive.GoogleDriveFile
+import org.mortbay.util.ajax.JSON
+import java.io.File
+
+import java.io.InputStream
+
 private const val SEC_IN_NANO: Long = 1_000_000_000
+private const val TAG = "Util"
 
 object Util {
     @JvmStatic fun formatAudioDuration(totalSeconds: Int): String {
@@ -17,12 +26,7 @@ object Util {
     @JvmStatic fun nanosToSec(time: Long): Int {
         return (time / SEC_IN_NANO).toInt()
     }
+    @JvmStatic fun readString(inputStream: InputStream): String {
+        return String(inputStream.readBytes())
+    }
 }
-//https://drive.google.com/drive/folders/1Doloxa7z3FozwBdBXUDykTZu_B1AUnHB?usp=sharing
-
-
-//1)
-//hello.txt
-//"Hello world"
-
-  //      2) set metadata "audio/wave"

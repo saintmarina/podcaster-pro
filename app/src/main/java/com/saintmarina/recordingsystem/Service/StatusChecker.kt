@@ -16,14 +16,14 @@ class StatusChecker(): BroadcastReceiver() {
     var mic: Boolean = true
     var internet: Boolean = true
 
-    var onChange: ((StatusChecker) -> Unit)? = null
+    var onChange: (() -> Unit)? = null
 
     fun startMonitoring(context: Context) {
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_BATTERY_CHANGED)
             addAction(Intent.ACTION_HEADSET_PLUG)
-
         }
+
         context.registerReceiver(this, filter)
     }
 
@@ -45,7 +45,7 @@ class StatusChecker(): BroadcastReceiver() {
                 mic = state == 1
             }
         }
-        onChange?.invoke(this)
+        onChange?.invoke()
     }
 
     @RequiresApi(Build.VERSION_CODES.M)

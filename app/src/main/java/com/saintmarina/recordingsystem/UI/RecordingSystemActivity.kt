@@ -32,28 +32,27 @@ import java.security.AccessController.getContext
 const val UI_REFRESH_DELAY: Long = 30
 private const val TAG: String = "RecordingActivity"
 
-class RecordingSystemActivity : AppCompatActivity(),
-    RecordingService.ActivityCallbacks {
+class RecordingSystemActivity : AppCompatActivity() {
     private lateinit var serviceConnection: ServiceConnection
-    private var service: RecordingService.API? = null
+    private var uiUpdater: UiUpdater? = null
     private var noMicPopup: NoMicPopup? = null
 
-    private val UIUpdater = object : Runnable {
+    inner class UiUpdater(private val service: RecordingService.API ): Runnable {
         private var handler = Handler(Looper.getMainLooper())
         private var count = 0
 
         override fun run() {
-            service?.let { s ->
+            service.let { s ->
                 count++
                 timeTextView.timeSec = Util.nanosToSec(s.getElapsedTime()) // Nanoseconds to seconds
-                timeTextView.isFlashing = s.getState() == RecordingService.State.PAUSED
+                timeTextView.isFlashing = s.getState().recorderState == RecordingService.RecorderState.PAUSED
 
                 statusIndicator.timeAgo = s.getTimeWhenStopped()
                 //Log.e(TAG, "inside Runnable s.getTimeWhenStopped() ${s.getTimeWhenStopped()}")
 
                 peakTextView.text = "$count -- ${s.getAudioPeek()}"
                 soundVisualizer.volume = s.getAudioPeek()
-                if (s.getAudioPeek() == Short.MAX_VALUE && s.getState() != RecordingService.State.IDLE) {
+                if (s.getAudioPeek() == Short.MAX_VALUE && s.getState().recorderState != RecordingService.RecorderState.IDLE) {
                     soundVisualizer.didClip = true
                 }
             }
@@ -80,8 +79,38 @@ class RecordingSystemActivity : AppCompatActivity(),
             }
         })
 
-        UIUpdater.run()
+        uiUpdater?.run()
         noMicPopup = NoMicPopup(window.decorView.rootView)
+    }
+
+    private fun handleServiceInvalidate(service: RecordingService.API)
+    {
+        Log.d(TAG, "inside invalidate(), state = ${service.getState()}")
+
+        when (service.getState().recorderState) {
+            RecordingService.RecorderState.IDLE -> {
+                btnStart.text = "Start"
+                btnPause.text = "Pause"
+                soundVisualizer.didClip = false
+            }
+            RecordingService.RecorderState.RECORDING -> {
+                btnStart.text = "Stop"
+                btnPause.text = "Pause"
+            }
+            RecordingService.RecorderState.PAUSED -> {
+                btnStart.text = "Stop"
+                btnPause.text = "Resume"
+            }
+        }
+
+        val state = service.getState()
+        statusIndicator.internet = state.internetAvailable
+        statusIndicator.power = state.powerAvailable
+        statusIndicator.previousRecordingTime = Util.nanosToSec(state.recordingDuration)
+        //statusIndicator.timeAgo = s.getTimeWhenStopped()
+        //Log.e(TAG, "inside invalidate s.getTimeWhenStopped() ${s.getTimeWhenStopped()}")
+        //noMicPopup?.isMicPresent = state.micPlugged // Comment this line out if app needs to be tested on a Tablet without mic
+
     }
 
     private fun startRecordingService() {
@@ -90,17 +119,35 @@ class RecordingSystemActivity : AppCompatActivity(),
         serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName, serviceAPI: IBinder) {
                 Log.d(TAG, "inside onServiceConnected")
+                val service = (serviceAPI as RecordingService.API)
 
-                service = serviceAPI as RecordingService.API
-                service?.registerActivity(this@RecordingSystemActivity) //Activity register in the service as client for callabcks!
+                service.registerActivityInvalidate {
+                    handleServiceInvalidate(service)
+                }
 
-                initUI()    // We have to wait to set onClickListeners until Service is connected.
-                invalidate()
+                uiUpdater = UiUpdater(service)
+
+                // initUI
+                btnStart.setOnClickListener {
+                    service.toggleStartStop()
+                }
+
+                btnPause.setOnClickListener {
+                    service.togglePauseResume()
+                }
+
+                soundVisualizer.setOnClickListener {
+                    if (service.getState().recorderState == RecordingService.RecorderState.RECORDING && soundVisualizer.didClip)
+                        soundVisualizer.didClip = false
+                }
+
+                handleServiceInvalidate(service)
             }
 
             override fun onServiceDisconnected(arg0: ComponentName) {
-                Log.e(TAG, "ServiceConnection Disconnected")
-                service = null
+                Log.d(TAG, "ServiceConnection Disconnected")
+                uiUpdater?.stop()
+                uiUpdater = null
                 Thread.sleep(1000L)
                 startRecordingService()
             }
@@ -111,57 +158,9 @@ class RecordingSystemActivity : AppCompatActivity(),
         startService(serviceIntent)
     }
 
-    private fun initUI() {
-        Log.d(TAG, "inside initUI()")
-        service?.let{ s ->
-            btnStart.setOnClickListener {
-                s.toggleStartStop()
-            }
-
-            btnPause.setOnClickListener {
-                s.togglePauseResume()
-            }
-
-            soundVisualizer.setOnClickListener {
-                if (s.getState() == RecordingService.State.RECORDING && soundVisualizer.didClip)
-                    soundVisualizer.didClip = false
-            }
-        }
-    }
-
-    override fun invalidate() {
-        Log.d(TAG, "inside invalidate(), state = ${service?.getState()}")
-        service?.let { s ->
-            when (s.getState()) {
-                RecordingService.State.IDLE -> {
-                    btnStart.text = "Start"
-                    btnPause.text = "Pause"
-                    soundVisualizer.didClip = false
-                }
-                RecordingService.State.RECORDING -> {
-                    btnStart.text = "Stop"
-                    btnPause.text = "Pause"
-                }
-                RecordingService.State.PAUSED -> {
-                    btnStart.text = "Stop"
-                    btnPause.text = "Resume"
-                }
-            }
-
-            val health = s.getHealth()
-            statusIndicator.internet = health.internet
-            statusIndicator.power = health.power
-            statusIndicator.previousRecordingTime = Util.nanosToSec(health.recordingDuration)
-            //statusIndicator.timeAgo = s.getTimeWhenStopped()
-            //Log.e(TAG, "inside invalidate s.getTimeWhenStopped() ${s.getTimeWhenStopped()}")
-            //noMicPopup?.isMicPresent = health.mic // Comment this line out if app needs to be tested on a Tablet without mic
-        }
-    }
-
     override fun onDestroy() {
-        super.onDestroy()
-        UIUpdater.stop()
         unbindService(serviceConnection)
+        super.onDestroy()
     }
-
 }
+
