@@ -29,7 +29,7 @@ class ConnectionNotEstablished(message: String): Exception(message)
  */
 private const val TOKEN_EXPIRE_TIME_MILLI: Long = 60 * 60 * 1000
 
-class GoogleDrive(var credFile: InputStream) {
+class GoogleDrive(credFile: InputStream) {
     private var  credential = GoogleCredential.fromStream(credFile).createScoped(DriveScopes.all())
     private val httpTransport = NetHttpTransport() //GoogleNetHttpTransport.newTrustedTransport()
     private var service =  Drive.Builder(httpTransport, JacksonFactory.getDefaultInstance(), credential)
@@ -46,7 +46,7 @@ class GoogleDrive(var credFile: InputStream) {
             Thread.sleep(TOKEN_EXPIRE_TIME_MILLI/2)
         }
     }
-    
+
     fun prepare() {
         refreshTokenThread.start()
     }

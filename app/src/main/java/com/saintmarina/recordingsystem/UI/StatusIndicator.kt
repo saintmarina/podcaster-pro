@@ -43,6 +43,12 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
             invalidate()
         }
 
+    var fileSyncStatus: String = ""
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
@@ -55,9 +61,9 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
             //Log.e("StatusIndicator", "lastRecordingTime = $lastRecordingTime")
             val previousRecording: String =
                 if (previousRecordingTime == 0)
-                    "No recording was previously made"
+                    "No recording was previously made.$fileSyncStatus"
                 else
-                    "Previous recording was ${Util.formatAudioDuration(previousRecordingTime)} long $lastRecordingTime"
+                    "Previous recording was ${Util.formatAudioDuration(previousRecordingTime)} long $lastRecordingTime. $fileSyncStatus"
 
             when {
                 !power -> {

@@ -48,15 +48,12 @@ class RecordingService(): Service() {
         var micPlugged: Boolean = true
         var powerAvailable: Boolean = true
         var audioError: String? = null
-        var fileSyncError: String? = null
-        var fileSyncProgress: String? = null
+        var fileSyncStatus: String = ""
         var recordingDuration: Long = 0
     }
 
     private val state = State()
-
     private var api: API = API()
-
     private var statusChecker = StatusChecker()
     private var outputFile: WavFileOutput? = null
     private lateinit var recorder: AudioRecorder
@@ -117,12 +114,13 @@ class RecordingService(): Service() {
         soundEffect = SoundEffect(this)
         statusChecker.startMonitoring(this)
 
-        val drive = GoogleDrive(this.assets.open("credentials.json")).also { it.prepare() }
+        val drive = GoogleDrive(this.assets.open("credentials.json"))
+            .also { it.prepare() }
 
         fileSync = FilesSync(drive)
 
         fileSync.onStatusChange = {
-            state.fileSyncError = fileSync.uploadStatus
+            state.fileSyncStatus = fileSync.uploadStatus
         }
 
         statusChecker.onChange = {

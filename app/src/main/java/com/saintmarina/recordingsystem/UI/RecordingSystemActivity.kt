@@ -107,6 +107,7 @@ class RecordingSystemActivity : AppCompatActivity() {
         statusIndicator.internet = state.internetAvailable
         statusIndicator.power = state.powerAvailable
         statusIndicator.previousRecordingTime = Util.nanosToSec(state.recordingDuration)
+        statusIndicator.fileSyncStatus = state.fileSyncStatus
         //statusIndicator.timeAgo = s.getTimeWhenStopped()
         //Log.e(TAG, "inside invalidate s.getTimeWhenStopped() ${s.getTimeWhenStopped()}")
         //noMicPopup?.isMicPresent = state.micPlugged // Comment this line out if app needs to be tested on a Tablet without mic
@@ -125,7 +126,7 @@ class RecordingSystemActivity : AppCompatActivity() {
                     handleServiceInvalidate(service)
                 }
 
-                uiUpdater = UiUpdater(service)
+                uiUpdater = UiUpdater(service).also { it.run() }
 
                 // initUI
                 btnStart.setOnClickListener {
