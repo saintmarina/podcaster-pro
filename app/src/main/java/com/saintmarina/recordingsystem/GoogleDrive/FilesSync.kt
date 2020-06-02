@@ -1,6 +1,8 @@
 package com.saintmarina.recordingsystem.GoogleDrive
 
 import android.util.Log
+import com.saintmarina.recordingsystem.DESTINATIONS
+import com.saintmarina.recordingsystem.Destination
 import java.io.File
 import java.lang.Exception
 import java.util.concurrent.LinkedBlockingQueue
@@ -43,20 +45,21 @@ class FilesSync(private val drive: GoogleDrive) {
     }
 
     fun scanForFiles() {  //done once at a boot time
-        sdDir.walk().forEach {
-            if (it.isFile && it.name.endsWith(".wav")) {
-                maybeUploadFile(it)
+        DESTINATIONS.forEach { dest ->
+            File(dest.localDir).walk().forEach { f ->
+                if (f.isFile && f.name.endsWith(".wav")) {
+                    maybeUploadFile(f)
+                }
             }
         }
     }
 
-    fun maybeUploadFile(audioFile: File) {
-        Log.d(TAG, "AUDIO FILE ${audioFile.name}")
-        val metadataFile = File(sdDir, audioFile.name + JSON_EXT)
+    fun maybeUploadFile(file: File) {
+        Log.i(TAG, " maybeUploadFile file.path = ${file.path}")
+        val metadataFile = File(file.path + JSON_EXT)
 
         val metadata =
             if (metadataFile.exists()) {
-                Log.d(TAG, "metadata exists")
                 FileMetadata.deserializeFromJson(metadataFile)
             } else {
                 FileMetadata()
@@ -64,7 +67,7 @@ class FilesSync(private val drive: GoogleDrive) {
         Log.d(TAG, "is uploaded ${metadata.uploaded}")
         Log.d(TAG, "session ${metadata.sessionUrl}")
         if (!metadata.uploaded) {
-            jobQueue.add(GoogleDriveFile(drive, audioFile, metadata, this))
+            jobQueue.add(GoogleDriveFile(file, drive, metadata, this))
         }
     }
 }

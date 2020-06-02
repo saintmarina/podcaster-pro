@@ -9,13 +9,11 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
-import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
+import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.Service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
-import java.io.File
-import java.security.AccessController.getContext
 
 /*
  * TODO:
@@ -56,6 +54,7 @@ class RecordingSystemActivity : AppCompatActivity() {
                     soundVisualizer.didClip = true
                 }
             }
+
             handler.postDelayed(this, UI_REFRESH_DELAY)
         }
 
@@ -126,10 +125,14 @@ class RecordingSystemActivity : AppCompatActivity() {
                     handleServiceInvalidate(service)
                 }
 
-                uiUpdater = UiUpdater(service).also { it.run() }
+                uiUpdater = UiUpdater(service).apply {
+                    run()
+                }
 
                 // initUI
                 btnStart.setOnClickListener {
+                    if (service.getState().recorderState == RecordingService.RecorderState.IDLE)
+                        service.setDestination(DESTINATIONS[view_pager2.currentItem])
                     service.toggleStartStop()
                 }
 

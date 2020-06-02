@@ -33,6 +33,7 @@ class StatusChecker(): BroadcastReceiver() {
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onReceive(context: Context?, intent: Intent?) {
+        // TODO find intent of changing the internet connectivity
         context?.let { internet = isInternetWorking(it) }
         when (intent?.action) {
             Intent.ACTION_BATTERY_CHANGED -> {
@@ -50,9 +51,11 @@ class StatusChecker(): BroadcastReceiver() {
 
     @RequiresApi(Build.VERSION_CODES.M)
     private fun isInternetWorking(context: Context): Boolean {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = connectivityManager.activeNetwork ?: return false
-        return connectivityManager.getNetworkCapabilities(network)
-            ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
+        return with(context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager) {
+            activeNetwork?.let {
+                // TODO internet connection. We don't care if it's through wifi or lte
+                getNetworkCapabilities(it)?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+            }
+        } ?: false
     }
 }

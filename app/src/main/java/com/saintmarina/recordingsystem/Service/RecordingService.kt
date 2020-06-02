@@ -10,6 +10,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import com.saintmarina.recordingsystem.Destination
 import com.saintmarina.recordingsystem.GoogleDrive.FilesSync
 import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
@@ -61,14 +62,15 @@ class RecordingService(): Service() {
     private var stopWatch: StopWatch = StopWatch()
     private var timeWhenStopped: Date? = null
     private lateinit var fileSync: FilesSync
+    private lateinit var destination: Destination
 
     inner class API : Binder() {
-        var activityInvalidate: (() -> Unit)? = null;
-
+        var activityInvalidate: (() -> Unit)? = null
         fun getAudioPeek(): Short { return recorder.peak }
         fun getState(): State { return state }
         fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos() }
         fun getTimeWhenStopped(): Date? {return timeWhenStopped}
+        fun setDestination(dest: Destination) {destination = dest}
 
         fun toggleStartStop() {
             Log.d(TAG, "inside onStartClick()")
@@ -125,7 +127,7 @@ class RecordingService(): Service() {
 
         statusChecker.onChange = {
             Log.d(TAG, "inside StatusChecker")
-            state.apply {
+            state.run {
                 internetAvailable = statusChecker.internet
                 powerAvailable = statusChecker.power
                 micPlugged = statusChecker.mic
@@ -181,17 +183,17 @@ class RecordingService(): Service() {
         invalidateActivity()
 
         try {
-            outputFile = WavFileOutput()
+            Log.i(TAG, "Service start() dest.localDir = ${destination.localDir}")
+            outputFile = WavFileOutput(destination.localDir)
             recorder.outputFile = outputFile
         } catch (e: Exception) {
-            Log.e(TAG, e.message)
+            Log.e(TAG, e.message.toString())
             state.audioError = e.message
         }
 
          // Start Foreground Service.
          startForeground(FOREGROUND_ID, createNotification())
     }
-
 
     private fun stop() {
         if (state.recorderState == RecorderState.IDLE)
@@ -211,6 +213,7 @@ class RecordingService(): Service() {
         state.recorderState = RecorderState.IDLE
         invalidateActivity()
 
+        Log.i(TAG, "Service stop() outputFile!!.path = ${outputFile!!.path}")
         fileSync.maybeUploadFile(outputFile!!.path) //Upload file to Drive
 
         try {
@@ -218,10 +221,9 @@ class RecordingService(): Service() {
             outputFile?.close()
             outputFile = null
         } catch (e: Exception) {
-            Log.e(TAG, e.message)
+            Log.e(TAG, e.message.toString())
             state.audioError = e.message
         }
-
 
         // Stop Foreground Service.
         stopForeground(true)
@@ -243,7 +245,7 @@ class RecordingService(): Service() {
         try {
             recorder.outputFile = null
         } catch (e: Exception) {
-            Log.e(TAG, e.message)
+            Log.e(TAG, e.message.toString())
             state.audioError = e.message
         }
     }
@@ -264,7 +266,7 @@ class RecordingService(): Service() {
          try {
              recorder.outputFile = outputFile
          } catch (e: Exception) {
-             Log.e(TAG, e.message)
+             Log.e(TAG, e.message.toString())
              state.audioError = e.message
          }
     }

@@ -1,14 +1,21 @@
 package com.saintmarina.recordingsystem.GoogleDrive
 
 import android.util.Log
+import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.Util
 import java.io.*
+import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
 
+private const val TAG = "GoogleDriveFile"
 const val KB_IN_BYTE = 1000
 
-class GoogleDriveFile(private val drive: GoogleDrive, val file: File, val metadata: FileMetadata, var fileSync: FilesSync) {
+class GoogleDriveFile(val file: File,
+                      val drive: GoogleDrive,
+                      val metadata: FileMetadata,
+                      var fileSync: FilesSync
+) {
     private val tag: String = "GoogleDriveFile (${file.name})"
     
     fun upload() {
@@ -23,6 +30,8 @@ class GoogleDriveFile(private val drive: GoogleDrive, val file: File, val metada
                 Log.i(tag, "No previous sessionUri. Creating new sessionUri")
                 val session = createSession()
                 metadata.sessionUrl = session
+                Log.i(TAG, "dest localDir ${file.parent}")
+                Log.i(TAG, "DRIVE file ${file.path}")
                 metadata.serializeToJson(file)
                 Pair(0L, session)
             } else {
@@ -91,7 +100,7 @@ class GoogleDriveFile(private val drive: GoogleDrive, val file: File, val metada
         Log.e(tag, "inside createSession")
 
         val url = URL("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable")
-        val body = "{\"name\": \"${file.name}\", \"parents\": [\"1y8LPodwpaPNI-BwGHyrbk5Ci7TEe0_0l\"]}"
+        val body = "{\"name\": \"${file.name}\", \"parents\": [\"${getDriveIdFromFileParent()}\"]}"
 
         val request = drive.openRequest(url)
 
@@ -110,7 +119,6 @@ class GoogleDriveFile(private val drive: GoogleDrive, val file: File, val metada
         ensureRequestSuccessful(request)
         return request.getHeaderField("location")
     }
-
 
     private fun getPosFromResumedSession(sessionUri: String): Long {
         val url = URL(sessionUri)
@@ -147,4 +155,14 @@ class GoogleDriveFile(private val drive: GoogleDrive, val file: File, val metada
         }
     }
 
+
+    private fun getDriveIdFromFileParent(): String {
+        DESTINATIONS.forEach { dest ->
+            if (file.parent == dest.localDir) {
+                Log.i(TAG, "drive ID found, file parent is ${file.parent}")
+                return dest.driveID
+            }
+        }
+        throw Exception("File driveID not found")
+    }
 }

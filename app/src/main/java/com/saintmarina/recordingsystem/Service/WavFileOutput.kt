@@ -13,9 +13,8 @@ const val BITS_PER_SAMPLE: Short = 16
 const val NUM_CHANNELS: Short = 1
 
 const val FILE_NAME_FMT: String = "yyyy-MM-dd_HH-mm-ss'.wav'"
-const val RECORDINGS_DIR_PATH: String = "/sdcard/Recordings/"
 
-class WavFileOutput: Closeable {
+class WavFileOutput(val localDir: String): Closeable {
     var output: FileOutputStream
     lateinit var path: File
 
@@ -74,7 +73,7 @@ class WavFileOutput: Closeable {
         val filename = date.toString(FILE_NAME_FMT)
 
         // Creating Recording directory if it doesn't exist
-        val recordingsDir = File(RECORDINGS_DIR_PATH)
+        val recordingsDir = File(localDir)
         recordingsDir.mkdirs()
 
         // Create a File
