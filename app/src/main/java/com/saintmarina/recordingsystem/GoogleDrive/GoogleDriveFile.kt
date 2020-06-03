@@ -151,16 +151,14 @@ class GoogleDriveFile(val file: File,
         try {
             request.inputStream // Will raise an IOException if not successful.
         } catch (e: IOException) {
-            throw IOException("Something happened: $e ${Util.readString(request.errorStream)}", e)
+            throw IOException("Drive request failed. Error: $e ${Util.readString(request.errorStream)}", e)
         }
     }
 
     private fun getDriveIdFromFileParent(): String {
-        // TODO use find() DESTINATIONS.find {  }
         return DESTINATIONS.find { dest ->
             dest.localDir == file.parent
         }?.driveID ?:
-            throw Exception("File driveID not found")
-
+            throw Exception("Lookup of associated drive location failed. Contact the developer")
     }
 }
