@@ -70,7 +70,7 @@ class RecordingService(): Service() {
         fun getState(): State { return state }
         fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos() }
         fun getTimeWhenStopped(): Date? {return timeWhenStopped}
-        fun setDestination(dest: Destination) {destination = dest}
+        fun setDestination(dest: Destination) {destination = dest} //TODO change to -> throw an exception if recording
 
         fun toggleStartStop() {
             Log.d(TAG, "inside onStartClick()")
@@ -172,6 +172,16 @@ class RecordingService(): Service() {
         if (state.recorderState != RecorderState.IDLE)
             return
 
+        Log.i(TAG, "Service start() dest.localDir = ${destination.localDir}")
+        try {
+            outputFile = WavFileOutput(destination.localDir)
+            recorder.outputFile = outputFile
+        } catch (e: Exception) {
+            Log.e(TAG, e.message.toString())
+            state.audioError = e.message
+            return
+        }
+
         Log.d(TAG, "inside handleStart()")
         stopWatch.reset() // Must be first in start() as other depend on the stopWatch.
         stopWatch.start()
@@ -181,15 +191,6 @@ class RecordingService(): Service() {
 
         state.recorderState = RecorderState.RECORDING
         invalidateActivity()
-
-        try {
-            Log.i(TAG, "Service start() dest.localDir = ${destination.localDir}")
-            outputFile = WavFileOutput(destination.localDir)
-            recorder.outputFile = outputFile
-        } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
-            state.audioError = e.message
-        }
 
          // Start Foreground Service.
          startForeground(FOREGROUND_ID, createNotification())
@@ -216,14 +217,9 @@ class RecordingService(): Service() {
         Log.i(TAG, "Service stop() outputFile!!.path = ${outputFile!!.path}")
         fileSync.maybeUploadFile(outputFile!!.path) //Upload file to Drive
 
-        try {
-            recorder.outputFile = null
-            outputFile?.close()
-            outputFile = null
-        } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
-            state.audioError = e.message
-        }
+        recorder.outputFile = null
+        outputFile?.close()
+        outputFile = null
 
         // Stop Foreground Service.
         stopForeground(true)

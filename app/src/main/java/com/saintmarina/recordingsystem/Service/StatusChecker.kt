@@ -6,10 +6,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.NetworkInfo
 import android.os.BatteryManager
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat.getSystemService
+
 
 class StatusChecker(): BroadcastReceiver() {
     var power: Boolean = true
@@ -22,6 +24,7 @@ class StatusChecker(): BroadcastReceiver() {
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_BATTERY_CHANGED)
             addAction(Intent.ACTION_HEADSET_PLUG)
+            a
         }
 
         context.registerReceiver(this, filter)
@@ -33,6 +36,10 @@ class StatusChecker(): BroadcastReceiver() {
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onReceive(context: Context?, intent: Intent?) {
+        // TODO log the intent we are receiving, intent.action, intent.extra
+        Log.i(TAG, intent.toString())
+        Log.i(TAG, "intent action = intent.toString())
+        Log.i(TAG, intent.toString())
         // TODO find intent of changing the internet connectivity
         context?.let { internet = isInternetWorking(it) }
         when (intent?.action) {
@@ -44,6 +51,13 @@ class StatusChecker(): BroadcastReceiver() {
             Intent.ACTION_HEADSET_PLUG -> {
                 val state: Int =  intent.getIntExtra("state", -1);
                 mic = state == 1
+            }
+        }
+        if (intent?.extras != null) {
+            val connectivityManager: ConnectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val networkInfo = connectivityManager.activeNetwork
+            if (networkInfo != null && networkInfo.) {
+
             }
         }
         onChange?.invoke()

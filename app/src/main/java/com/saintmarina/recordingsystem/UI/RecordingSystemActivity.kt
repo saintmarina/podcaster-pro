@@ -30,6 +30,8 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
 const val UI_REFRESH_DELAY: Long = 30
 private const val TAG: String = "RecordingActivity"
 
+// Make sure that all the errors that I possibly see are shown to the UI
+
 class RecordingSystemActivity : AppCompatActivity() {
     private lateinit var serviceConnection: ServiceConnection
     private var uiUpdater: UiUpdater? = null
@@ -71,12 +73,10 @@ class RecordingSystemActivity : AppCompatActivity() {
         Log.d(TAG, "inside onCreate")
         startRecordingService()
 
+
+
         view_pager2.adapter = ViewPagerAdapter()
-        view_pager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                currentItem.text = (view_pager2.currentItem).toString()
-            }
-        })
+
 
         uiUpdater?.run()
         noMicPopup = NoMicPopup(window.decorView.rootView)
@@ -130,9 +130,16 @@ class RecordingSystemActivity : AppCompatActivity() {
                 }
 
                 // initUI
+
+                view_pager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                    override fun onPageSelected(position: Int) {
+                        currentItem.text = (view_pager2.currentItem).toString()
+                        service.setDestination(DESTINATIONS[position])
+                    }
+                })
+                // TODO make view_pager2 read only if RecorderState is NOT IDLE
+
                 btnStart.setOnClickListener {
-                    if (service.getState().recorderState == RecordingService.RecorderState.IDLE)
-                        service.setDestination(DESTINATIONS[view_pager2.currentItem])
                     service.toggleStartStop()
                 }
 

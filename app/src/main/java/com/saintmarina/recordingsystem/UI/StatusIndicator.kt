@@ -21,6 +21,9 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
         isAntiAlias = true }
     private var prettyTime = PrettyTime()
 
+
+    // TODO instead of having all these variable pass State object from recording service
+
     var power: Boolean = false
         set(value) {
             field = value
@@ -65,6 +68,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 else
                     "Previous recording was ${Util.formatAudioDuration(previousRecordingTime)} long $lastRecordingTime. $fileSyncStatus"
 
+            // TODO check for all items in the State object. Think about how to make the app pleasant to interact with. User should be informed and the expectations of the user should be managed
             when {
                 !power -> {
                     paint = painterRed

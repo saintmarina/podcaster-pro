@@ -17,7 +17,7 @@ class FilesSync(private val drive: GoogleDrive) {
     private val sdDir = File("/sdcard/Recordings/")
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: (() -> Unit)? = null
-    var uploadStatus: String = "All recordings have been uploaded."
+    var uploadStatus: String = "All recordings have been uploaded." // TODO rewrite this message every where. Put the most approptriate message
         set(value) {
             field = value
             Log.i(TAG, value)
@@ -31,7 +31,7 @@ class FilesSync(private val drive: GoogleDrive) {
                 job.upload()
                 job.metadata.uploaded = true
                 job.metadata.serializeToJson(job.file)
-                uploadStatus = "All files have been successfully uploaded."
+                uploadStatus = "File has been successfully uploaded."
             } catch (e: Exception) {
                 uploadStatus = "Upload unsuccessful. ${e.message}"
                 Thread.sleep(TIMEOUT_AFTER_FAILURE)
@@ -67,7 +67,7 @@ class FilesSync(private val drive: GoogleDrive) {
         Log.d(TAG, "is uploaded ${metadata.uploaded}")
         Log.d(TAG, "session ${metadata.sessionUrl}")
         if (!metadata.uploaded) {
-            jobQueue.add(GoogleDriveFile(file, drive, metadata, this))
+            jobQueue.add(GoogleDriveFile(file, metadata, drive, this))
         }
     }
 }

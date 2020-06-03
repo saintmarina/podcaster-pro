@@ -12,8 +12,8 @@ private const val TAG = "GoogleDriveFile"
 const val KB_IN_BYTE = 1000
 
 class GoogleDriveFile(val file: File,
-                      val drive: GoogleDrive,
                       val metadata: FileMetadata,
+                      val drive: GoogleDrive,
                       var fileSync: FilesSync
 ) {
     private val tag: String = "GoogleDriveFile (${file.name})"
@@ -84,7 +84,7 @@ class GoogleDriveFile(val file: File,
                 break
             }
             fileOS.write(byteArray, 0, bytesRead)
-            fileSync.uploadStatus = reportProgress(bytesRead)
+            fileSync.uploadStatus = reportProgress(bytesRead) // TODO do the same but with a callback (not passing fileSync but passing a callback fun)
             Log.d(tag, "bytes uploaded $bytesRead/${file.length()}")
         }
     }
@@ -155,8 +155,8 @@ class GoogleDriveFile(val file: File,
         }
     }
 
-
     private fun getDriveIdFromFileParent(): String {
+        // TODO use find() DESTINATIONS.find {  }
         DESTINATIONS.forEach { dest ->
             if (file.parent == dest.localDir) {
                 Log.i(TAG, "drive ID found, file parent is ${file.parent}")
