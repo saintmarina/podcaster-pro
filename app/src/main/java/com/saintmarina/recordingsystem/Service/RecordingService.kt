@@ -69,8 +69,8 @@ class RecordingService(): Service() {
         fun getAudioPeek(): Short { return recorder.peak }
         fun getState(): State { return state }
         fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos() }
-        fun getTimeWhenStopped(): Date? {return timeWhenStopped}
-        fun setDestination(dest: Destination) {destination = dest} //TODO change to -> throw an exception if recording
+        fun getTimeWhenStopped(): Date? { return timeWhenStopped }
+        fun setDestination(dest: Destination) { destination = dest } //TODO change to -> throw an exception if recording
 
         fun toggleStartStop() {
             Log.d(TAG, "inside onStartClick()")

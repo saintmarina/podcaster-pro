@@ -13,8 +13,8 @@ const val KB_IN_BYTE = 1000
 
 class GoogleDriveFile(val file: File,
                       val metadata: FileMetadata,
-                      val drive: GoogleDrive,
-                      var fileSync: FilesSync
+                      private val drive: GoogleDrive,
+                      var onStatusChange: (value: String) -> Unit
 ) {
     private val tag: String = "GoogleDriveFile (${file.name})"
     
@@ -84,16 +84,16 @@ class GoogleDriveFile(val file: File,
                 break
             }
             fileOS.write(byteArray, 0, bytesRead)
-            fileSync.uploadStatus = reportProgress(bytesRead) // TODO do the same but with a callback (not passing fileSync but passing a callback fun)
+            reportProgress(bytesRead)
             Log.d(tag, "bytes uploaded $bytesRead/${file.length()}")
         }
     }
 
-    private fun reportProgress(bytesUploaded: Int = 0, bytesTotal: Long = file.length()): String {
-        if (bytesUploaded == 0) {
-            return ""
-        }
-        return "$bytesUploaded/$bytesTotal uploaded."
+    private fun reportProgress(bytesUploaded: Int, bytesTotal: Long = file.length()) {
+        val value = if (bytesUploaded == 0) ""
+                    else "$bytesUploaded/$bytesTotal uploaded."
+        Log.i(TAG, "reportProgress happened. Value = $value")
+        onStatusChange(value)
     }
 
     private fun createSession(): String {
@@ -157,12 +157,10 @@ class GoogleDriveFile(val file: File,
 
     private fun getDriveIdFromFileParent(): String {
         // TODO use find() DESTINATIONS.find {  }
-        DESTINATIONS.forEach { dest ->
-            if (file.parent == dest.localDir) {
-                Log.i(TAG, "drive ID found, file parent is ${file.parent}")
-                return dest.driveID
-            }
-        }
-        throw Exception("File driveID not found")
+        return DESTINATIONS.find { dest ->
+            dest.localDir == file.parent
+        }?.driveID ?:
+            throw Exception("File driveID not found")
+
     }
 }

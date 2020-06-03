@@ -24,6 +24,10 @@ class FilesSync(private val drive: GoogleDrive) {
             onStatusChange?.invoke()
         }
 
+    private fun updateUploadStatus(value: String) {
+        uploadStatus = value
+    }
+
     private val thread = Thread {
         while (true) {
             val job = jobQueue.take()
@@ -67,7 +71,7 @@ class FilesSync(private val drive: GoogleDrive) {
         Log.d(TAG, "is uploaded ${metadata.uploaded}")
         Log.d(TAG, "session ${metadata.sessionUrl}")
         if (!metadata.uploaded) {
-            jobQueue.add(GoogleDriveFile(file, metadata, drive, this))
+            jobQueue.add(GoogleDriveFile(file, metadata, drive, this::updateUploadStatus))
         }
     }
 }
