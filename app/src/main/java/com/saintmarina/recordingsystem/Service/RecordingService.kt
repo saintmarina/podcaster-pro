@@ -39,7 +39,6 @@ import java.util.concurrent.TimeUnit
 const val FOREGROUND_ID = 1
 const val MAX_RECORDING_TIME_MILLIS: Long = 3 * 3600 * 1000
 private const val TAG: String = "RecordingService"
-const val MY_CONNECTIVITY_CHANGE: String = "CONNECTIVITY_CHANGE"
 
 @RequiresApi(Build.VERSION_CODES.Q)
 class RecordingService(): Service() {
@@ -63,6 +62,7 @@ class RecordingService(): Service() {
     private val state = State()
     private var api: API = API()
     private var statusChecker = StatusChecker()
+    var connectivityChecker: ConnectivityChecker? = null
     private var connectivityManager: ConnectivityManager? = null
     private var outputFile: WavFileOutput? = null
     private lateinit var recorder: AudioRecorder
@@ -119,7 +119,7 @@ class RecordingService(): Service() {
 
     private fun registerNetworkCallback() {
         connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val connectivityChecker = ConnectivityChecker(this)
+        connectivityChecker = ConnectivityChecker(this)
         val networkRequest = NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
             .build()
@@ -133,52 +133,6 @@ class RecordingService(): Service() {
         soundEffect = SoundEffect(this)
         statusChecker.startMonitoring(this)
         registerNetworkCallback()
-/* val filter = IntentFilter();
-        val intentAction = "${this.packageName}.$MY_CONNECTIVITY_CHANGE"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Log.i(TAG, "using registerNetworkCallback")
-            createChangeConnectivityMonitor();
-            filter.addAction(MY_CONNECTIVITY_CHANGE)
-            val intent = Intent()
-            intent.action = intentAction
-        } else {
-            Timber.d("using old broadcast receiver");
-            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        }
-
-        registerReceiver(new SyncOnConnectivityReceiver(), filter);
-    }
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    private fun createChangeConnectivityMonitor() {
-        final Intent intent = new Intent(MY_CONNECTIVITY_CHANGE);
-        ConnectivityManager connectivityManager = (ConnectivityManager)
-        getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivityManager != null) {
-            connectivityManager.registerNetworkCallback(
-                new NetworkRequest.Builder().build(),
-                new ConnectivityManager.NetworkCallback() {
-                    /**
-                     * @param network
-                     */
-                    @Override
-                    public void onAvailable(Network network) {
-                        Timber.d("On available network");
-                        sendBroadcast(intent);
-                    }
-
-                    /**
-                     * @param network
-                     */
-                    @Override
-                    public void onLost(Network network) {
-                        Timber.d("On not available network");
-                        sendBroadcast(intent);
-                    }
-                });
-        }
-
-    }*/
 
         val drive = GoogleDrive(this.assets.open("credentials.json"))
             .also { it.prepare() }
@@ -187,21 +141,29 @@ class RecordingService(): Service() {
 
         fileSync.onStatusChange = {
             state.fileSyncStatus = fileSync.uploadStatus
-        }
-
-        statusChecker.onChange = {
-            Log.d(TAG, "inside StatusChecker")
-            state.run {
-                internetAvailable = statusChecker.internet
-                powerAvailable = statusChecker.power
-                micPlugged = statusChecker.mic
-            }
-            // The UI will display a large popup if mic is out
-            if (!state.micPlugged)
-                stop()
-
             invalidateActivity()
         }
+
+     /*   connectivityChecker?.let {
+            it.onChange =  {
+            state.internetAvailable = it.internet
+            invalidateActivity()
+        }*/
+
+            statusChecker.onChange = {
+                Log.d(TAG, "inside StatusChecker")
+                state.run {
+                    internetAvailable = statusChecker.internet
+                    powerAvailable = statusChecker.power
+                    micPlugged = statusChecker.mic
+                }
+                // The UI will display a large popup if mic is out
+                if (!state.micPlugged)
+                    stop()
+
+                invalidateActivity()
+            }
+
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

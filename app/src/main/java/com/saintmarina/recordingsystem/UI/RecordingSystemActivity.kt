@@ -73,10 +73,7 @@ class RecordingSystemActivity : AppCompatActivity() {
         Log.d(TAG, "inside onCreate")
         startRecordingService()
 
-
-
         view_pager2.adapter = ViewPagerAdapter()
-
 
         uiUpdater?.run()
         noMicPopup = NoMicPopup(window.decorView.rootView)

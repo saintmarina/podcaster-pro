@@ -33,7 +33,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
-                <action android:name="com.saintmarina.recordingsystem.Service.MY_CONNECTIVITY_CHANGE" />
+                <action android:name="com.saintmarina.recordingsystem.INTERNET_CHANGED" />
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
