@@ -3,7 +3,12 @@ package com.saintmarina.recordingsystem.Service
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.*
 import android.telephony.AvailableNetworkInfo.PRIORITY_HIGH
 import android.util.Log
@@ -14,6 +19,7 @@ import com.saintmarina.recordingsystem.Destination
 import com.saintmarina.recordingsystem.GoogleDrive.FilesSync
 import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
+import com.saintmarina.recordingsystem.UI.ConnectivityChecker
 import com.saintmarina.recordingsystem.UI.RecordingSystemActivity
 import java.lang.Exception
 import java.util.*
@@ -33,6 +39,7 @@ import java.util.concurrent.TimeUnit
 const val FOREGROUND_ID = 1
 const val MAX_RECORDING_TIME_MILLIS: Long = 3 * 3600 * 1000
 private const val TAG: String = "RecordingService"
+const val MY_CONNECTIVITY_CHANGE: String = "CONNECTIVITY_CHANGE"
 
 @RequiresApi(Build.VERSION_CODES.Q)
 class RecordingService(): Service() {
@@ -56,6 +63,7 @@ class RecordingService(): Service() {
     private val state = State()
     private var api: API = API()
     private var statusChecker = StatusChecker()
+    private var connectivityManager: ConnectivityManager? = null
     private var outputFile: WavFileOutput? = null
     private lateinit var recorder: AudioRecorder
     private lateinit var soundEffect: SoundEffect
@@ -109,12 +117,68 @@ class RecordingService(): Service() {
         return super.onUnbind(intent)
     }
 
+    private fun registerNetworkCallback() {
+        connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityChecker = ConnectivityChecker(this)
+        val networkRequest = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .build()
+        connectivityManager?.registerNetworkCallback(networkRequest, connectivityChecker)
+    }
+
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "inside Service onCreate()")
         recorder = AudioRecorder()
         soundEffect = SoundEffect(this)
         statusChecker.startMonitoring(this)
+        registerNetworkCallback()
+/* val filter = IntentFilter();
+        val intentAction = "${this.packageName}.$MY_CONNECTIVITY_CHANGE"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            Log.i(TAG, "using registerNetworkCallback")
+            createChangeConnectivityMonitor();
+            filter.addAction(MY_CONNECTIVITY_CHANGE)
+            val intent = Intent()
+            intent.action = intentAction
+        } else {
+            Timber.d("using old broadcast receiver");
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        }
+
+        registerReceiver(new SyncOnConnectivityReceiver(), filter);
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun createChangeConnectivityMonitor() {
+        final Intent intent = new Intent(MY_CONNECTIVITY_CHANGE);
+        ConnectivityManager connectivityManager = (ConnectivityManager)
+        getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            connectivityManager.registerNetworkCallback(
+                new NetworkRequest.Builder().build(),
+                new ConnectivityManager.NetworkCallback() {
+                    /**
+                     * @param network
+                     */
+                    @Override
+                    public void onAvailable(Network network) {
+                        Timber.d("On available network");
+                        sendBroadcast(intent);
+                    }
+
+                    /**
+                     * @param network
+                     */
+                    @Override
+                    public void onLost(Network network) {
+                        Timber.d("On not available network");
+                        sendBroadcast(intent);
+                    }
+                });
+        }
+
+    }*/
 
         val drive = GoogleDrive(this.assets.open("credentials.json"))
             .also { it.prepare() }
