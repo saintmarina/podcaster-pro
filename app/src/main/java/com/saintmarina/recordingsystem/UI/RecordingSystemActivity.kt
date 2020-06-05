@@ -37,51 +37,17 @@ class RecordingSystemActivity : AppCompatActivity() {
     private var uiUpdater: UiUpdater? = null
     private var noMicPopup: NoMicPopup? = null
 
-    inner class UiUpdater(private val service: RecordingService.API ): Runnable {
-        private var handler = Handler(Looper.getMainLooper())
-        private var count = 0
-
-        override fun run() {
-            service.let { s ->
-                count++
-                timeTextView.timeSec = Util.nanosToSec(s.getElapsedTime()) // Nanoseconds to seconds
-                timeTextView.isFlashing = s.getState().recorderState == RecordingService.RecorderState.PAUSED
-
-                statusIndicator.timeAgo = s.getTimeWhenStopped()
-                //Log.e(TAG, "inside Runnable s.getTimeWhenStopped() ${s.getTimeWhenStopped()}")
-
-                peakTextView.text = "$count -- ${s.getAudioPeek()}"
-                soundVisualizer.volume = s.getAudioPeek()
-                if (s.getAudioPeek() == Short.MAX_VALUE && s.getState().recorderState != RecordingService.RecorderState.IDLE) {
-                    soundVisualizer.didClip = true
-                }
-            }
-
-            handler.postDelayed(this, UI_REFRESH_DELAY)
-        }
-
-        fun stop() {
-            handler.removeCallbacksAndMessages(null)
-        }
-    }
-
     // Lifecycle methods
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recording_system)
-        Log.d(TAG, "inside onCreate")
+        Log.i(TAG, "inside onCreate of the Recording Activity")
         startRecordingService()
-
-        view_pager2.adapter = ViewPagerAdapter()
-
-        uiUpdater?.run()
-        noMicPopup = NoMicPopup(window.decorView.rootView)
     }
 
-    private fun handleServiceInvalidate(service: RecordingService.API)
-    {
-        Log.d(TAG, "inside invalidate(), state = ${service.getState()}")
+    private fun handleServiceInvalidate(service: RecordingService.API) {
+        Log.i(TAG, "Invalidating UI of the Activity")
 
         when (service.getState().recorderState) {
             RecordingService.RecorderState.IDLE -> {
@@ -105,29 +71,29 @@ class RecordingSystemActivity : AppCompatActivity() {
         statusIndicator.previousRecordingTime = Util.nanosToSec(state.recordingDuration)
         statusIndicator.fileSyncStatus = state.fileSyncStatus
         //statusIndicator.timeAgo = s.getTimeWhenStopped()
-        //Log.e(TAG, "inside invalidate s.getTimeWhenStopped() ${s.getTimeWhenStopped()}")
+        //Log.i(TAG, "inside invalidate s.getTimeWhenStopped() ${s.getTimeWhenStopped()}")
         //noMicPopup?.isMicPresent = state.micPlugged // Comment this line out if app needs to be tested on a Tablet without mic
 
     }
 
     private fun startRecordingService() {
-        Log.d(TAG, "inside startRecordingService()")
-
+        Log.i(TAG, "starting Recording Service")
         serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName, serviceAPI: IBinder) {
-                Log.d(TAG, "inside onServiceConnected")
+                Log.i(TAG, "Service Connected. Initializing UI")
                 val service = (serviceAPI as RecordingService.API)
 
                 service.registerActivityInvalidate {
                     handleServiceInvalidate(service)
                 }
 
+                // initUI
                 uiUpdater = UiUpdater(service).apply {
                     run()
                 }
 
-                // initUI
-
+                noMicPopup = NoMicPopup(window.decorView.rootView)
+                view_pager2.adapter = ViewPagerAdapter()
                 view_pager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
                     override fun onPageSelected(position: Int) {
                         currentItem.text = (view_pager2.currentItem).toString()
@@ -153,7 +119,7 @@ class RecordingSystemActivity : AppCompatActivity() {
             }
 
             override fun onServiceDisconnected(arg0: ComponentName) {
-                Log.d(TAG, "ServiceConnection Disconnected")
+                Log.i(TAG, "ServiceConnection Disconnected")
                 uiUpdater?.stop()
                 uiUpdater = null
                 Thread.sleep(1000L)
@@ -164,6 +130,31 @@ class RecordingSystemActivity : AppCompatActivity() {
         val serviceIntent = Intent(this, RecordingService::class.java)
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
         startService(serviceIntent)
+    }
+
+    inner class UiUpdater(private val service: RecordingService.API): Runnable {
+        private var handler = Handler(Looper.getMainLooper())
+        private var count = 0
+
+        override fun run() {
+            Log.i(TAG, "Running UI Updater")
+            service.let { s ->
+                count++
+                timeTextView.timeSec = Util.nanosToSec(s.getElapsedTime()) // Nanoseconds to seconds
+                timeTextView.isFlashing = s.getState().recorderState == RecordingService.RecorderState.PAUSED
+                statusIndicator.timeAgo = s.getTimeWhenStopped()
+                peakTextView.text = "$count -- ${s.getAudioPeek()}"
+                soundVisualizer.volume = s.getAudioPeek()
+                if (s.getAudioPeek() == Short.MAX_VALUE && s.getState().recorderState != RecordingService.RecorderState.IDLE) {
+                    soundVisualizer.didClip = true
+                }
+            }
+            handler.postDelayed(this, UI_REFRESH_DELAY)
+        }
+
+        fun stop() {
+            handler.removeCallbacksAndMessages(null)
+        }
     }
 
     override fun onDestroy() {

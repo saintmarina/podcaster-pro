@@ -81,7 +81,7 @@ class RecordingService(): Service() {
         fun setDestination(dest: Destination) { destination = dest } //TODO change to -> throw an exception if recording
 
         fun toggleStartStop() {
-            Log.d(TAG, "inside onStartClick()")
+            Log.i(TAG, "toggleStartStop invoked")
             when (state.recorderState) {
                 RecorderState.IDLE -> start()
                 RecorderState.RECORDING -> stop()
@@ -90,7 +90,7 @@ class RecordingService(): Service() {
         }
 
         fun togglePauseResume() {
-            Log.d(TAG, "inside onPauseClick()")
+            Log.i(TAG, "togglePauseResume invoked")
             when (state.recorderState) {
                 RecorderState.IDLE -> showToast("You are not recording.")
                 RecorderState.RECORDING -> pause()
@@ -99,7 +99,7 @@ class RecordingService(): Service() {
         }
 
         fun registerActivityInvalidate(cb: () -> Unit) {
-            Log.d(TAG, "inside registerActivity()")
+            Log.i(TAG, "Registering the Recording Acrivity invalidate()")
             activityInvalidate = cb
         }
     }
@@ -109,15 +109,18 @@ class RecordingService(): Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? {
+        Log.i(TAG, "onBind the API")
         return api
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
+        Log.i(TAG, "onUnBind the API")
         api.activityInvalidate = null
         return super.onUnbind(intent)
     }
 
     private fun registerNetworkCallback() {
+        Log.i(TAG, "registering the NetworkCallback. Starting to monitor interner status")
         connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         connectivityChecker = ConnectivityChecker(this)
         val networkRequest = NetworkRequest.Builder()
@@ -128,7 +131,7 @@ class RecordingService(): Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "inside Service onCreate()")
+        Log.i(TAG, "inside onCreate of the Recording Service")
         recorder = AudioRecorder()
         soundEffect = SoundEffect(this)
         statusChecker.startMonitoring(this)
@@ -140,39 +143,35 @@ class RecordingService(): Service() {
         fileSync = FilesSync(drive)
 
         fileSync.onStatusChange = {
+            Log.i(TAG, "fileSync onStatusChange callback assigned")
             state.fileSyncStatus = fileSync.uploadStatus
             invalidateActivity()
         }
 
-     /*   connectivityChecker?.let {
-            it.onChange =  {
-            state.internetAvailable = it.internet
-            invalidateActivity()
-        }*/
-
-            statusChecker.onChange = {
-                Log.d(TAG, "inside StatusChecker")
-                state.run {
-                    internetAvailable = statusChecker.internet
-                    powerAvailable = statusChecker.power
-                    micPlugged = statusChecker.mic
-                }
-                // The UI will display a large popup if mic is out
-                if (!state.micPlugged)
-                    stop()
-
-                invalidateActivity()
+        statusChecker.onChange = {
+            Log.i(TAG, "StatusChecker onChange callback assigned")
+            state.run {
+                internetAvailable = statusChecker.internet
+                powerAvailable = statusChecker.power
+                micPlugged = statusChecker.mic
             }
+            // The UI will display a large popup if mic is out
+            if (!state.micPlugged)
+                stop()
+
+            invalidateActivity()
+        }
 
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "inside Service onStartCommand()")
+        Log.i(TAG, "Service started")
         fileSync.scanForFiles()
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
+        Log.i(TAG, "Service destroyed")
         super.onDestroy()
         statusChecker.stopMonitoring(this)
     }
@@ -198,7 +197,6 @@ class RecordingService(): Service() {
         if (state.recorderState != RecorderState.IDLE)
             return
 
-        Log.i(TAG, "Service start() dest.localDir = ${destination.localDir}")
         try {
             outputFile = WavFileOutput(destination.localDir)
             recorder.outputFile = outputFile
@@ -208,60 +206,52 @@ class RecordingService(): Service() {
             return
         }
 
-        Log.d(TAG, "inside handleStart()")
         stopWatch.reset() // Must be first in start() as other depend on the stopWatch.
         stopWatch.start()
         soundEffect.playStartSound()
-
         autoStopTimer.enable()
 
         state.recorderState = RecorderState.RECORDING
         invalidateActivity()
 
-         // Start Foreground Service.
-         startForeground(FOREGROUND_ID, createNotification())
+        startForeground(FOREGROUND_ID, createNotification())
+        Log.i(TAG, "Audio recording started. Saving file to ${destination.localDir}")
     }
 
     private fun stop() {
         if (state.recorderState == RecorderState.IDLE)
             return
 
-        Log.d(TAG, "inside handleStop()")
         stopWatch.stop()
         soundEffect.playStopSound()
-
         autoStopTimer.disable()
+        timeWhenStopped = Date()
 
         state.recordingDuration = stopWatch.getElapsedTimeNanos()
         stopWatch.reset()
 
-        timeWhenStopped = Date()
-        Log.e(TAG, "Service timeWhenStopped = $timeWhenStopped")
         state.recorderState = RecorderState.IDLE
         invalidateActivity()
 
-        Log.i(TAG, "Service stop() outputFile!!.path = ${outputFile!!.path}")
         fileSync.maybeUploadFile(outputFile!!.path) //Upload file to Drive
 
         recorder.outputFile = null
         outputFile?.close()
         outputFile = null
 
-        // Stop Foreground Service.
         stopForeground(true)
+        Log.i(TAG, "Audio recording stopped. ${outputFile!!.path} successfully recorded and passed to fileSync for upload.")
     }
 
     private fun pause() {
         if (state.recorderState != RecorderState.RECORDING)
             return
 
-         Log.d(TAG, "inside handlePause()")
-         stopWatch.stop()
-         soundEffect.playStopSound()
+        stopWatch.stop()
+        soundEffect.playStopSound()
+        autoStopTimer.disable()
 
-         autoStopTimer.disable()
-
-         state.recorderState = RecorderState.PAUSED
+        state.recorderState = RecorderState.PAUSED
         invalidateActivity()
 
         try {
@@ -270,16 +260,15 @@ class RecordingService(): Service() {
             Log.e(TAG, e.message.toString())
             state.audioError = e.message
         }
+        Log.i(TAG, "Audio recording is paused.")
     }
 
      private fun resume() {
          if (state.recorderState != RecorderState.PAUSED)
              return
 
-         Log.d(TAG, "inside handleResume()")
          stopWatch.start()
          soundEffect.playStartSound()
-
          autoStopTimer.enable()
 
          state.recorderState = RecorderState.RECORDING
@@ -291,24 +280,22 @@ class RecordingService(): Service() {
              Log.e(TAG, e.message.toString())
              state.audioError = e.message
          }
+         Log.i(TAG, "Audio recording is resumed.")
     }
 
     private fun createNotification(): Notification {
-        Log.d(TAG, "inside createNotification()")
-        val pendingIntent = createContentIntent()
-        val notification = NotificationCompat.Builder(applicationContext,
-            CHANNEL_ID
-        ).apply {
+        Log.i(TAG, "creating Notification for the Foreground Service")
+        return NotificationCompat.Builder(applicationContext, CHANNEL_ID).apply {
             setSmallIcon(R.drawable.ic_stat_name)
             setContentTitle("Recording system")
             setContentText("Currently recording, don't stop talking. Click on this notification to go back to the app.")
             priority = PRIORITY_HIGH
-            setContentIntent(pendingIntent)
-        }
-        return notification.build()
+            setContentIntent(createPendingContentIntent())
+        }.build()
+
     }
 
-    private fun createContentIntent(): PendingIntent {
+    private fun createPendingContentIntent(): PendingIntent {
         val notificationIntent = Intent(applicationContext, RecordingSystemActivity::class.java)
         notificationIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         return PendingIntent.getActivity(applicationContext, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
