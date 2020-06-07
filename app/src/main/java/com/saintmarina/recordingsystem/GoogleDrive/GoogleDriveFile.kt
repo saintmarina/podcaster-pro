@@ -51,7 +51,6 @@ class GoogleDriveFile(val file: File,
 
     private fun uploadChunk(sessionUri: String, fileIS: FileInputStream): Boolean {
         val url = URL(sessionUri)
-
         val chunkStart = fileIS.channel.position()
         val request = url.openConnection() as HttpURLConnection
         request.apply {
@@ -126,15 +125,23 @@ class GoogleDriveFile(val file: File,
                 range.substring(range.lastIndexOf("-") + 1, range.length).toLong() + 1
             }
             200, 201 -> fileSize
+            //404 -> retryUpload()
             else -> throw ConnectionNotEstablished("${request.responseCode}: Weren't able to connect to Interrupted Upload")
         }
     }
 
+    private fun retryUpload() {
+        metadata.sessionUrl = null
+        metadata.uploaded = false
+        metadata.serializeToJson(file)
+    }
+
     private fun ensureRequestSuccessful(request: HttpURLConnection) {
+        if (request.responseCode == 404) return
         try {
             request.inputStream // Will raise an IOException if not successful.
         } catch (e: IOException) {
-            throw IOException("Drive request failed. Error: $e ${Util.readString(request.errorStream)}", e)
+            throw IOException("Drive request failed. Error: ${request.responseCode}: $e ${Util.readString(request.errorStream)}", e)
         }
     }
 

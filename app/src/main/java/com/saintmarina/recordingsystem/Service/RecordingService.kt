@@ -19,7 +19,6 @@ import com.saintmarina.recordingsystem.Destination
 import com.saintmarina.recordingsystem.GoogleDrive.FilesSync
 import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
-import com.saintmarina.recordingsystem.UI.ConnectivityChecker
 import com.saintmarina.recordingsystem.UI.RecordingSystemActivity
 import java.lang.Exception
 import java.util.*
@@ -62,8 +61,6 @@ class RecordingService(): Service() {
     private val state = State()
     private var api: API = API()
     private var statusChecker = StatusChecker()
-    private var connectivityChecker: ConnectivityManager.NetworkCallback? = null
-    private var connectivityManager: ConnectivityManager? = null
     private var outputFile: WavFileOutput? = null
     private lateinit var recorder: AudioRecorder
     private lateinit var soundEffect: SoundEffect
@@ -123,15 +120,7 @@ class RecordingService(): Service() {
         return super.onUnbind(intent)
     }
 
-    private fun registerNetworkCallback() {
-        Log.i(TAG, "registering the NetworkCallback. Starting to monitor interner status")
-        connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        connectivityChecker = ConnectivityChecker(this)
-        val networkRequest = NetworkRequest.Builder()
-            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-            .build()
-        connectivityManager?.registerNetworkCallback(networkRequest, connectivityChecker!!)
-    }
+
 
     override fun onCreate() {
         super.onCreate()
@@ -139,7 +128,6 @@ class RecordingService(): Service() {
         recorder = AudioRecorder()
         soundEffect = SoundEffect(this)
         statusChecker.startMonitoring(this)
-        registerNetworkCallback()
 
         val drive = GoogleDrive(this.assets.open("credentials.json"))
             .also { it.prepare() }
@@ -174,7 +162,6 @@ class RecordingService(): Service() {
         Log.i(TAG, "Service destroyed")
         super.onDestroy()
         statusChecker.stopMonitoring(this)
-        connectivityManager?.unregisterNetworkCallback(connectivityChecker!!)
         soundEffect.releaseSoundEffects()
     }
 
