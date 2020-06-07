@@ -20,6 +20,4 @@ class SoundEffect(val context: Context) {
         startSound.release()
         stopSound.release()
     }
-
-
 }

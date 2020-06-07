@@ -4,10 +4,14 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import java.io.Closeable
 
-const val LOG_TAG = "AudioRecorder"
+private const val TAG = "AudioRecorder"
+const val NANOS_IN_SEC: Long = 1_000_000_000
+const val INIT_TIMEOUT: Long = 5* NANOS_IN_SEC
+
 const val AUDIO_SOURCE: Int = MediaRecorder.AudioSource.MIC
 const val SAMPLE_RATE: Int = 48000
 const val CHANNEL: Int = AudioFormat.CHANNEL_IN_MONO
@@ -15,24 +19,21 @@ const val ENCODING: Int = AudioFormat.ENCODING_PCM_16BIT
 const val BUFFER_SIZE: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioFlinger die with error -12 (ENOMEM) error
 const val PUMP_BUF_SIZE: Int = 1*1024
 
-const val NANOS_IN_SEC: Long = 1_000_000_000
-const val INIT_TIMEOUT: Long = 5* NANOS_IN_SEC
-
-
 @RequiresApi(Build.VERSION_CODES.P)
-class AudioRecorder() : Closeable {
+class AudioRecorder : Closeable {
     private var thread: Thread
     var outputFile: WavFileOutput? = null
-        @Synchronized set
-        @Synchronized get
+        @Synchronized set // Thread safe
+        @Synchronized get // Thread safe
 
-    var terminationRequested: Boolean = false
+    private var terminationRequested: Boolean = false
     var peak: Short = 0
 
     init {
         val recorder = initRecorder()
         thread = Thread {
             recorder.startRecording()
+            Log.i(TAG, "Audio recorder started recording")
             val buf = ShortArray(PUMP_BUF_SIZE)
             while (!terminationRequested) {
                 val len = safeAudioRecordRead(recorder, buf)
@@ -40,6 +41,7 @@ class AudioRecorder() : Closeable {
                 peak = getPeak(buf, len)
             }
             recorder.stop()
+            Log.i(TAG, "Audio recorder stopped recording")
             recorder.release()
         }.apply {
             name = "AudioRecorder pump"
@@ -66,8 +68,11 @@ class AudioRecorder() : Closeable {
                 BUFFER_SIZE
             )
 
-            if (recorder.state == AudioRecord.STATE_INITIALIZED)
+            if (recorder.state == AudioRecord.STATE_INITIALIZED) {
+                Log.i(TAG, "Audio recorder initialization successful")
                 return recorder
+            }
+            Log.e(TAG, "Audio recorder initialization FAILED. Retrying")
 
             Thread.sleep(100)
         }

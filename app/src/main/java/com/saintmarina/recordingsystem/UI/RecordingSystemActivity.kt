@@ -137,7 +137,6 @@ class RecordingSystemActivity : AppCompatActivity() {
         private var count = 0
 
         override fun run() {
-            Log.i(TAG, "Running UI Updater")
             service.let { s ->
                 count++
                 timeTextView.timeSec = Util.nanosToSec(s.getElapsedTime()) // Nanoseconds to seconds

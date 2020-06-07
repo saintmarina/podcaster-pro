@@ -13,9 +13,7 @@ import com.saintmarina.recordingsystem.UI.INTERNET_CHANGED
 private const val TAG = "StatusChecker"
 
 class StatusChecker(): BroadcastReceiver() {
-    var power: Boolean = true
-    var mic: Boolean = true
-    var internet: Boolean = true
+    var state: RecordingService.State = RecordingService.State()
     var onChange: (() -> Unit)? = null
 
     fun startMonitoring(context: Context) {
@@ -37,16 +35,16 @@ class StatusChecker(): BroadcastReceiver() {
         when (intent?.action) {
             Intent.ACTION_BATTERY_CHANGED -> {
                 val status: Int = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-                power = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                state.powerAvailable = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                         status == BatteryManager.BATTERY_STATUS_FULL
             }
             Intent.ACTION_HEADSET_PLUG -> {
-                val state: Int =  intent.getIntExtra("state", -1);
-                mic = state == 1
+                val status: Int =  intent.getIntExtra("state", -1);
+                 state.micPlugged = status == 1
             }
             INTERNET_CHANGED -> {
-                val state: Int =  intent.getIntExtra("InternetState", 0)
-                internet = state == 1
+                val status: Int =  intent.getIntExtra("InternetState", 0)
+                state.internetAvailable = status == 1
             }
         }
         onChange?.invoke()

@@ -1,5 +1,6 @@
 package com.saintmarina.recordingsystem.Service
 
+import android.util.Log
 import java.io.Closeable
 import java.io.File
 import java.io.FileOutputStream
@@ -13,10 +14,11 @@ const val BITS_PER_SAMPLE: Short = 16
 const val NUM_CHANNELS: Short = 1
 
 const val FILE_NAME_FMT: String = "yyyy-MM-dd_HH-mm-ss'.wav'"
+private const val TAG = "WavFileOutput"
 
-class WavFileOutput(val localDir: String): Closeable {
+class WavFileOutput(private val localDir: String): Closeable {
     var output: FileOutputStream
-    lateinit var path: File
+    lateinit var file: File
 
     private fun getDataSize(): Int {
         return output.channel.position().toInt() - HEADER_SIZE
@@ -27,11 +29,27 @@ class WavFileOutput(val localDir: String): Closeable {
         output.channel.position(HEADER_SIZE.toLong())
     }
 
+    private fun createDatedFile() : FileOutputStream {
+        //Filename in a date format
+        val date = getCurrentDateTime()
+        val filename = date.toString(FILE_NAME_FMT)
+
+        // Creating Recording directory if it doesn't exist
+        val recordingsDir = File(localDir)
+        recordingsDir.mkdirs()
+
+        file = File(recordingsDir, filename)
+
+        Log.i(TAG, "WaveFileOutput $file created")
+        return FileOutputStream(file)
+    }
+
     override fun close() {
         val header = generateWavHeader(getDataSize())
         output.channel.write(header, 0)
         output.flush()
         output.close()
+        Log.i(TAG, "WaveFileOutput $file closed")
     }
 
     private fun generateWavHeader(dataSize: Int): ByteBuffer {
@@ -65,22 +83,6 @@ class WavFileOutput(val localDir: String): Closeable {
                 asShortBuffer().put(buf, 0, len)
             }
         output.channel.write(byteBuf)
-    }
-
-    private fun createDatedFile() : FileOutputStream {
-        //Filename in a date format
-        val date = getCurrentDateTime()
-        val filename = date.toString(FILE_NAME_FMT)
-
-        // Creating Recording directory if it doesn't exist
-        val recordingsDir = File(localDir)
-        recordingsDir.mkdirs()
-
-        // Create a File
-        val outputFile = File(recordingsDir, filename)
-        path = outputFile
-
-        return FileOutputStream(outputFile)
     }
 
     private fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String {

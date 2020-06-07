@@ -17,6 +17,7 @@ class GoogleDriveFile(val file: File,
                       var onStatusChange: (value: String) -> Unit
 ) {
     private val tag: String = "GoogleDriveFile (${file.name})"
+    private val fileSize = file.length()
     
     fun upload() {
         if (metadata.uploaded) {
@@ -24,38 +25,32 @@ class GoogleDriveFile(val file: File,
             return
         }
 
-        Log.d(tag, "starting upload")
         val (startPosition: Long, session:String) =
             if (metadata.sessionUrl == null) {
-                Log.i(tag, "No previous sessionUri. Creating new sessionUri")
                 val session = createSession()
                 metadata.sessionUrl = session
-                Log.i(TAG, "dest localDir ${file.parent}")
-                Log.i(TAG, "DRIVE file ${file.path}")
                 metadata.serializeToJson(file)
+                Log.i(tag, "Creating a new session")
                 Pair(0L, session)
             } else {
-                Log.i(tag, "Found previous sessionUri. Resuming the session")
                 val start = getPosFromResumedSession(metadata.sessionUrl!!)
+                Log.i(tag, "Resuming the upload session")
                 Pair(start, metadata.sessionUrl!!)
             }
 
         uploadFile(startPosition, session)
+        Log.i(TAG, "uploaded")
     }
 
     private fun uploadFile(startPosition: Long, sessionUri: String) {
         val fileIS = FileInputStream(file)
         fileIS.channel.position(startPosition)
-        if (uploadChunk(sessionUri, fileIS)) {
-            Log.i(tag, "Upload successfully finished")
-        }
+        uploadChunk(sessionUri, fileIS)
         fileIS.close()
     }
 
-    // returns true if there's more chunks to upload, false otherwise
     private fun uploadChunk(sessionUri: String, fileIS: FileInputStream): Boolean {
         val url = URL(sessionUri)
-        val fileSize = file.length()
 
         val chunkStart = fileIS.channel.position()
         val request = url.openConnection() as HttpURLConnection
@@ -65,11 +60,9 @@ class GoogleDriveFile(val file: File,
             connectTimeout = 10000
             setRequestProperty("Content-Length", "*/*")
             setRequestProperty("Content-Range", "bytes $chunkStart-${fileSize-1}/${fileSize}")
-            Log.d(tag, "Content-Range bytes $chunkStart-${fileSize-1}/${fileSize}")
             setRequestProperty("Accept","*/*")
             copyFromTo(fileIS, outputStream)
             outputStream.close()
-            // connect()
         }
         ensureRequestSuccessful(request)
         return request.responseCode == 308
@@ -85,38 +78,34 @@ class GoogleDriveFile(val file: File,
             }
             fileOS.write(byteArray, 0, bytesRead)
             reportProgress(bytesRead)
-            Log.d(tag, "bytes uploaded $bytesRead/${file.length()}")
         }
     }
 
-    private fun reportProgress(bytesUploaded: Int, bytesTotal: Long = file.length()) {
+    private fun reportProgress(bytesUploaded: Int, bytesTotal: Long = fileSize) {
         val value = if (bytesUploaded == 0) ""
                     else "$bytesUploaded/$bytesTotal uploaded."
-        Log.i(TAG, "reportProgress happened. Value = $value")
+        Log.i(TAG, "Progress: $value")
         onStatusChange(value)
     }
 
     private fun createSession(): String {
-        Log.e(tag, "inside createSession")
-
         val url = URL("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable")
         val body = "{\"name\": \"${file.name}\", \"parents\": [\"${getDriveIdFromFileParent()}\"]}"
 
         val request = drive.openRequest(url)
-
         request.apply {
             requestMethod = "POST"
             doOutput = true //indicates that the application intends to write data to the URL connection.
             setRequestProperty("X-Upload-Content-Type", "audio/wav") //"audio/wav"
-            setRequestProperty("X-Upload-Content-Length", "${file.length()}")
+            setRequestProperty("X-Upload-Content-Length", "$fileSize}")
             setRequestProperty("Content-Type", "application/json; charset=UTF-8")
             setRequestProperty("Content-Length", "${body.toByteArray().size}")
             outputStream.write(body.toByteArray())
             outputStream.close()
-            connect()
         }
 
         ensureRequestSuccessful(request)
+        Log.i(tag, "Upload session created")
         return request.getHeaderField("location")
     }
 
@@ -127,23 +116,17 @@ class GoogleDriveFile(val file: File,
             doOutput = true
             requestMethod = "PUT"
             connectTimeout = 10000
-            //instanceFollowRedirects = false // We get 308 for resume, which also means to redirect. We don't want the java library to following redirections 20 times
-            //setRequestProperty("Content-Length", "0")
-            setRequestProperty("Content-Range", "bytes */${file.length()}")
-            Log.d(tag, "file length is ${file.length()}")
-            connect()
+            setRequestProperty("Content-Range", "bytes */$fileSize")
         }
 
         ensureRequestSuccessful(request)
-        when (request.responseCode) {
+        return when (request.responseCode) {
             308 -> {
                 val range = request.getHeaderField("range")
-                Log.e(tag, "responseCode = ${request.responseCode}")
-                Log.e(tag, "responseMessage = ${request.responseMessage}")
-                Log.e(tag, "range is $range")
-                return range.substring(range.lastIndexOf("-") + 1, range.length).toLong() + 1
+                range.substring(range.lastIndexOf("-") + 1, range.length).toLong() + 1
             }
-            else -> throw ConnectionNotEstablished("Weren't able to connect to Interrupted Upload")
+            200, 201 -> fileSize
+            else -> throw ConnectionNotEstablished("${request.responseCode}: Weren't able to connect to Interrupted Upload")
         }
     }
 

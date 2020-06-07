@@ -62,7 +62,7 @@ class RecordingService(): Service() {
     private val state = State()
     private var api: API = API()
     private var statusChecker = StatusChecker()
-    var connectivityChecker: ConnectivityChecker? = null
+    private var connectivityChecker: ConnectivityManager.NetworkCallback? = null
     private var connectivityManager: ConnectivityManager? = null
     private var outputFile: WavFileOutput? = null
     private lateinit var recorder: AudioRecorder
@@ -78,7 +78,11 @@ class RecordingService(): Service() {
         fun getState(): State { return state }
         fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos() }
         fun getTimeWhenStopped(): Date? { return timeWhenStopped }
-        fun setDestination(dest: Destination) { destination = dest } //TODO change to -> throw an exception if recording
+        fun setDestination(dest: Destination) {
+            if (state.recorderState == RecorderState.RECORDING)
+                throw Exception("Trying to change destination while recording")
+            destination = dest
+        }
 
         fun toggleStartStop() {
             Log.i(TAG, "toggleStartStop invoked")
@@ -126,7 +130,7 @@ class RecordingService(): Service() {
         val networkRequest = NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
             .build()
-        connectivityManager?.registerNetworkCallback(networkRequest, connectivityChecker)
+        connectivityManager?.registerNetworkCallback(networkRequest, connectivityChecker!!)
     }
 
     override fun onCreate() {
@@ -150,18 +154,14 @@ class RecordingService(): Service() {
 
         statusChecker.onChange = {
             Log.i(TAG, "StatusChecker onChange callback assigned")
-            state.run {
-                internetAvailable = statusChecker.internet
-                powerAvailable = statusChecker.power
-                micPlugged = statusChecker.mic
-            }
+            statusChecker.state = state
+
             // The UI will display a large popup if mic is out
             if (!state.micPlugged)
                 stop()
 
             invalidateActivity()
         }
-
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -174,6 +174,8 @@ class RecordingService(): Service() {
         Log.i(TAG, "Service destroyed")
         super.onDestroy()
         statusChecker.stopMonitoring(this)
+        connectivityManager?.unregisterNetworkCallback(connectivityChecker!!)
+        soundEffect.releaseSoundEffects()
     }
 
     private val autoStopTimer = object : Runnable {
@@ -233,14 +235,14 @@ class RecordingService(): Service() {
         state.recorderState = RecorderState.IDLE
         invalidateActivity()
 
-        fileSync.maybeUploadFile(outputFile!!.path) //Upload file to Drive
+        fileSync.maybeUploadFile(outputFile!!.file) //Upload file to Drive
 
         recorder.outputFile = null
         outputFile?.close()
         outputFile = null
 
         stopForeground(true)
-        Log.i(TAG, "Audio recording stopped. ${outputFile!!.path} successfully recorded and passed to fileSync for upload.")
+        Log.i(TAG, "Audio recording stopped. File successfully recorded and passed to fileSync for upload.")
     }
 
     private fun pause() {
@@ -292,7 +294,6 @@ class RecordingService(): Service() {
             priority = PRIORITY_HIGH
             setContentIntent(createPendingContentIntent())
         }.build()
-
     }
 
     private fun createPendingContentIntent(): PendingIntent {

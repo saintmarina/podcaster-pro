@@ -12,9 +12,7 @@ private const val MILLIS_IN_SEC: Long = 1000
 private const val JSON_EXT: String = ".metadata.json"
 private const val TIMEOUT_AFTER_FAILURE: Long = 10 * MILLIS_IN_SEC
 
-// Always think about this Thread as if you had 5 threads
 class FilesSync(private val drive: GoogleDrive) {
-    private val sdDir = File("/sdcard/Recordings/")
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: (() -> Unit)? = null
     var uploadStatus: String = "" // TODO rewrite this message every where. Put the most appropriate message
@@ -37,7 +35,7 @@ class FilesSync(private val drive: GoogleDrive) {
                 job.metadata.serializeToJson(job.file)
                 uploadStatus = "${job.file.name} upload successful"
             } catch (e: Exception) {
-                uploadStatus = "Upload of ${job.file.name} file was unsuccessful. Error: ${e.message}"
+                uploadStatus = "${job.file.name} upload unsuccessful. Error: ${e.message}"
                 Thread.sleep(TIMEOUT_AFTER_FAILURE)
                 jobQueue.add(job)
             }
@@ -56,22 +54,23 @@ class FilesSync(private val drive: GoogleDrive) {
                 }
             }
         }
+        Log.i(TAG, "FileSync initial scan finished")
     }
 
     fun maybeUploadFile(file: File) {
-        Log.i(TAG, " maybeUploadFile file.path = ${file.path}")
         val metadataFile = File(file.path + JSON_EXT)
-
         val metadata =
             if (metadataFile.exists()) {
                 FileMetadata.deserializeFromJson(metadataFile)
             } else {
                 FileMetadata()
             }
-        Log.d(TAG, "is uploaded ${metadata.uploaded}")
-        Log.d(TAG, "session ${metadata.sessionUrl}")
+        Log.i(TAG, "$file uploaded: ${metadata.uploaded}, session: ${metadata.sessionUrl}")
         if (!metadata.uploaded) {
             jobQueue.add(GoogleDriveFile(file, metadata, drive, this::updateUploadStatus))
+            Log.i(TAG, "$file added to upload job queue")
+            return
         }
+        Log.i(TAG, "$file file was already uploaded")
     }
 }
