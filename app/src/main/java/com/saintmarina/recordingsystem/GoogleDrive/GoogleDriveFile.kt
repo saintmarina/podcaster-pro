@@ -25,6 +25,7 @@ class GoogleDriveFile(val file: File,
             return
         }
 
+
         val (startPosition: Long, session:String) =
             if (metadata.sessionUrl == null) {
                 val session = createSession()
@@ -82,7 +83,7 @@ class GoogleDriveFile(val file: File,
 
     private fun reportProgress(bytesUploaded: Int, bytesTotal: Long = fileSize) {
         val value = if (bytesUploaded == 0) ""
-                    else "$bytesUploaded/$bytesTotal uploaded."
+                    else "$bytesUploaded/$bytesTotal"
         Log.i(TAG, "Progress: $value")
         onStatusChange(value)
     }
@@ -101,6 +102,7 @@ class GoogleDriveFile(val file: File,
             setRequestProperty("Content-Length", "${body.toByteArray().size}")
             outputStream.write(body.toByteArray())
             outputStream.close()
+            //connect()
         }
 
         ensureRequestSuccessful(request)
@@ -109,6 +111,7 @@ class GoogleDriveFile(val file: File,
     }
 
     private fun getPosFromResumedSession(sessionUri: String): Long {
+        Log.d(tag, "getPosFromResumed()")
         val url = URL(sessionUri)
         val request = drive.openRequest(url)
         request.apply {

@@ -3,12 +3,7 @@ package com.saintmarina.recordingsystem.Service
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.net.NetworkRequest
 import android.os.*
 import android.telephony.AvailableNetworkInfo.PRIORITY_HIGH
 import android.util.Log
@@ -38,7 +33,7 @@ const val MAX_RECORDING_TIME_MILLIS: Long = 3 * 3600 * 1000
 private const val TAG: String = "RecordingService"
 
 @RequiresApi(Build.VERSION_CODES.Q)
-class RecordingService(): Service() {
+class RecordingService: Service() {
     enum class RecorderState {
         IDLE,
         RECORDING,
@@ -47,13 +42,14 @@ class RecordingService(): Service() {
 
     /* State is shared with the UI */
     class State {
-        var recorderState: RecorderState = RecorderState.IDLE
-        var internetAvailable: Boolean = true
-        var micPlugged: Boolean = true
-        var powerAvailable: Boolean = true
-        var audioError: String? = null
+        var recorderState: RecorderState = RecorderState.IDLE //
+        var internetAvailable: Boolean = true //
+        var micPlugged: Boolean = true //
+        var powerAvailable: Boolean = true //
+        var audioError: String? = null //
         var fileSyncStatus: String = ""
         var recordingDuration: Long = 0
+        var timeWhenStopped: Date? = null
     }
 
     private val state = State()
@@ -63,7 +59,6 @@ class RecordingService(): Service() {
     private lateinit var recorder: AudioRecorder
     private lateinit var soundEffect: SoundEffect
     private var stopWatch: StopWatch = StopWatch()
-    private var timeWhenStopped: Date? = null
     private lateinit var fileSync: FilesSync
     private lateinit var destination: Destination
 
@@ -72,7 +67,6 @@ class RecordingService(): Service() {
         fun getAudioPeek(): Short { return recorder.peak }
         fun getState(): State { return state }
         fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos() }
-        fun getTimeWhenStopped(): Date? { return timeWhenStopped }
         fun setDestination(dest: Destination) {
             if (state.recorderState == RecorderState.RECORDING)
                 throw Exception("Trying to change destination while recording")
@@ -91,7 +85,7 @@ class RecordingService(): Service() {
         fun togglePauseResume() {
             Log.i(TAG, "togglePauseResume invoked")
             when (state.recorderState) {
-                RecorderState.IDLE -> showToast("You are not recording.")
+                RecorderState.IDLE -> showToast()
                 RecorderState.RECORDING -> pause()
                 RecorderState.PAUSED -> resume()
             }
@@ -117,8 +111,6 @@ class RecordingService(): Service() {
         api.activityInvalidate = null
         return super.onUnbind(intent)
     }
-
-
 
     override fun onCreate() {
         super.onCreate()
@@ -212,7 +204,7 @@ class RecordingService(): Service() {
         stopWatch.stop()
         soundEffect.playStopSound()
         autoStopTimer.disable()
-        timeWhenStopped = Date()
+        state.timeWhenStopped = Date()
 
         state.recordingDuration = stopWatch.getElapsedTimeNanos()
         stopWatch.reset()
@@ -287,10 +279,10 @@ class RecordingService(): Service() {
         return PendingIntent.getActivity(applicationContext, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
-    private fun showToast(message: String) {
+    private fun showToast() {
         Toast.makeText(
             this,
-            message,
+            "You are not recording",
             Toast.LENGTH_SHORT
         ).show()
     }

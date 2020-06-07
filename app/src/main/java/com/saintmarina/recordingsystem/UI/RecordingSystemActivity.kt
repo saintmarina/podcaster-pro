@@ -66,14 +66,8 @@ class RecordingSystemActivity : AppCompatActivity() {
         }
 
         val state = service.getState()
-        statusIndicator.internet = state.internetAvailable
-        statusIndicator.power = state.powerAvailable
-        statusIndicator.previousRecordingTime = Util.nanosToSec(state.recordingDuration)
-        statusIndicator.fileSyncStatus = state.fileSyncStatus
-        //statusIndicator.timeAgo = s.getTimeWhenStopped()
-        //Log.i(TAG, "inside invalidate s.getTimeWhenStopped() ${s.getTimeWhenStopped()}")
+        statusIndicator.state = state
         //noMicPopup?.isMicPresent = state.micPlugged // Comment this line out if app needs to be tested on a Tablet without mic
-
     }
 
     private fun startRecordingService() {
@@ -141,7 +135,7 @@ class RecordingSystemActivity : AppCompatActivity() {
                 count++
                 timeTextView.timeSec = Util.nanosToSec(s.getElapsedTime()) // Nanoseconds to seconds
                 timeTextView.isFlashing = s.getState().recorderState == RecordingService.RecorderState.PAUSED
-                statusIndicator.timeAgo = s.getTimeWhenStopped()
+                statusIndicator.state.timeWhenStopped = s.getState().timeWhenStopped
                 peakTextView.text = "$count -- ${s.getAudioPeek()}"
                 soundVisualizer.volume = s.getAudioPeek()
                 if (s.getAudioPeek() == Short.MAX_VALUE && s.getState().recorderState != RecordingService.RecorderState.IDLE) {
