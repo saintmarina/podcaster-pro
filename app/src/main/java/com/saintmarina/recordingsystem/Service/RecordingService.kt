@@ -46,7 +46,7 @@ class RecordingService: Service() {
         var internetAvailable: Boolean = true //
         var micPlugged: Boolean = true //
         var powerAvailable: Boolean = true //
-        var audioError: String? = null //
+        var audioError: String? = null
         var fileSyncStatus: String = ""
         var recordingDuration: Long = 0
         var timeWhenStopped: Date? = null
@@ -125,13 +125,12 @@ class RecordingService: Service() {
         fileSync = FilesSync(drive)
 
         fileSync.onStatusChange = {
-            Log.i(TAG, "fileSync onStatusChange callback assigned")
             state.fileSyncStatus = fileSync.uploadStatus
             invalidateActivity()
         }
 
+        Log.i(TAG, "fileSync onStatusChange callback assigned")
         statusChecker.onChange = {
-            Log.i(TAG, "StatusChecker onChange callback assigned")
             statusChecker.state = state
 
             // The UI will display a large popup if mic is out
@@ -140,6 +139,7 @@ class RecordingService: Service() {
 
             invalidateActivity()
         }
+        Log.i(TAG, "StatusChecker onChange callback assigned")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
