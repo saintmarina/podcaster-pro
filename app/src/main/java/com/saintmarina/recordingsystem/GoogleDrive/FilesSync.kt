@@ -60,7 +60,6 @@ class FilesSync(private val drive: GoogleDrive) {
     fun maybeUploadFile(file: File) {
         val metadataFile = File(file.path + JSON_EXT)
         val metadata =
-            // make sure metadata is proper
             if (metadataFile.exists() && !isMetadataCorrupted(metadataFile)) {
                 FileMetadata.deserializeFromJson(metadataFile)
             } else {

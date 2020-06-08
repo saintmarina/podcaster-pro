@@ -54,14 +54,17 @@ class RecordingSystemActivity : AppCompatActivity() {
                 btnStart.text = "Start"
                 btnPause.text = "Pause"
                 soundVisualizer.didClip = false
+                view_pager2.isUserInputEnabled = true
             }
             RecordingService.RecorderState.RECORDING -> {
                 btnStart.text = "Stop"
                 btnPause.text = "Pause"
+                view_pager2.isUserInputEnabled = false
             }
             RecordingService.RecorderState.PAUSED -> {
                 btnStart.text = "Stop"
                 btnPause.text = "Resume"
+                view_pager2.isUserInputEnabled = false
             }
         }
 

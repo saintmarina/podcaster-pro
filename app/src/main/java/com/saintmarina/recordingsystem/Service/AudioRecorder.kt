@@ -33,7 +33,7 @@ class AudioRecorder : Closeable {
         val recorder = initRecorder()
         thread = Thread {
             recorder.startRecording()
-            Log.i(TAG, "Audio recorder started recording")
+            Log.i(TAG, "Audio recorder started")
             val buf = ShortArray(PUMP_BUF_SIZE)
             while (!terminationRequested) {
                 val len = safeAudioRecordRead(recorder, buf)
