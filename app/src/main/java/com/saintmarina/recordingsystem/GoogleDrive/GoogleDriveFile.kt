@@ -25,7 +25,6 @@ class GoogleDriveFile(val file: File,
             return
         }
 
-
         val (startPosition: Long, session:String) =
             if (metadata.sessionUrl == null) {
                 val session = createSession()

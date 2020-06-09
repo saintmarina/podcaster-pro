@@ -24,6 +24,8 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
  * Card view instead of viewPager2
+ *
+ *
  */
 
 
@@ -31,7 +33,6 @@ const val UI_REFRESH_DELAY: Long = 30
 private const val TAG: String = "RecordingActivity"
 
 // Make sure that all the errors that I possibly see are shown to the UI
-
 class RecordingSystemActivity : AppCompatActivity() {
     private lateinit var serviceConnection: ServiceConnection
     private var uiUpdater: UiUpdater? = null
@@ -91,9 +92,10 @@ class RecordingSystemActivity : AppCompatActivity() {
 
                 noMicPopup = NoMicPopup(window.decorView.rootView)
                 view_pager2.adapter = ViewPagerAdapter()
+                view_pager2.currentItem = DESTINATIONS.indexOf(service.getDestination())
                 view_pager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
                     override fun onPageSelected(position: Int) {
-                        currentItem.text = (view_pager2.currentItem).toString()
+                        currentItem.text = (view_pager2.currentItem).toString() // Take out before deploy
                         service.setDestination(DESTINATIONS[position])
                     }
                 })
@@ -137,7 +139,7 @@ class RecordingSystemActivity : AppCompatActivity() {
                 count++
                 timeTextView.timeSec = Util.nanosToSec(s.getElapsedTime()) // Nanoseconds to seconds
                 timeTextView.isFlashing = s.getState().recorderState == RecordingService.RecorderState.PAUSED
-                statusIndicator.state.timeWhenStopped = s.getState().timeWhenStopped
+                statusIndicator.state.timeWhenStopped = s.getState().timeWhenStopped // TODO take out of this thread
                 peakTextView.text = "$count -- ${s.getAudioPeek()}"
                 soundVisualizer.volume = s.getAudioPeek()
                 if (s.getAudioPeek() == Short.MAX_VALUE && s.getState().recorderState != RecordingService.RecorderState.IDLE) {

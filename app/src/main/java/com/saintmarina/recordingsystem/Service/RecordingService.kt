@@ -10,6 +10,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.Destination
 import com.saintmarina.recordingsystem.GoogleDrive.FilesSync
 import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
@@ -60,18 +61,22 @@ class RecordingService: Service() {
     private lateinit var soundEffect: SoundEffect
     private var stopWatch: StopWatch = StopWatch()
     private lateinit var fileSync: FilesSync
-    private lateinit var destination: Destination
+    private var destination = DESTINATIONS[0]
 
     inner class API : Binder() {
         var activityInvalidate: (() -> Unit)? = null
         fun getAudioPeek(): Short { return recorder.peak }
         fun getState(): State { return state }
         fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos() }
+        fun getDestination(): Destination { return destination }
         fun setDestination(dest: Destination) {
+            if (dest == destination)
+                return
             if (state.recorderState == RecorderState.RECORDING)
-                throw Exception("Trying to change destination while recording")
+                throw Exception("Trying to change destination while recording") // TODO should only throw if the dest and destination are different
             destination = dest
         }
+
 
         fun toggleStartStop() {
             Log.i(TAG, "toggleStartStop invoked")
