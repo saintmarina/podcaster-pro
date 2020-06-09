@@ -27,7 +27,6 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
             field = value
             invalidate()
         }
-    // TODO instead of having all these variable pass State object from recording service
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
@@ -38,8 +37,9 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
             val radius = 15.toFloat()
             val paint: Paint
             val lastRecordingTime = if (state.timeWhenStopped != null) prettyTime.format(state.timeWhenStopped) else ""
-            val previousRecording: String = if (state.recordingDuration == 0L) ""
-                else "Previous recording was ${Util.formatAudioDuration(Util.nanosToSec(state.recordingDuration))} long $lastRecordingTime"
+            val previousRecording = if (state.recordingDuration == 0L) "No previous recording"
+                else "Last recording was $lastRecordingTime. It was ${Util.formatAudioDuration(Util.nanosToSec(state.recordingDuration))} long."
+            val uploadStatus = if (state.fileSyncStatus == "") "There is nothing to upload" else "${state.fileSyncStatus}"
 
             // TODO check for all items in the State object. Think about how to make the app pleasant to interact with. User should be informed and the expectations of the user should be managed
             when {
@@ -55,17 +55,13 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                     paint = painterRed
                     rootView.statusTextView.text = "Internet is not connected"
                 }
-                state.recorderState == RecordingService.RecorderState.RECORDING -> {
-                    paint = painterGreen
-                    rootView.statusTextView.text = "All good. Currently recording"
-                }
                 state.audioError != null -> {
                     paint = painterRed
-                    rootView.statusTextView.text = "Contact the developer.Error occured: ${state.audioError}"
+                    rootView.statusTextView.text = "Contact the developer.Error occurred: ${state.audioError}"
                 }
                 else -> {
                     paint = painterGreen
-                    rootView.statusTextView.text = "All good ${state.fileSyncStatus} ${previousRecording}"
+                    rootView.statusTextView.text = "$previousRecording\nUpload: $uploadStatus"
                 }
             }
             it.drawCircle(x, y, radius, paint);

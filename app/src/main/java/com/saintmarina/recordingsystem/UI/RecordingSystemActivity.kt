@@ -97,7 +97,6 @@ class RecordingSystemActivity : AppCompatActivity() {
                         service.setDestination(DESTINATIONS[position])
                     }
                 })
-                // TODO make view_pager2 read only if RecorderState is NOT IDLE
 
                 btnStart.setOnClickListener {
                     service.toggleStartStop()

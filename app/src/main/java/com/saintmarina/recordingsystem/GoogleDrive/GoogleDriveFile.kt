@@ -124,7 +124,7 @@ class GoogleDriveFile(val file: File,
         ensureRequestSuccessful(request)
         return when (request.responseCode) {
             308 -> {
-                val range = request.getHeaderField("range")
+                val range = request.getHeaderField("range") ?: return 0
                 range.substring(range.lastIndexOf("-") + 1, range.length).toLong() + 1
             }
             200, 201 -> fileSize
