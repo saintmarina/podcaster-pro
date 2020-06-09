@@ -21,7 +21,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar"
         tools:targetApi="q">
-        <activity android:name=".UI.CheckPermissionsActivity">
+        <activity android:name=".UI.CheckPermissionsActivity"
+                  android:screenOrientation="portrait"
+                  tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -29,7 +31,9 @@
         </activity>
         <activity android:name=".UI.RecordingSystemActivity"
                   android:alwaysRetainTaskState="true"
-                  android:launchMode="singleInstance">
+                  android:launchMode="singleInstance"
+                  android:screenOrientation="portrait"
+                  tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
