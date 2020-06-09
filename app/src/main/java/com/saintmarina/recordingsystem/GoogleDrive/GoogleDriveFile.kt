@@ -139,7 +139,7 @@ class GoogleDriveFile(val file: File,
     }
 
     private fun ensureRequestSuccessful(request: HttpURLConnection) {
-        if (request.responseCode == 404) {
+        if (request.responseCode in 400..499) {
             retryUpload()
             throw Exception("${request.responseCode}: session Uri expired, restart the upload")
         }
