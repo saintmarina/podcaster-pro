@@ -60,8 +60,13 @@ class FilesSync(private val drive: GoogleDrive) {
     fun maybeUploadFile(file: File) {
         val metadataFile = File(file.path + JSON_EXT)
         val metadata =
-            if (metadataFile.exists() && !isMetadataCorrupted(metadataFile)) {
-                FileMetadata.deserializeFromJson(metadataFile)
+            if (metadataFile.exists()) {
+                try {
+                    FileMetadata.deserializeFromJson(metadataFile)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to deserialize metadata file: $e")
+                    FileMetadata()
+                }
             } else {
                 FileMetadata()
             }
@@ -74,8 +79,4 @@ class FilesSync(private val drive: GoogleDrive) {
         Log.i(TAG, "$file file was already uploaded")
     }
 
-    private fun isMetadataCorrupted (file: File): Boolean {
-        // All metadata files size is 219 bytes. If size is less than 150 bytes, it means that the file is corrupted and needs to be rewritten
-        return file.length() < 150
-    }
 }
