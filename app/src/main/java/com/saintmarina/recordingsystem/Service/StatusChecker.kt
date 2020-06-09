@@ -16,24 +16,50 @@ import androidx.annotation.RequiresApi
 private const val TAG = "StatusChecker"
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class StatusChecker: BroadcastReceiver() {
+class StatusChecker(val context: Context): BroadcastReceiver() {
+    // We can't access context variable until the Service is created
     var state: RecordingService.State = RecordingService.State()
     var onChange: (() -> Unit)? = null
 
-    private var connectivityChecker = ConnectivityChecker()
+    private var connectivityChecker = object: ConnectivityManager.NetworkCallback()  {
+        override fun onAvailable(network: Network) {
+            Log.i(TAG, "Internet AVAILABLE")
+            super.onAvailable(network)
+            state.internetAvailable = true
+        }
+
+        override fun onLost(network: Network) {
+            super.onLost(network)
+            Log.i(TAG, "Internet LOST")
+            state.internetAvailable = false
+        }
+    }
+
     private var connectivityManager: ConnectivityManager? = null
 
-    fun startMonitoring(context: Context) {
+    fun startMonitoring() {
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_BATTERY_CHANGED)
             addAction(Intent.ACTION_HEADSET_PLUG)
         }
-        registerNetworkCallback(context)
         context.registerReceiver(this, filter)
+        registerNetworkCallback()
     }
 
-    fun stopMonitoring(context: Context) {
+    private fun registerNetworkCallback() {
+        Log.i(TAG, "registering the NetworkCallback. Starting to monitor internet status")
+        // We can only set the connectivityManager variable after "onCreate" of the Service has run
+        connectivityManager = (context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).apply {
+            val networkRequest = NetworkRequest.Builder()
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .build()
+            registerNetworkCallback(networkRequest, connectivityChecker)
+        }
+    }
+
+    fun stopMonitoring() {
         connectivityManager?.unregisterNetworkCallback(connectivityChecker)
+        connectivityManager = null
         context.unregisterReceiver(this)
     }
 
@@ -52,28 +78,4 @@ class StatusChecker: BroadcastReceiver() {
         }
         onChange?.invoke()
     }
-
-    private fun registerNetworkCallback(context: Context) {
-        Log.i(TAG, "registering the NetworkCallback. Starting to monitor internet status")
-        connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkRequest = NetworkRequest.Builder()
-            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-            .build()
-        connectivityManager?.registerNetworkCallback(networkRequest, connectivityChecker)
-    }
-
-    inner class ConnectivityChecker : ConnectivityManager.NetworkCallback() {
-        override fun onAvailable(network: Network) {
-            Log.i(TAG, "Internet AVAILABLE")
-            super.onAvailable(network)
-            state.internetAvailable = true
-        }
-
-        override fun onLost(network: Network) {
-            super.onLost(network)
-            Log.i(TAG, "Internet LOST")
-            state.internetAvailable = false
-        }
-    }
-
 }

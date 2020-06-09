@@ -19,7 +19,6 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
 /*
  * TODO:
  * Make sure that the sound recorded on software on the device is the same as recorded on tablet
- * Case for tablet and a stand
  *
  * NICE TO HAVE:
  * Sound notification when recording time reached 2:45 hrs

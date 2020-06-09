@@ -54,7 +54,7 @@ class RecordingService: Service() {
 
     private val state = State()
     private var api: API = API()
-    private var statusChecker = StatusChecker()
+    private var statusChecker = StatusChecker(this)
     private var outputFile: WavFileOutput? = null
     private lateinit var recorder: AudioRecorder
     private lateinit var soundEffect: SoundEffect
@@ -117,7 +117,7 @@ class RecordingService: Service() {
         Log.i(TAG, "inside onCreate of the Recording Service")
         recorder = AudioRecorder()
         soundEffect = SoundEffect(this)
-        statusChecker.startMonitoring(this)
+        statusChecker.startMonitoring()
 
         val drive = GoogleDrive(this.assets.open("credentials.json"))
             .also { it.prepare() }
@@ -151,7 +151,7 @@ class RecordingService: Service() {
     override fun onDestroy() {
         Log.i(TAG, "Service destroyed")
         super.onDestroy()
-        statusChecker.stopMonitoring(this)
+        statusChecker.stopMonitoring()
         soundEffect.releaseSoundEffects()
     }
 
