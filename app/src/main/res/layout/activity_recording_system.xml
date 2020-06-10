@@ -44,35 +44,58 @@
         android:id="@+id/timeTextView"
         android:layout_width="match_parent"
         android:layout_height="120dp"
-        android:layout_above="@+id/soundVisualizer"
+        android:layout_below="@+id/title_row"
         android:layout_centerHorizontal="true" />
 
+    <TableRow
+        android:id="@+id/button_row"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="2"
+        android:layout_below="@id/timeTextView">
+
+        <Button
+            android:id="@+id/btnStart"
+            android:text="Start"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="30dp" />
+
+        <Button
+            android:id="@+id/btnPause"
+            android:text="Pause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="30dp" />
+    </TableRow>
 
     <com.saintmarina.recordingsystem.UI.SoundVisualizer
         android:id="@+id/soundVisualizer"
         android:layout_width="match_parent"
         android:layout_height="45dp"
-        android:layout_above="@+id/peakTextView"/>
+        android:layout_below="@+id/button_row"/>
 
     <TextView
         android:id="@+id/peakTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="30dp"
-        android:layout_above="@+id/status_row"
+        android:layout_below="@+id/soundVisualizer"
         />
 
     <TableRow
         android:id="@+id/status_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/button_row">
+        android:layout_below="@+id/peakTextView">
 
         <com.saintmarina.recordingsystem.UI.StatusIndicator
             android:id="@+id/statusIndicator"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_above="@+id/button_row"
+            android:layout_below="@+id/button_row"
             />
 
         <TextView
@@ -83,30 +106,6 @@
             android:textSize="30sp"
             android:layout_toRightOf="@+id/statusIndicator" />
 
-    </TableRow>
-
-    <TableRow
-        android:id="@+id/button_row"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:weightSum="2"
-        android:layout_alignParentBottom="true">
-
-        <Button
-            android:id="@+id/btnStart"
-            android:text="Start"
-            android:layout_height="wrap_content"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_margin="30dp" />
-
-        <Button
-            android:id="@+id/btnPause"
-            android:text="Pause"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_margin="30dp" />
     </TableRow>
 
 

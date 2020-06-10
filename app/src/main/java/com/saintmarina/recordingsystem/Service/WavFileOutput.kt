@@ -13,7 +13,7 @@ const val HEADER_SIZE: Int = 44
 const val BITS_PER_SAMPLE: Short = 16
 const val NUM_CHANNELS: Short = 1
 
-const val FILE_NAME_FMT: String = "yyyy-MM-dd_HH-mm-ss'.wav'"
+const val FILE_NAME_FMT: String = "yyyy-MM-dd HH-mm-ss'.wav'"
 private const val TAG = "WavFileOutput"
 
 class WavFileOutput(private val localDir: String): Closeable {
