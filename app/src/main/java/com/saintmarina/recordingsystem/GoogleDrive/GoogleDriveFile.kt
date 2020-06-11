@@ -127,7 +127,7 @@ class GoogleDriveFile(val file: File,
                 range.substring(range.lastIndexOf("-") + 1, range.length).toLong() + 1
             }
             200, 201 -> fileSize
-            else -> throw ConnectionNotEstablished("${request.responseCode}: Weren't able to connect to Interrupted Upload")
+            else -> throw ConnectionNotEstablished("Weren't able to connect to Interrupted Upload.Error:${request.responseCode}.${Util.readString(request.errorStream)} ")
         }
     }
 
@@ -140,7 +140,7 @@ class GoogleDriveFile(val file: File,
     private fun ensureRequestSuccessful(request: HttpURLConnection) {
         if (request.responseCode in 400..499) {
             retryUpload()
-            throw Exception("${request.responseCode}: session Uri expired, restart the upload")
+            throw Exception("${request.responseCode}: ${Util.readString(request.errorStream)}")
         }
         try {
             request.inputStream // Will raise an IOException if not successful.

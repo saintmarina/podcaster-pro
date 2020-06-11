@@ -16,7 +16,6 @@ class FileMetadata() {
     var sessionUrl: String? = null
 
     fun serializeToJson(path: File) {
-        Log.d(TAG, "path.path = ${path.path}")
         val file = File(path.path + ".metadata.json" )
         val jsonContent: String = Gson().toJson(this)
         val outputStream = FileOutputStream(file)

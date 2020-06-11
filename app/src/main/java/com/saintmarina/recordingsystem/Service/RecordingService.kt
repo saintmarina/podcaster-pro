@@ -131,6 +131,7 @@ class RecordingService: Service() {
 
         fileSync.onStatusChange = {
             state.fileSyncStatus = fileSync.uploadStatus
+
             invalidateActivity()
         }
 
