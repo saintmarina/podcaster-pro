@@ -48,30 +48,32 @@ class RecordingSystemActivity : AppCompatActivity() {
     }
 
     private fun handleServiceInvalidate(service: RecordingService.API) {
-        Log.i(TAG, "Invalidating UI of the Activity")
+        this@RecordingSystemActivity.runOnUiThread {
+            Log.i(TAG, "Invalidating UI of the Activity")
 
-        when (service.getState().recorderState) {
-            RecordingService.RecorderState.IDLE -> {
-                btnStart.text = "Start"
-                btnPause.text = "Pause"
-                soundVisualizer.didClip = false
-                view_pager2.isUserInputEnabled = true
+            when (service.getState().recorderState) {
+                RecordingService.RecorderState.IDLE -> {
+                    btnStart.text = "Start"
+                    btnPause.text = "Pause"
+                    soundVisualizer.didClip = false
+                    view_pager2.isUserInputEnabled = true
+                }
+                RecordingService.RecorderState.RECORDING -> {
+                    btnStart.text = "Stop"
+                    btnPause.text = "Pause"
+                    view_pager2.isUserInputEnabled = false
+                }
+                RecordingService.RecorderState.PAUSED -> {
+                    btnStart.text = "Stop"
+                    btnPause.text = "Resume"
+                    view_pager2.isUserInputEnabled = false
+                }
             }
-            RecordingService.RecorderState.RECORDING -> {
-                btnStart.text = "Stop"
-                btnPause.text = "Pause"
-                view_pager2.isUserInputEnabled = false
-            }
-            RecordingService.RecorderState.PAUSED -> {
-                btnStart.text = "Stop"
-                btnPause.text = "Resume"
-                view_pager2.isUserInputEnabled = false
-            }
+
+            val state = service.getState()
+            statusIndicator.state = state
+            //noMicPopup?.isMicPresent = state.micPlugged // Comment this line out if app needs to be tested on a Tablet without mic
         }
-
-        val state = service.getState()
-        statusIndicator.state = state
-        //noMicPopup?.isMicPresent = state.micPlugged // Comment this line out if app needs to be tested on a Tablet without mic
     }
 
     private fun startRecordingService() {
