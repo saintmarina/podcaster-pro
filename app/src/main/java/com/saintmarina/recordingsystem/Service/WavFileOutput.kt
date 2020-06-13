@@ -30,15 +30,21 @@ class WavFileOutput(private val localDir: String): Closeable {
     }
 
     private fun createDatedFile() : FileOutputStream {
-        //Filename in a date format
-        val date = getCurrentDateTime()
-        val filename = date.toString(FILE_NAME_FMT)
-
         // Creating Recording directory if it doesn't exist
         val recordingsDir = File(localDir)
         recordingsDir.mkdirs()
 
-        file = File(recordingsDir, filename)
+
+        // we loop until we find a non-existing filename which could happen when the
+        // user presses start/stop/start quickly
+        for (i in 0..Int.MAX_VALUE) {
+            var filename = getCurrentDateTime().toString(FILE_NAME_FMT)
+            if (i > 0)
+                filename = filename.replace(".", " ($i).")
+            file = File(recordingsDir, filename)
+            if (!file.exists())
+                break
+        }
 
         Log.i(TAG, "WaveFileOutput $file created")
         return FileOutputStream(file)

@@ -9,7 +9,6 @@ import java.util.concurrent.LinkedBlockingQueue
 
 private const val TAG: String = "Files Sync"
 private const val MILLIS_IN_SEC: Long = 1000
-private const val JSON_EXT: String = ".metadata.json"
 private const val TIMEOUT_AFTER_FAILURE: Long = 10 * MILLIS_IN_SEC
 
 
@@ -61,7 +60,7 @@ class FilesSync(private val drive: GoogleDrive) {
     }
 
     fun maybeUploadFile(file: File) {
-        val metadataFile = File(file.path + JSON_EXT)
+        val metadataFile = FileMetadata.pathForFile(file)
         val metadata =
             if (metadataFile.exists()) {
                 try {

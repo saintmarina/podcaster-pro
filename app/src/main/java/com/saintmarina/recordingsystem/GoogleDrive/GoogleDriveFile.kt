@@ -25,6 +25,8 @@ class GoogleDriveFile(val file: File,
             return
         }
 
+        Log.d(tag, "File size is $fileSize")
+
         val (startPosition: Long, session:String) =
             if (metadata.sessionUrl == null) {
                 val session = createSession()
@@ -57,7 +59,7 @@ class GoogleDriveFile(val file: File,
             doOutput = true
             requestMethod = "PUT"
             connectTimeout = 10000
-            setRequestProperty("Content-Length", "*/*")
+            setRequestProperty("Content-Length", "$fileSize")
             setRequestProperty("Content-Range", "bytes $chunkStart-${fileSize-1}/${fileSize}")
             setRequestProperty("Accept","*/*")
             copyFromTo(fileIS, outputStream)

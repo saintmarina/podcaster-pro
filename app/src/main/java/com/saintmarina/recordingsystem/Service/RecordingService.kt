@@ -12,6 +12,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.Destination
+import com.saintmarina.recordingsystem.GoogleDrive.FileMetadata
 import com.saintmarina.recordingsystem.GoogleDrive.FilesSync
 import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
@@ -56,7 +57,7 @@ class RecordingService: Service() {
     private val state = State()
     private var api: API = API()
     private var statusChecker = StatusChecker(this)
-    private var outputFile: WavFileOutput? = null
+    private var outputFile: WavFileOutput? = null // We need this variable for setting fileOutput in pause() and resume()
     private lateinit var recorder: AudioRecorder
     private lateinit var soundEffect: SoundEffect
     private var stopWatch: StopWatch = StopWatch()
@@ -218,10 +219,12 @@ class RecordingService: Service() {
         state.recorderState = RecorderState.IDLE
         invalidateActivity()
 
-        fileSync.maybeUploadFile(outputFile!!.file) //Upload file to Drive
-
         recorder.outputFile = null
-        outputFile?.close()
+        // Now we are sure, that the AudioRecorder is no longer touching the file
+        outputFile?.let {
+            it.close() // Writes .wav header
+            fileSync.maybeUploadFile(it.file)
+        }
         outputFile = null
 
         stopForeground(true)

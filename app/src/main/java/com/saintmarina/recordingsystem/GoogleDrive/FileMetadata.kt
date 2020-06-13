@@ -9,6 +9,7 @@ import java.io.FileOutputStream
 import java.nio.channels.FileChannel
 import java.nio.charset.Charset
 
+private const val JSON_EXT: String = ".metadata.json"
 private const val TAG: String = "FileMetadata"
 
 class FileMetadata() {
@@ -40,6 +41,10 @@ class FileMetadata() {
             val byteBuffer =
                 stream.channel.map(FileChannel.MapMode.READ_ONLY, 0, stream.channel.size())
             return Charset.defaultCharset().decode(byteBuffer).toString()
+        }
+
+        fun pathForFile(file: File): File {
+            return File(file.path + JSON_EXT)
         }
     }
 }

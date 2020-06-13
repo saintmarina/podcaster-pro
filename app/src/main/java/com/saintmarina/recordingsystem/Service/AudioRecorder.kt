@@ -7,6 +7,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import java.io.Closeable
+import java.util.concurrent.Semaphore
 
 private const val TAG = "AudioRecorder"
 const val NANOS_IN_SEC: Long = 1_000_000_000
@@ -23,8 +24,8 @@ const val PUMP_BUF_SIZE: Int = 1*1024
 class AudioRecorder : Closeable {
     private var thread: Thread
     var outputFile: WavFileOutput? = null
-        @Synchronized set // Thread safe
-        @Synchronized get // Thread safe
+        @Synchronized set // Thread safe. Protects the outputFile to be set while it's being written to
+        @Synchronized get
 
     private var terminationRequested: Boolean = false
     var peak: Short = 0
