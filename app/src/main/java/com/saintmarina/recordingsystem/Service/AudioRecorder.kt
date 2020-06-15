@@ -7,7 +7,6 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import java.io.Closeable
-import java.util.concurrent.Semaphore
 
 private const val TAG = "AudioRecorder"
 const val NANOS_IN_SEC: Long = 1_000_000_000

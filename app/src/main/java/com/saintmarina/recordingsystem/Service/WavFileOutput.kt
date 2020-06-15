@@ -13,11 +13,14 @@ const val HEADER_SIZE: Int = 44
 const val BITS_PER_SAMPLE: Short = 16
 const val NUM_CHANNELS: Short = 1
 
+
+// TODO rename the file
+// TODO name: 2020 May 1st (3 mins).wav
 const val FILE_NAME_FMT: String = "yyyy-MM-dd HH-mm-ss'.wav'"
 private const val TAG = "WavFileOutput"
 
 class WavFileOutput(private val localDir: String): Closeable {
-    var output: FileOutputStream
+    private var output: FileOutputStream
     lateinit var file: File
 
     private fun getDataSize(): Int {

@@ -12,7 +12,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.Destination
-import com.saintmarina.recordingsystem.GoogleDrive.FileMetadata
 import com.saintmarina.recordingsystem.GoogleDrive.FilesSync
 import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
