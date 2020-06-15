@@ -4,7 +4,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.content.pm.ActivityInfo
 import android.os.*
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -12,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.R
-import com.saintmarina.recordingsystem.Service.RecordingService
+import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
 
@@ -80,10 +79,10 @@ class RecordingSystemActivity : AppCompatActivity() {
     }
 
     private fun startRecordingService() {
-        Log.i(TAG, "starting Recording Service")
+        Log.i(TAG, "starting Recording service")
         serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName, serviceAPI: IBinder) {
-                Log.i(TAG, "Service Connected. Initializing UI")
+                Log.i(TAG, "service Connected. Initializing UI")
                 val service = (serviceAPI as RecordingService.API)
 
                 service.registerActivityInvalidate {
