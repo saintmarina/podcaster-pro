@@ -1,4 +1,4 @@
-package com.saintmarina.recordingsystem.Service
+package com.saintmarina.recordingsystem.service
 
 import android.app.Notification
 import android.app.PendingIntent
@@ -12,8 +12,8 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.Destination
-import com.saintmarina.recordingsystem.GoogleDrive.FilesSync
-import com.saintmarina.recordingsystem.GoogleDrive.GoogleDrive
+import com.saintmarina.recordingsystem.googleDrive.FilesSync
+import com.saintmarina.recordingsystem.googleDrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.UI.RecordingSystemActivity
 import java.lang.Exception
@@ -73,7 +73,7 @@ class RecordingService: Service() {
             if (dest == destination)
                 return
             if (state.recorderState == RecorderState.RECORDING)
-                throw Exception("Trying to change destination while recording") // TODO should only throw if the dest and destination are different
+                throw Exception("Trying to change destination while recording")
             destination = dest
         }
 
@@ -119,7 +119,7 @@ class RecordingService: Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.i(TAG, "inside onCreate of the Recording Service")
+        Log.i(TAG, "inside onCreate of the RecordingService")
         recorder = AudioRecorder()
         soundEffect = SoundEffect(this)
         statusChecker.startMonitoring()
@@ -222,6 +222,7 @@ class RecordingService: Service() {
         // Now we are sure, that the AudioRecorder is no longer touching the file
         outputFile?.let {
             it.close() // Writes .wav header
+            it.addDurationToFileName(state.recordingDuration)
             fileSync.maybeUploadFile(it.file)
         }
         outputFile = null
@@ -271,7 +272,7 @@ class RecordingService: Service() {
     }
 
     private fun createNotification(): Notification {
-        Log.i(TAG, "creating Notification for the Foreground Service")
+        Log.i(TAG, "creating Notification for the Foreground service")
         return NotificationCompat.Builder(applicationContext, CHANNEL_ID).apply {
             setSmallIcon(R.drawable.ic_stat_name)
             setContentTitle("Recording system")

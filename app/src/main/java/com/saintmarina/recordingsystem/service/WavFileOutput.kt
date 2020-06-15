@@ -1,6 +1,8 @@
-package com.saintmarina.recordingsystem.Service
+package com.saintmarina.recordingsystem.service
 
 import android.util.Log
+import com.saintmarina.recordingsystem.Util.nanosToSec
+import com.saintmarina.recordingsystem.Util.prettyDuration
 import java.io.Closeable
 import java.io.File
 import java.io.FileOutputStream
@@ -16,7 +18,7 @@ const val NUM_CHANNELS: Short = 1
 
 // TODO rename the file
 // TODO name: 2020 May 1st (3 mins).wav
-const val FILE_NAME_FMT: String = "yyyy-MM-dd HH-mm-ss'.wav'"
+const val FILE_NAME_FMT: String = "d MMM yyyy'.wav'"
 private const val TAG = "WavFileOutput"
 
 class WavFileOutput(private val localDir: String): Closeable {
@@ -61,6 +63,18 @@ class WavFileOutput(private val localDir: String): Closeable {
         Log.i(TAG, "WaveFileOutput $file closed")
     }
 
+    fun addDurationToFileName(duration: Long) {
+        val newFileName = file.name.replace(".", " (${prettyDuration(nanosToSec(duration))}).")
+        Log.d(TAG, "newFileName = $newFileName")
+        Log.d(TAG, "file parent = ${file.parent}")
+        Log.d(TAG, "file path = ${file.path}")
+        val newFile = File(file.parent, "/$newFileName")
+        val renameSuccess = file.renameTo(newFile)
+        Log.d(TAG, "rename Success = $renameSuccess")
+        this.file = newFile
+        Log.d(TAG, "this.file = ${this.file}")
+    }
+
     private fun generateWavHeader(dataSize: Int): ByteBuffer {
         return ByteBuffer.allocate(HEADER_SIZE)
             .apply {
@@ -100,6 +114,7 @@ class WavFileOutput(private val localDir: String): Closeable {
     }
 
     private fun getCurrentDateTime(): Date {
+        Log.d(TAG, "time ${Calendar.getInstance().time}")
         return Calendar.getInstance().time
     }
 }
