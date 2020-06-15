@@ -12,20 +12,32 @@ private const val TAG = "GoogleDriveFile"
 const val KB_IN_BYTE = 1000
 
 class GoogleDriveFile(val file: File,
-                      val metadata: FileMetadata,
                       private val drive: GoogleDrive,
                       var onStatusChange: (value: String) -> Unit
 ) {
     private val tag: String = "GoogleDriveFile (${file.name})"
     private val fileSize = file.length()
-    
+
+    private fun readMetadata(file: File): FileMetadata {
+        val metadataFile = FileMetadata.pathForFile(file)
+        return if (metadataFile.exists()) {
+                    try {
+                        FileMetadata.deserializeFromJson(metadataFile)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to deserialize metadata file: $e")
+                        FileMetadata()
+                    }
+                } else {
+                    FileMetadata()
+                }
+    }
+
     fun upload() {
+        val metadata = readMetadata(file)
         if (metadata.uploaded) {
-            Log.e(tag, "File already uploaded")
+            Log.i(tag, "File already uploaded")
             return
         }
-
-        Log.d(tag, "File size is $fileSize")
 
         val (startPosition: Long, session:String) =
             if (metadata.sessionUrl == null) {
@@ -41,6 +53,8 @@ class GoogleDriveFile(val file: File,
             }
 
         uploadFile(startPosition, session)
+        metadata.uploaded = true
+        metadata.serializeToJson(file)
         Log.i(TAG, "uploaded")
     }
 
@@ -134,8 +148,7 @@ class GoogleDriveFile(val file: File,
     }
 
     private fun retryUpload() {
-        metadata.sessionUrl = null
-        metadata.uploaded = false
+        val metadata = FileMetadata()
         metadata.serializeToJson(file)
     }
 

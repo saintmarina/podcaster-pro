@@ -13,7 +13,7 @@ private const val TIMEOUT_AFTER_FAILURE: Long = 10 * MILLIS_IN_SEC
 
 
 // TODO Figure out the way to distinguish from good and bad uploadStatus
-// TODO make sure all UI elments are only touched from one thread.
+// TODO make sure all UI elements are only touched from one thread.
 class FilesSync(private val drive: GoogleDrive) {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: (() -> Unit)? = null
@@ -33,8 +33,6 @@ class FilesSync(private val drive: GoogleDrive) {
             val job = jobQueue.take()
             try {
                 job.upload()
-                job.metadata.uploaded = true
-                job.metadata.serializeToJson(job.file)
                 uploadStatus = "${job.file.name} upload successful"
             } catch (e: Exception) {
                 uploadStatus = "${job.file.name} upload unsuccessful. Error: ${e.message}"
@@ -51,34 +49,16 @@ class FilesSync(private val drive: GoogleDrive) {
     fun scanForFiles() {  //done once at a boot time
         DESTINATIONS.forEach { dest ->
             File(dest.localDir).walk().forEach { f ->
-                if (f.isFile && f.name.endsWith(".wav")) {
+                if (f.isFile  && f.name.endsWith(".wav"))
                     maybeUploadFile(f)
-                }
             }
         }
         Log.i(TAG, "FileSync initial scan finished")
     }
 
     fun maybeUploadFile(file: File) {
-        val metadataFile = FileMetadata.pathForFile(file)
-        val metadata =
-            if (metadataFile.exists()) {
-                try {
-                    FileMetadata.deserializeFromJson(metadataFile)
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to deserialize metadata file: $e")
-                    FileMetadata()
-                }
-            } else {
-                FileMetadata()
-            }
-        Log.i(TAG, "$file uploaded: ${metadata.uploaded}, session: ${metadata.sessionUrl}")
-        if (!metadata.uploaded) {
-            jobQueue.add(GoogleDriveFile(file, metadata, drive, this::updateUploadStatus))
-            Log.i(TAG, "$file added to upload job queue")
-            return
-        }
-        Log.i(TAG, "$file file was already uploaded")
+        jobQueue.add(GoogleDriveFile(file, drive, this::updateUploadStatus))
+        Log.i(TAG, "$file added to upload job queue")
+        return
     }
-
 }
