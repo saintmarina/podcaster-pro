@@ -1,21 +1,16 @@
-package com.saintmarina.recordingsystem.GoogleDrive
+package com.saintmarina.recordingsystem.googleDrive
 
 //import java.io.File
 import android.util.Log
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.http.HttpTransport
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
-import org.apache.http.auth.InvalidCredentialsException
-import java.io.FileOutputStream
-import java.io.IOException
 import java.io.InputStream
 import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.*
 
 
 //https://drive.google.com/drive/folders/1y8LPodwpaPNI-BwGHyrbk5Ci7TEe0_0l?usp=sharing
@@ -23,7 +18,7 @@ import java.util.*
 private const val TAG = "Google Drive"
 class ConnectionNotEstablished(message: String): Exception(message)
 /*
- * Service account token expiration time is 1 hour
+ * service account token expiration time is 1 hour
  * Found in Drive Credentials source code
  * See source here https://github.com/googleapis/google-api-java-client/blob/master/google-api-client/src/main/java/com/google/api/client/googleapis/auth/oauth2/GoogleCredential.java#L387
  */

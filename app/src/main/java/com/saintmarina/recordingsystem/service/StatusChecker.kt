@@ -1,4 +1,4 @@
-package com.saintmarina.recordingsystem.Service
+package com.saintmarina.recordingsystem.service
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -17,7 +17,7 @@ private const val TAG = "StatusChecker"
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class StatusChecker(val context: Context): BroadcastReceiver() {
-    // We can't access context variable until the Service is created
+    // We can't access context variable until the service is created
     var state: RecordingService.State = RecordingService.State()
     var onChange: (() -> Unit)? = null
 
@@ -48,7 +48,7 @@ class StatusChecker(val context: Context): BroadcastReceiver() {
 
     private fun registerNetworkCallback() {
         Log.i(TAG, "registering the NetworkCallback. Starting to monitor internet status")
-        // We can only set the connectivityManager variable after "onCreate" of the Service has run
+        // We can only set the connectivityManager variable after "onCreate" of the service has run
         connectivityManager = (context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).apply {
             val networkRequest = NetworkRequest.Builder()
                 .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)

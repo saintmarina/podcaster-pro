@@ -12,7 +12,7 @@
 
 
     <application
-        android:name=".Service.NotificationChannel"
+        android:name=".service.NotificationChannel"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -41,8 +41,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".Service.StatusChecker" />
-        <service android:name=".Service.RecordingService"
+        <receiver android:name=".service.StatusChecker" />
+        <service android:name=".service.RecordingService"
                  android:stopWithTask="false"
                  android:exported="false" />
         <meta-data

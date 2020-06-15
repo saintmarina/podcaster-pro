@@ -1,4 +1,4 @@
-package com.saintmarina.recordingsystem.Service
+package com.saintmarina.recordingsystem.service
 
 import android.app.Application
 import android.app.NotificationChannel
@@ -31,7 +31,7 @@ class NotificationChannel: Application() {
 
             val serviceChannel = NotificationChannel(
                 CHANNEL_ID,
-                "Recording System Service Channel",
+                "Recording System service Channel",
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 setSound(sound, att.build())

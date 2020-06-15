@@ -5,13 +5,11 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
-import com.saintmarina.recordingsystem.Service.RecordingService
+import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.view.*
 import org.ocpsoft.prettytime.PrettyTime
-import java.util.*
 
 class StatusIndicator(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
     private val painterGreen = Paint().apply {

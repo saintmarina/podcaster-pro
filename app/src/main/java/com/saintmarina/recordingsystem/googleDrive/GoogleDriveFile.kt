@@ -1,4 +1,4 @@
-package com.saintmarina.recordingsystem.GoogleDrive
+package com.saintmarina.recordingsystem.googleDrive
 
 import android.util.Log
 import com.saintmarina.recordingsystem.DESTINATIONS

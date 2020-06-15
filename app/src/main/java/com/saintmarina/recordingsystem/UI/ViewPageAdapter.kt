@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.R
 import kotlinx.android.synthetic.main.view_pager_items_page.view.*
-// Service account page
+// service account page
 // https://console.cloud.google.com/projectselector2/iam-admin/serviceaccounts?_ga=2.18320249.150055309.1590615406-114274831.1588189614&supportedpurview=project
 
 class PagerVH(itemView: View) : RecyclerView.ViewHolder(itemView)

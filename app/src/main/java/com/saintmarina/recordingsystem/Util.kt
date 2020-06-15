@@ -1,11 +1,5 @@
 package com.saintmarina.recordingsystem
 
-import android.util.Log
-import com.google.gson.Gson
-import com.saintmarina.recordingsystem.GoogleDrive.GoogleDriveFile
-import org.mortbay.util.ajax.JSON
-import java.io.File
-
 import java.io.InputStream
 
 private const val SEC_IN_NANO: Long = 1_000_000_000
@@ -28,5 +22,20 @@ object Util {
     }
     @JvmStatic fun readString(inputStream: InputStream): String {
         return String(inputStream.readBytes())
+    }
+
+    @JvmStatic fun prettyDuration(time: Int): String {
+        val seconds = time % 60
+        val minutes = time / 60 % 60
+        val hours = time / (60 * 60)
+
+        if (hours != 0) {
+            return if (hours == 1) "$hours hour" else "$hours hours"
+        }
+        if (minutes != 0) {
+            return if (minutes == 1) "$minutes min" else "$minutes mins"
+        }
+
+        return "$seconds sec"
     }
 }

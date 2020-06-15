@@ -1,6 +1,5 @@
-package com.saintmarina.recordingsystem.GoogleDrive
+package com.saintmarina.recordingsystem.googleDrive
 
-import android.util.Log
 import com.google.gson.Gson
 import org.json.JSONObject
 import java.io.File
@@ -10,7 +9,6 @@ import java.nio.channels.FileChannel
 import java.nio.charset.Charset
 
 private const val JSON_EXT: String = ".metadata.json"
-private const val TAG: String = "FileMetadata"
 
 class FileMetadata() {
     var uploaded: Boolean = false

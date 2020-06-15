@@ -1,4 +1,4 @@
-package com.saintmarina.recordingsystem.Service
+package com.saintmarina.recordingsystem.service
 
 import android.media.AudioFormat
 import android.media.AudioRecord
