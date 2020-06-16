@@ -10,12 +10,10 @@ private const val TAG: String = "Files Sync"
 private const val MILLIS_IN_SEC: Long = 1000
 private const val TIMEOUT_AFTER_FAILURE: Long = 10 * MILLIS_IN_SEC
 
-
-// TODO Figure out the way to distinguish from good and bad uploadStatus
 class FilesSync(private val drive: GoogleDrive) {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: (() -> Unit)? = null
-    var uploadStatus: Pair<String, Boolean> = Pair("", false) // TODO rewrite this message every where. Put the most appropriate message
+    var uploadStatus: Pair<String, Boolean> = Pair("", false)
         set(value) {
             field = value
             onStatusChange?.invoke()

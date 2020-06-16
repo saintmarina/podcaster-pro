@@ -61,7 +61,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 }
                 else -> {
                     val lastRecordingTime = if (state.timeWhenStopped != null) prettyTime.format(state.timeWhenStopped) else ""
-                    val status = if (state.fileSyncStatus.first == "") "Ready." else "${state.fileSyncStatus.first} $lastRecordingTime"
+                    val status = if (state.fileSyncStatus.first.isEmpty()) "Ready." else "${state.fileSyncStatus.first} $lastRecordingTime"
                     paint = painterGreen
                     rootView.statusTextView.text = "$status"
                 }

@@ -11,15 +11,11 @@ import java.nio.ByteOrder
 import java.text.SimpleDateFormat
 import java.util.*
 
-const val HEADER_SIZE: Int = 44
-const val BITS_PER_SAMPLE: Short = 16
-const val NUM_CHANNELS: Short = 1
-const val TEMP_NAME: String = "recovery_file.wav"
-
-
-// TODO rename the file
-// TODO name: 2020 May 1st (3 mins).wav
-const val FILE_NAME_FMT: String = "d MMM yyyy"
+private const val HEADER_SIZE: Int = 44
+private const val BITS_PER_SAMPLE: Short = 16
+private const val NUM_CHANNELS: Short = 1
+private const val TEMP_NAME: String = "recovery_file.wav"
+private const val FILE_NAME_FMT: String = "d MMM yyyy"
 private const val TAG = "WavFileOutput"
 
 class WavFileOutput(private val localDir: String): Closeable {
@@ -41,7 +37,6 @@ class WavFileOutput(private val localDir: String): Closeable {
         val recordingsDir = File(localDir)
         recordingsDir.mkdirs()
         file = File(recordingsDir, TEMP_NAME)
-
         Log.i(TAG, "WaveFileOutput $file created")
         return FileOutputStream(file)
     }
