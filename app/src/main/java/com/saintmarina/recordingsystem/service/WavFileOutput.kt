@@ -6,6 +6,7 @@ import com.saintmarina.recordingsystem.Util.prettyDuration
 import java.io.Closeable
 import java.io.File
 import java.io.FileOutputStream
+import java.lang.Exception
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.text.SimpleDateFormat
@@ -14,14 +15,12 @@ import java.util.*
 private const val HEADER_SIZE: Int = 44
 private const val BITS_PER_SAMPLE: Short = 16
 private const val NUM_CHANNELS: Short = 1
-private const val TEMP_NAME: String = "recovery_file.wav"
 private const val FILE_NAME_FMT: String = "d MMM yyyy"
 private const val TAG = "WavFileOutput"
 
 class WavFileOutput(private val localDir: String): Closeable {
     private var output: FileOutputStream
     lateinit var file: File
-    var duration: Long = 0
 
     private fun getDataSize(): Int {
         return output.channel.position().toInt() - HEADER_SIZE
@@ -32,11 +31,22 @@ class WavFileOutput(private val localDir: String): Closeable {
         output.channel.position(HEADER_SIZE.toLong())
     }
 
+    fun getRandomString(length: Int) : String {
+        val allowedChars = ('A'..'Z') + ('a'..'z')
+        return (1..length)
+            .map { allowedChars.random() }
+            .joinToString("")
+    }
+
     private fun createDatedFile() : FileOutputStream {
         // Creating Recording directory if it doesn't exist
         val recordingsDir = File(localDir)
         recordingsDir.mkdirs()
-        file = File(recordingsDir, TEMP_NAME)
+
+        val baseName = getCurrentDateTime().toString(FILE_NAME_FMT)
+        val tempFileName = "${baseName}_recovery_file_${getRandomString(4)}.wav"
+
+        file = File(recordingsDir, tempFileName)
         Log.i(TAG, "WaveFileOutput $file created")
         return FileOutputStream(file)
     }
@@ -46,31 +56,24 @@ class WavFileOutput(private val localDir: String): Closeable {
         output.channel.write(header, 0)
         output.flush()
         output.close()
-        renameToDatedFile(duration)
         Log.i(TAG, "WaveFileOutput $file closed")
     }
 
-    private fun getFileNum(): Int {
-        val filename = getCurrentDateTime().toString(FILE_NAME_FMT)
-        var fileCount = 0
-        File(localDir).walk().forEach { f ->
-            if (f.isFile  && f.name.endsWith(".wav") && f.name.contains(filename)) {
-                fileCount += 1
-            }
-        }
-        return fileCount + 1
+    private fun numOfSameDayFiles(basename: String): Int {
+        return File(localDir).walk()
+            .filter { f -> f.isFile && f.name.startsWith(basename) && f.name.endsWith(".wav") }
+            .count()
     }
 
-    private fun renameToDatedFile(duration: Long) {
-        val numOfFiles = getFileNum()
+    fun renameToDatedFile(duration: Long) {
+        val baseName = getCurrentDateTime().toString(FILE_NAME_FMT)
+        val fileIndex = numOfSameDayFiles(baseName) + 1
         val prettyDuration = prettyDuration(nanosToSec(duration))
-        val fileDate = getCurrentDateTime().toString(FILE_NAME_FMT)
-        val fileName = "$fileDate ($numOfFiles) ($prettyDuration).wav"
-        val newFile = File(file.parent, "/$fileName")
-        val renameSuccess = file.renameTo(newFile)
-        Log.i(TAG, "Recording success = $renameSuccess")
+        val fileName = "$baseName ($fileIndex) ($prettyDuration).wav"
+        val newFile = File(localDir, fileName)
+        if (!file.renameTo(newFile))
+            throw Exception("Failed to rename file. Contact the developer.")
         this.file = newFile
-        this.duration = 0
     }
 
     private fun generateWavHeader(dataSize: Int): ByteBuffer {
@@ -112,7 +115,6 @@ class WavFileOutput(private val localDir: String): Closeable {
     }
 
     private fun getCurrentDateTime(): Date {
-        Log.d(TAG, "time ${Calendar.getInstance().time}")
         return Calendar.getInstance().time
     }
 }

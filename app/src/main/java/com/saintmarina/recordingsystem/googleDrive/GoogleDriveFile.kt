@@ -98,6 +98,7 @@ class GoogleDriveFile(val file: File,
     }
 
     private fun reportProgress(bytesUploaded: Int) {
+        // TODO talk to N about progress
         val percent = (bytesUploaded.toDouble()/fileSize * 100).toInt()
         val message = "${file.name} $percent% uploaded"
         onStatusChange(Pair(message, false))

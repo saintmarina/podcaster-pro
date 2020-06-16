@@ -27,15 +27,10 @@ object Util {
     @JvmStatic fun prettyDuration(time: Int): String {
         val seconds = time % 60
         val minutes = time / 60 % 60
-        val hours = time / (60 * 60)
 
-        if (hours != 0) {
-            return if (hours == 1) "$hours hour" else "$hours hours"
+        return when (minutes) {
+            0 ->"$seconds sec"
+            else -> if (minutes == 1) "$minutes min" else "$minutes mins"
         }
-        if (minutes != 0) {
-            return if (minutes == 1) "$minutes min" else "$minutes mins"
-        }
-
-        return "$seconds sec"
     }
 }
