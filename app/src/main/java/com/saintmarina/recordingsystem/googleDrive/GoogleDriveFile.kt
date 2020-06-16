@@ -51,8 +51,9 @@ class GoogleDriveFile(val file: File,
                 Log.i(tag, "Resuming the upload session")
                 Pair(start, metadata.sessionUrl!!)
             }
-
-        uploadFile(startPosition, session)
+        if (startPosition != fileSize) {
+            uploadFile(startPosition, session)
+        }
         metadata.uploaded = true
         metadata.serializeToJson(file)
         Log.i(TAG, "uploaded")
@@ -140,10 +141,14 @@ class GoogleDriveFile(val file: File,
         ensureRequestSuccessful(request)
         return when (request.responseCode) {
             308 -> {
+                Log.d(tag, "Response: ${request.responseCode}")
                 val range = request.getHeaderField("range") ?: return 0
                 range.substring(range.lastIndexOf("-") + 1, range.length).toLong() + 1
             }
-            200, 201 -> fileSize
+            200, 201 -> {
+                Log.d(tag, "it's 200OK")
+                fileSize
+            }
             else -> throw ConnectionNotEstablished("Weren't able to connect to Interrupted Upload.Error:${request.responseCode}.${Util.readString(request.errorStream)} ")
         }
     }
