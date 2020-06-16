@@ -13,7 +13,7 @@ const val KB_IN_BYTE = 1000
 
 class GoogleDriveFile(val file: File,
                       private val drive: GoogleDrive,
-                      var onStatusChange: (value: String) -> Unit
+                      var onStatusChange: (value: Pair<String, Boolean>) -> Unit
 ) {
     private val tag: String = "GoogleDriveFile (${file.name})"
     private val fileSize = file.length()
@@ -102,7 +102,7 @@ class GoogleDriveFile(val file: File,
     private fun reportProgress(bytesUploaded: Int, bytesTotal: Long = fileSize) {
         val percent = "${(bytesUploaded.toDouble()/bytesTotal * 100).toInt()}%"
         val message = "${file.name} $percent uploaded."
-        onStatusChange(message)
+        onStatusChange(Pair(message, false))
     }
 
     private fun createSession(): String {
@@ -119,7 +119,6 @@ class GoogleDriveFile(val file: File,
             setRequestProperty("Content-Length", "${body.toByteArray().size}")
             outputStream.write(body.toByteArray())
             outputStream.close()
-            //connect()
         }
 
         ensureRequestSuccessful(request)
@@ -141,14 +140,10 @@ class GoogleDriveFile(val file: File,
         ensureRequestSuccessful(request)
         return when (request.responseCode) {
             308 -> {
-                Log.d(tag, "Response: ${request.responseCode}")
                 val range = request.getHeaderField("range") ?: return 0
                 range.substring(range.lastIndexOf("-") + 1, range.length).toLong() + 1
             }
-            200, 201 -> {
-                Log.d(tag, "it's 200OK")
-                fileSize
-            }
+            200, 201 -> fileSize
             else -> throw ConnectionNotEstablished("Weren't able to connect to Interrupted Upload.Error:${request.responseCode}.${Util.readString(request.errorStream)} ")
         }
     }

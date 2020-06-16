@@ -12,17 +12,16 @@ private const val TIMEOUT_AFTER_FAILURE: Long = 10 * MILLIS_IN_SEC
 
 
 // TODO Figure out the way to distinguish from good and bad uploadStatus
-// TODO make sure all UI elements are only touched from one thread.
 class FilesSync(private val drive: GoogleDrive) {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: (() -> Unit)? = null
-    var uploadStatus: String = "" // TODO rewrite this message every where. Put the most appropriate message
+    var uploadStatus: Pair<String, Boolean> = Pair("", false) // TODO rewrite this message every where. Put the most appropriate message
         set(value) {
             field = value
             onStatusChange?.invoke()
         }
 
-    private fun updateUploadStatus(value: String) {
+    private fun updateUploadStatus(value: Pair<String, Boolean>) {
         uploadStatus = value
     }
 
@@ -31,9 +30,9 @@ class FilesSync(private val drive: GoogleDrive) {
             val job = jobQueue.take()
             try {
                 job.upload()
-                uploadStatus = "${job.file.name} uploaded"
+                uploadStatus = Pair("${job.file.name} uploaded", false)
             } catch (e: Exception) {
-                uploadStatus = "${job.file.name} upload unsuccessful."
+                uploadStatus = Pair("${job.file.name} upload unsuccessful.", true)
                 Log.e(TAG, "Error: ${e.message}")
                 Thread.sleep(TIMEOUT_AFTER_FAILURE)
                 jobQueue.add(job)

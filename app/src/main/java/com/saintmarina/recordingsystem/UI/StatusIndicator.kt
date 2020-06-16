@@ -37,10 +37,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
             val y = height/2.toFloat()
             val radius = 15.toFloat()
             val paint: Paint
-            val lastRecordingTime = if (state.timeWhenStopped != null) prettyTime.format(state.timeWhenStopped) else ""
-            val status = if (state.fileSyncStatus == "") "Ready." else "${state.fileSyncStatus} $lastRecordingTime"
 
-            // TODO check for all items in the State object. Think about how to make the app pleasant to interact with. User should be informed and the expectations of the user should be managed
             when {
                 !state.micPlugged -> {
                     paint = painterRed
@@ -58,7 +55,13 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                     paint = painterRed
                     rootView.statusTextView.text = "Contact the developer.Error occurred: ${state.audioError}"
                 }
+                state.fileSyncStatus.second -> {
+                    paint = painterRed
+                    rootView.statusTextView.text = "${state.fileSyncStatus.first}. Retrying..."
+                }
                 else -> {
+                    val lastRecordingTime = if (state.timeWhenStopped != null) prettyTime.format(state.timeWhenStopped) else ""
+                    val status = if (state.fileSyncStatus.first == "") "Ready." else "${state.fileSyncStatus.first} $lastRecordingTime"
                     paint = painterGreen
                     rootView.statusTextView.text = "$status"
                 }
