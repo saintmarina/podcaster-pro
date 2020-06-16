@@ -81,7 +81,6 @@ class AudioRecorder : Closeable {
 
     private fun safeAudioRecordRead(recorder: AudioRecord, buf: ShortArray): Int {
         val len = recorder.read(buf, 0, buf.size)
-
         if (len <= 0)
             throw IllegalStateException("AudioRecord.read() failed with $len")
 

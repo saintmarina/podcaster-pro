@@ -20,17 +20,8 @@ import java.lang.Exception
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-// Make sure that the sound recorded on software on the device is the same as recorded on tablet
-
-// Sound notification when recording time reached 2:45 hrs
-// Add max sound bar for the past two seconds
-// Card view instead of viewPager2
-
-// Check what happens to UI if an exception in raised in service onCreate
-// Wake lock
-
 const val FOREGROUND_ID = 1
-const val MAX_RECORDING_TIME_MILLIS: Long = 3 * 3600 * 1000
+private const val MAX_RECORDING_TIME_MILLIS: Long = 3 * 3600 * 1000
 private const val TAG: String = "RecordingService"
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -97,7 +88,7 @@ class RecordingService: Service() {
         }
 
         fun registerActivityInvalidate(cb: () -> Unit) {
-            Log.i(TAG, "Registering the Recording Acrivity invalidate()")
+            Log.i(TAG, "Registering the Recording Activity invalidate()")
             activityInvalidate = cb
         }
     }
@@ -128,23 +119,18 @@ class RecordingService: Service() {
             .also { it.prepare() }
 
         fileSync = FilesSync(drive)
-
         fileSync.onStatusChange = {
             state.fileSyncStatus = fileSync.uploadStatus
             invalidateActivity()
         }
 
-        Log.i(TAG, "fileSync onStatusChange callback assigned")
         statusChecker.onChange = {
             statusChecker.state = state
-
-            // The UI will display a large popup if mic is out
-            if (!state.micPlugged)
+            if (!state.micPlugged) // The UI will display a large popup if mic is out
                 stop()
 
             invalidateActivity()
         }
-        Log.i(TAG, "StatusChecker onChange callback assigned")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

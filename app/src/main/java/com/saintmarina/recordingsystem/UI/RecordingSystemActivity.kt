@@ -23,7 +23,15 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
  * Card view instead of viewPager2
+ * Make sure that the sound recorded on software on the device is the same as recorded on tablet
+ * Sound notification when recording time reached 2:45 hrs
+ * Add max sound bar for the past two seconds
+ * Card view instead of viewPager2
+ * Check what happens to UI if an exception in raised in service onCreate
+ * Wake lock
  */
+
+// TODO takeout clipping bar from the soundBar after ~5 seconds
 
 
 const val UI_REFRESH_DELAY: Long = 30

@@ -25,20 +25,21 @@ class ConnectionNotEstablished(message: String): Exception(message)
 private const val TOKEN_EXPIRE_TIME_MILLI: Long = 60 * 60 * 1000
 
 class GoogleDrive(credFile: InputStream) {
-    private var  credential = GoogleCredential.fromStream(credFile).createScoped(DriveScopes.all())
+    private var credential = GoogleCredential.fromStream(credFile).createScoped(DriveScopes.all())
     private val httpTransport = NetHttpTransport() //GoogleNetHttpTransport.newTrustedTransport()
-    private var service =  Drive.Builder(httpTransport, JacksonFactory.getDefaultInstance(), credential)
-        .setApplicationName("Recording System")
-        .build()
+    private var _service =
+        Drive.Builder(httpTransport, JacksonFactory.getDefaultInstance(), credential)
+            .setApplicationName("Recording System")
+            .build()
     private var refreshTokenThread = Thread {
         while (true) {
             try {
                 credential.refreshToken()
                 Log.i(TAG, "Token refreshed")
             } catch (e: Exception) {
-                Log.d(TAG, "Exception caught while refreshing token. $e")
+                Log.i(TAG, "Exception caught while refreshing token. $e")
             }
-            Thread.sleep(TOKEN_EXPIRE_TIME_MILLI/2)
+            Thread.sleep(TOKEN_EXPIRE_TIME_MILLI / 2)
         }
     }
 
@@ -55,80 +56,3 @@ class GoogleDrive(credFile: InputStream) {
         }
     }
 }
-
-        /*
-var uploadedBytes: Long = chunkSize
-
-if (chunkStart + uploadedBytes > fileSize) {
-    uploadedBytes = fileSize - chunkStart
-}
-
-val buffer = ByteArray(uploadedBytes.toInt())
-val fileInputStream = FileInputStream(file)
-fileInputStream.channel.position(chunkStart)
-val bytesRead = fileIS.read
-
-if (bytesRead == -1) Log.e(TAG, "no bytes loaded")
-fileInputStream.close()
- */
-
-/*
-    private fun createFile() {
-        val createdFile = FileOutputStream(java.io.File("/sdcard/", "hello.txt")).apply { write("Hello World!".toByteArray())}
-        val fileMetadata = File().apply {
-            name = "hello.txt"
-            parents = Collections.singletonList("1y8LPodwpaPNI-BwGHyrbk5Ci7TEe0_0l")
-        }
-    }
-
-
-
-//should be done by Google Drive after the upload is successfull
-    private fun createJsonFile(file: File) {
-        val jsonContent = JSONObject().apply {
-            put("uploaded", "false")
-            put("sessionUrl", "null")
-        }
-        FileOutputStream(file).apply {write(jsonContent.toString().toByteArray())}
-    }
-*/
-
-
-
-
-/* LIST FILES IN GOOGLE DRIVE
-    val result = service.files().list()
-        .setPageSize(10)
-        .setFields("nextPageToken, files(id, name)")
-        .execute()
-
-    val files: MutableList<com.google.api.services.drive.model.File>? = result.files
-
-    if (files == null || files.isEmpty()) {
-        Log.e(TAG, "No files found.")
-    } else {
-        Log.e(TAG, "Files:")
-        for (file in files) {
-            Log.e(TAG, "${file.name}, ${file.id}")
-        }
-    }
- */
-
-/* SIMPLE UPLOAD
-    private fun uploadFile(driveService: Drive) {
-        //create a file
-        val folderId = "1y8LPodwpaPNI-BwGHyrbk5Ci7TEe0_0l"
-        val createdFile = FileOutputStream(java.io.File("/sdcard/", "hello.txt"))
-        var bytesArray = "Hello World!".toByteArray()
-        createdFile.write(bytesArray)
-        val fileMetadata = File().apply {
-            name = "hello.txt"
-            parents = Collections.singletonList(folderId)
-        }
-        val filePath = java.io.File("/sdcard/", "hello.txt")
-        val mediaContent = FileContent("text/xml", filePath)
-        val file = driveService.files().create(fileMetadata, mediaContent)
-            .setFields("id")
-            .execute()
-        Log.e(TAG, "File ID: ${file.id}")
-    }*/

@@ -7,8 +7,7 @@ import java.lang.Exception
 import java.util.concurrent.LinkedBlockingQueue
 
 private const val TAG: String = "Files Sync"
-private const val MILLIS_IN_SEC: Long = 1000
-private const val TIMEOUT_AFTER_FAILURE: Long = 10 * MILLIS_IN_SEC
+private const val TIMEOUT_AFTER_FAILURE: Long = 10000
 
 class FilesSync(private val drive: GoogleDrive) {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
@@ -30,7 +29,7 @@ class FilesSync(private val drive: GoogleDrive) {
                 job.upload()
                 uploadStatus = Pair("${job.file.name} uploaded", false)
             } catch (e: Exception) {
-                uploadStatus = Pair("${job.file.name} upload unsuccessful.", true)
+                uploadStatus = Pair("${job.file.name} upload unsuccessful", true)
                 Log.e(TAG, "Error: ${e.message}")
                 Thread.sleep(TIMEOUT_AFTER_FAILURE)
                 jobQueue.add(job)

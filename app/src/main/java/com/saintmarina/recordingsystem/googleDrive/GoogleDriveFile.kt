@@ -8,8 +8,7 @@ import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
 
-private const val TAG = "GoogleDriveFile"
-const val KB_IN_BYTE = 1000
+const val KB_IN_BYTES = 1000
 
 class GoogleDriveFile(val file: File,
                       private val drive: GoogleDrive,
@@ -17,20 +16,6 @@ class GoogleDriveFile(val file: File,
 ) {
     private val tag: String = "GoogleDriveFile (${file.name})"
     private val fileSize = file.length()
-
-    private fun readMetadata(file: File): FileMetadata {
-        val metadataFile = FileMetadata.pathForFile(file)
-        return if (metadataFile.exists()) {
-                    try {
-                        FileMetadata.deserializeFromJson(metadataFile)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to deserialize metadata file: $e")
-                        FileMetadata()
-                    }
-                } else {
-                    FileMetadata()
-                }
-    }
 
     fun upload() {
         val metadata = readMetadata(file)
@@ -51,12 +36,26 @@ class GoogleDriveFile(val file: File,
                 Log.i(tag, "Resuming the upload session")
                 Pair(start, metadata.sessionUrl!!)
             }
-        if (startPosition != fileSize) {
+        if (startPosition != fileSize) { //Checks if file already finished to upload
             uploadFile(startPosition, session)
         }
         metadata.uploaded = true
         metadata.serializeToJson(file)
-        Log.i(TAG, "uploaded")
+        Log.i(tag, "uploaded")
+    }
+
+    private fun readMetadata(file: File): FileMetadata {
+        val metadataFile = FileMetadata.pathForFile(file)
+        return if (metadataFile.exists()) {
+            try {
+                FileMetadata.deserializeFromJson(metadataFile)
+            } catch (e: Exception) {
+                Log.e(tag, "Failed to deserialize metadata file: $e")
+                FileMetadata()
+            }
+        } else {
+            FileMetadata()
+        }
     }
 
     private fun uploadFile(startPosition: Long, sessionUri: String) {
@@ -85,7 +84,7 @@ class GoogleDriveFile(val file: File,
     }
 
     private fun copyFromTo(fileIS: FileInputStream, fileOS: OutputStream) {
-        val byteArray = ByteArray(100 * KB_IN_BYTE)
+        val byteArray = ByteArray(100 * KB_IN_BYTES)
         var progressCount = 0
         while (true) {
             val bytesRead = fileIS.read(byteArray)
@@ -94,14 +93,13 @@ class GoogleDriveFile(val file: File,
             }
             fileOS.write(byteArray, 0, bytesRead)
             progressCount += bytesRead
-            Log.d(tag, "progressCount == $progressCount, bytesRead = $bytesRead")
             reportProgress(progressCount)
         }
     }
 
-    private fun reportProgress(bytesUploaded: Int, bytesTotal: Long = fileSize) {
-        val percent = "${(bytesUploaded.toDouble()/bytesTotal * 100).toInt()}%"
-        val message = "${file.name} $percent uploaded."
+    private fun reportProgress(bytesUploaded: Int) {
+        val percent = (bytesUploaded.toDouble()/fileSize * 100).toInt()
+        val message = "${file.name} $percent% uploaded"
         onStatusChange(Pair(message, false))
     }
 
@@ -127,7 +125,6 @@ class GoogleDriveFile(val file: File,
     }
 
     private fun getPosFromResumedSession(sessionUri: String): Long {
-        Log.d(tag, "getPosFromResumed()")
         val url = URL(sessionUri)
         val request = drive.openRequest(url)
         request.apply {
@@ -144,13 +141,8 @@ class GoogleDriveFile(val file: File,
                 range.substring(range.lastIndexOf("-") + 1, range.length).toLong() + 1
             }
             200, 201 -> fileSize
-            else -> throw ConnectionNotEstablished("Weren't able to connect to Interrupted Upload.Error:${request.responseCode}.${Util.readString(request.errorStream)} ")
+            else -> throw ConnectionNotEstablished("Weren't able to connect to Interrupted Upload.${request.responseCode}:${Util.readString(request.errorStream)} ")
         }
-    }
-
-    private fun retryUpload() {
-        val metadata = FileMetadata()
-        metadata.serializeToJson(file)
     }
 
     private fun ensureRequestSuccessful(request: HttpURLConnection) {
@@ -163,6 +155,11 @@ class GoogleDriveFile(val file: File,
         } catch (e: IOException) {
             throw IOException("Drive request failed. Error: ${request.responseCode}: $e ${Util.readString(request.errorStream)}", e)
         }
+    }
+
+    private fun retryUpload() {
+        val metadata = FileMetadata()
+        metadata.serializeToJson(file)
     }
 
     private fun getDriveIdFromFileParent(): String {
