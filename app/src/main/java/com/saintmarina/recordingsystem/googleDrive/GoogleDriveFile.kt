@@ -85,22 +85,23 @@ class GoogleDriveFile(val file: File,
 
     private fun copyFromTo(fileIS: FileInputStream, fileOS: OutputStream) {
         val byteArray = ByteArray(100 * KB_IN_BYTE)
-
+        var progressCount = 0
         while (true) {
             val bytesRead = fileIS.read(byteArray)
             if (bytesRead == -1) {
                 break
             }
             fileOS.write(byteArray, 0, bytesRead)
-            reportProgress(bytesRead)
+            progressCount += bytesRead
+            Log.d(tag, "progressCount == $progressCount, bytesRead = $bytesRead")
+            reportProgress(progressCount)
         }
     }
 
     private fun reportProgress(bytesUploaded: Int, bytesTotal: Long = fileSize) {
-        val value = if (bytesUploaded == 0) ""
-                    else "$bytesUploaded/$bytesTotal"
-        Log.i(TAG, "Progress: $value")
-        onStatusChange(value)
+        val percent = "${(bytesUploaded.toDouble()/bytesTotal * 100).toInt()}%"
+        val message = "${file.name} $percent uploaded."
+        onStatusChange(message)
     }
 
     private fun createSession(): String {

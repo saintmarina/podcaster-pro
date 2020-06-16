@@ -43,10 +43,10 @@ class RecordingService: Service() {
 
     /* State is shared with the UI */
     class State {
-        var recorderState: RecorderState = RecorderState.IDLE //
-        var internetAvailable: Boolean = true //
-        var micPlugged: Boolean = true //
-        var powerAvailable: Boolean = true //
+        var recorderState: RecorderState = RecorderState.IDLE
+        var internetAvailable: Boolean = true
+        var micPlugged: Boolean = true
+        var powerAvailable: Boolean = true
         var audioError: String? = null
         var fileSyncStatus: String = ""
         var recordingDuration: Long = 0
@@ -131,7 +131,6 @@ class RecordingService: Service() {
 
         fileSync.onStatusChange = {
             state.fileSyncStatus = fileSync.uploadStatus
-
             invalidateActivity()
         }
 

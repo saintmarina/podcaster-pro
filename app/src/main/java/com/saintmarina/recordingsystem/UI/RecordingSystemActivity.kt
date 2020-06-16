@@ -47,6 +47,8 @@ class RecordingSystemActivity : AppCompatActivity() {
     }
 
     private fun handleServiceInvalidate(service: RecordingService.API) {
+        val state = service.getState()
+        statusIndicator.state = state
         this@RecordingSystemActivity.runOnUiThread {
             Log.i(TAG, "Invalidating UI of the Activity")
 
@@ -71,9 +73,6 @@ class RecordingSystemActivity : AppCompatActivity() {
                     view_pager2.isUserInputEnabled = false
                 }
             }
-
-            val state = service.getState()
-            statusIndicator.state = state
             //noMicPopup?.isMicPresent = state.micPlugged // Comment this line out if app needs to be tested on a Tablet without mic
         }
     }

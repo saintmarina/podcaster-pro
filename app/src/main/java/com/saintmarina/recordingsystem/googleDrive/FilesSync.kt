@@ -19,7 +19,6 @@ class FilesSync(private val drive: GoogleDrive) {
     var uploadStatus: String = "" // TODO rewrite this message every where. Put the most appropriate message
         set(value) {
             field = value
-            Log.i(TAG, value)
             onStatusChange?.invoke()
         }
 
@@ -32,9 +31,10 @@ class FilesSync(private val drive: GoogleDrive) {
             val job = jobQueue.take()
             try {
                 job.upload()
-                uploadStatus = "${job.file.name} upload successful"
+                uploadStatus = "${job.file.name} uploaded"
             } catch (e: Exception) {
-                uploadStatus = "${job.file.name} upload unsuccessful. Error: ${e.message}"
+                uploadStatus = "${job.file.name} upload unsuccessful."
+                Log.e(TAG, "Error: ${e.message}")
                 Thread.sleep(TIMEOUT_AFTER_FAILURE)
                 jobQueue.add(job)
             }

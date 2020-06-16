@@ -5,11 +5,14 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.view.*
 import org.ocpsoft.prettytime.PrettyTime
+
+private const val TAG = "StatusIndicator"
 
 class StatusIndicator(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
     private val painterGreen = Paint().apply {
@@ -35,9 +38,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
             val radius = 15.toFloat()
             val paint: Paint
             val lastRecordingTime = if (state.timeWhenStopped != null) prettyTime.format(state.timeWhenStopped) else ""
-            val previousRecording = if (state.recordingDuration == 0L) "No previous recording"
-                else "Last recording was $lastRecordingTime. It was ${Util.formatAudioDuration(Util.nanosToSec(state.recordingDuration))} long."
-            val uploadStatus = if (state.fileSyncStatus == "") "There is nothing to upload" else "${state.fileSyncStatus}"
+            val status = if (state.fileSyncStatus == "") "Ready." else "${state.fileSyncStatus} $lastRecordingTime"
 
             // TODO check for all items in the State object. Think about how to make the app pleasant to interact with. User should be informed and the expectations of the user should be managed
             when {
@@ -59,7 +60,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 }
                 else -> {
                     paint = painterGreen
-                    rootView.statusTextView.text = "$previousRecording\nUpload: $uploadStatus"
+                    rootView.statusTextView.text = "$status"
                 }
             }
             it.drawCircle(x, y, radius, paint);

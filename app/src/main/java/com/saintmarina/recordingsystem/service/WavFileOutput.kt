@@ -36,8 +36,6 @@ class WavFileOutput(private val localDir: String): Closeable {
         output.channel.position(HEADER_SIZE.toLong())
     }
 
-
-
     private fun createDatedFile() : FileOutputStream {
         // Creating Recording directory if it doesn't exist
         val recordingsDir = File(localDir)
