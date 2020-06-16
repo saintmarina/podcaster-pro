@@ -221,8 +221,8 @@ class RecordingService: Service() {
         recorder.outputFile = null
         // Now we are sure, that the AudioRecorder is no longer touching the file
         outputFile?.let {
+            it.duration = state.recordingDuration
             it.close() // Writes .wav header
-            it.addDurationToFileName(state.recordingDuration)
             fileSync.maybeUploadFile(it.file)
         }
         outputFile = null
