@@ -17,7 +17,7 @@ class NoMicPopup(private val rootView: View) {
         view = inflater.inflate(R.layout.pop_up_mic_out, null)
     }
 
-    var popupWindow: PopupWindow? = null
+    private var popupWindow: PopupWindow? = null
 
     var isMicPresent: Boolean = true
     set(value) {
@@ -38,7 +38,7 @@ class NoMicPopup(private val rootView: View) {
             view.btnDismiss.visibility = View.VISIBLE
             view.background = ColorDrawable(0xff69A75E.toInt())
         } else {
-            view.message.text = "Microphone is disconnected"
+            view.message.text = "Microphone is disconnected.\n Connect microphone and check the power connection"
             view.btnDismiss.visibility = View.INVISIBLE
             view.background = ColorDrawable(0xffff7f7f.toInt())
         }

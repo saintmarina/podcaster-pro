@@ -32,12 +32,11 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  */
 
 // TODO takeout clipping bar from the soundBar after ~5 seconds
-
-
+// Make sure that all the errors that I possibly see are shown to the UI
 const val UI_REFRESH_DELAY: Long = 30
 private const val TAG: String = "RecordingActivity"
 
-// Make sure that all the errors that I possibly see are shown to the UI
+
 class RecordingSystemActivity : AppCompatActivity() {
     private lateinit var serviceConnection: ServiceConnection
     private var uiUpdater: UiUpdater? = null
@@ -148,10 +147,15 @@ class RecordingSystemActivity : AppCompatActivity() {
                 count++
                 timeTextView.timeSec = Util.nanosToSec(s.getElapsedTime()) // Nanoseconds to seconds
                 timeTextView.isFlashing = s.getState().recorderState == RecordingService.RecorderState.PAUSED
-                peakTextView.text = "$count -- ${s.getAudioPeek()}"
-                soundVisualizer.volume = s.getAudioPeek()
-                if (s.getAudioPeek() == Short.MAX_VALUE && s.getState().recorderState != RecordingService.RecorderState.IDLE) {
-                    soundVisualizer.didClip = true
+                if (s.getState().micPlugged) {
+                    peakTextView.text = "$count -- ${s.getAudioPeek()}"
+                    soundVisualizer.volume = s.getAudioPeek()
+                    if (s.getAudioPeek() == Short.MAX_VALUE && s.getState().recorderState != RecordingService.RecorderState.IDLE) {
+                        soundVisualizer.didClip = true
+                    }
+                } else {
+                    peakTextView.text = "$count -- ${0}"
+                    soundVisualizer.volume = 0
                 }
             }
             handler.postDelayed(this, UI_REFRESH_DELAY)

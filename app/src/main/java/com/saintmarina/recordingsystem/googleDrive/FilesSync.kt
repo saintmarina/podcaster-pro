@@ -13,6 +13,8 @@ class FilesSync(private val drive: GoogleDrive) {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: (() -> Unit)? = null
     // TODO instead of using Pair, make a FileStatus class with a message string, and an error boolean.
+    // FileStatus: make two constructor so we can do: FileStatus.success("Blah") or FileStatus.error("Oh no")
+    // Instead of FileStatus("Blah", false) or FileStatus("Oh no", true)
     var uploadStatus: Pair<String, Boolean> = Pair("", false)
         set(value) {
             field = value

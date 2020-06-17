@@ -82,6 +82,7 @@ class GoogleDriveFile(val file: File,
                 break
             }
             fileOS.write(byteArray, 0, bytesRead)
+            fileOS.flush()
             progressCount += bytesRead
             reportProgress(progressCount)
         }

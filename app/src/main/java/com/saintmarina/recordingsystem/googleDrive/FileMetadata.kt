@@ -13,6 +13,11 @@ import java.nio.charset.Charset
 private const val JSON_EXT: String = ".metadata.json"
 private const val TAG = "FileMetadata"
 
+// TODO Replace this with a https://developer.android.com/training/data-storage/room Dao
+// There should be a new folder in recordingsystem: db (like service or ui)
+// In this folder, there should be a Database.kt and a FileMetadata.kt file
+// all folders should be lowercase, so UI -> ui, googleDrive -> googledrive
+
 class FileMetadata() {
     var uploaded: Boolean = false
     var sessionUrl: String? = null

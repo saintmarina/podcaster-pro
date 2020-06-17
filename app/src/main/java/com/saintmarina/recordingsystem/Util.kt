@@ -28,9 +28,6 @@ object Util {
         val seconds = time % 60
         val minutes = time / 60 % 60
 
-        return when (minutes) {
-            0 ->"$seconds sec"
-            else -> if (minutes == 1) "$minutes min" else "$minutes mins"
-        }
+        return if (minutes > 0) "$minutes min" else "$seconds sec"
     }
 }
