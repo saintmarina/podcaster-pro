@@ -57,7 +57,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 }
                 state.fileSyncStatus.error.isNotEmpty() -> {
                     paint = painterRed
-                    rootView.statusTextView.text = "${state.fileSyncStatus.success}. Retrying..."
+                    rootView.statusTextView.text = "${state.fileSyncStatus.error}. Retrying..."
                 }
                 else -> {
                     val lastRecordingTime = if (state.timeWhenStopped != null) prettyTime.format(state.timeWhenStopped) else ""

@@ -73,7 +73,8 @@ class StatusChecker(val context: Context): BroadcastReceiver() {
             }
             Intent.ACTION_HEADSET_PLUG -> {
                 val status: Int = intent.getIntExtra("state", -1)
-                 state.micPlugged = status == 1
+                 //state.micPlugged = status == 1 // Uncomment this line for production
+                state.micPlugged = true // Take this line out for production
             }
         }
         onChange?.invoke()
