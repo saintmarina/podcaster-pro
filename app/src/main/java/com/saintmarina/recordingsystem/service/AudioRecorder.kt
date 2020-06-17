@@ -7,6 +7,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import java.io.Closeable
+import java.lang.Exception
 
 private const val TAG = "AudioRecorder"
 const val NANOS_IN_SEC: Long = 1_000_000_000
@@ -29,21 +30,33 @@ class AudioRecorder : Closeable {
     private var terminationRequested: Boolean = false
     var peak: Short = 0
 
+    var onStatusChange: (() -> Unit)? = null
+    var status: String = ""
+        set(value) {
+            field = value
+            onStatusChange?.invoke()
+        }
+
     init {
         val recorder = initRecorder()
         thread = Thread {
-            recorder.startRecording()
-            Log.i(TAG, "Audio recorder started")
-            val buf = ShortArray(PUMP_BUF_SIZE)
-            while (!terminationRequested) {
-                val len = safeAudioRecordRead(recorder, buf)
-                maybeWriteFile(buf, len)
-                peak = getPeak(buf, len)
+            try {
+                recorder.startRecording()
+                Log.i(TAG, "Audio recorder started")
+                val buf = ShortArray(PUMP_BUF_SIZE)
+                while (!terminationRequested) {
+                    val len = safeAudioRecordRead(recorder, buf)
+                    maybeWriteFile(buf, len)
+                    peak = getPeak(buf, len)
+                }
+                recorder.stop()
+                Log.i(TAG, "Audio recorder stopped recording")
+                recorder.release()
+            } catch (e: Exception) {
+                 recorder.stop()
+                 status = "${e.message}"
+                 peak = 0
             }
-            recorder.stop()
-            Log.i(TAG, "Audio recorder stopped recording")
-            recorder.release()
-            // TODO catch all exceptions and notify the service through a callback. The service needs to stop the recording and show the error on the UI. Once done set peak to 0
         }.apply {
             name = "AudioRecorder pump"
             start()
@@ -74,16 +87,22 @@ class AudioRecorder : Closeable {
                 return recorder
             }
             Log.e(TAG, "Audio recorder initialization FAILED. Retrying")
-
             Thread.sleep(100)
         }
-        throw IllegalStateException("AudioRecord failed to initialize")
+        val message = "AudioRecord failed to initialize"
+        status = message
+        peak = 0
+        throw IllegalStateException(message)
     }
 
     private fun safeAudioRecordRead(recorder: AudioRecord, buf: ShortArray): Int {
         val len = recorder.read(buf, 0, buf.size)
-        if (len <= 0)
-            throw IllegalStateException("AudioRecord.read() failed with $len")
+        if (len <= 0) {
+            val message = "AudioRecord.read() failed with $len"
+            status = message
+            peak = 0
+            throw IllegalStateException(message)
+        }
 
         return len
     }

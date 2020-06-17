@@ -111,6 +111,10 @@ class RecordingService: Service() {
         super.onCreate()
         Log.i(TAG, "inside onCreate of the RecordingService")
         recorder = AudioRecorder()
+        recorder.onStatusChange = {
+            state.audioError = recorder.status
+            invalidateActivity()
+        }
         soundEffect = SoundEffect(this)
         statusChecker.startMonitoring()
 
@@ -127,7 +131,6 @@ class RecordingService: Service() {
             statusChecker.state = state
             if (!state.micPlugged) // The UI will display a large popup if mic is out
                 stop()
-
             invalidateActivity()
         }
     }
@@ -226,12 +229,7 @@ class RecordingService: Service() {
         state.recorderState = RecorderState.PAUSED
         invalidateActivity()
 
-        try { // TODO take out this try, catch
-            recorder.outputFile = null
-        } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
-            state.audioError = e.message
-        }
+        recorder.outputFile = null
         Log.i(TAG, "Audio recording is paused.")
     }
 
@@ -246,12 +244,7 @@ class RecordingService: Service() {
          state.recorderState = RecorderState.RECORDING
          invalidateActivity()
 
-         try { // TODO take out this try, catch
-             recorder.outputFile = outputFile
-         } catch (e: Exception) {
-             Log.e(TAG, e.message.toString())
-             state.audioError = e.message
-         }
+         recorder.outputFile = outputFile
          Log.i(TAG, "Audio recording is resumed.")
     }
 
