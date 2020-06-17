@@ -49,7 +49,8 @@ class GoogleDriveFile(val file: File,
             return
 
         val fileIS = FileInputStream(file)
-        val chunkStart = fileIS.channel.position(startPosition)
+        fileIS.channel.position(startPosition)
+        val chunkStart = fileIS.channel.position()
         val url = URL(sessionUri)
         val request = url.openConnection() as HttpURLConnection
         request.apply {
@@ -109,6 +110,7 @@ class GoogleDriveFile(val file: File,
     }
 
     private fun getPosFromResumedSession(sessionUri: String): Long {
+        Log.d(tag, "in")
         val url = URL(sessionUri)
         val request = drive.openRequest(url)
         request.apply {
