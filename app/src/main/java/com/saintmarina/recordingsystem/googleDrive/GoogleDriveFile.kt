@@ -18,7 +18,7 @@ class GoogleDriveFile(val file: File,
     private val fileSize = file.length()
 
     fun upload() {
-        val metadata = readMetadata(file)
+        val metadata = FileMetadata.associatedWith(file)
         if (metadata.uploaded) {
             Log.i(tag, "File already uploaded")
             return
@@ -28,7 +28,7 @@ class GoogleDriveFile(val file: File,
             if (metadata.sessionUrl == null) {
                 val session = createSession()
                 metadata.sessionUrl = session
-                metadata.serializeToJson(file)
+                metadata.save()
                 Log.i(tag, "Creating a new session")
                 Pair(0L, session)
             } else {
@@ -36,38 +36,29 @@ class GoogleDriveFile(val file: File,
                 Log.i(tag, "Resuming the upload session")
                 Pair(start, metadata.sessionUrl!!)
             }
-        if (startPosition != fileSize) { //Checks if file already finished to upload
-            uploadFile(startPosition, session)
-        }
+
+        uploadFile(startPosition, session)
+
         metadata.uploaded = true
-        metadata.serializeToJson(file)
+        metadata.save()
         Log.i(tag, "uploaded")
     }
 
-    private fun readMetadata(file: File): FileMetadata {
-        val metadataFile = FileMetadata.pathForFile(file)
-        return if (metadataFile.exists()) {
-            try {
-                FileMetadata.deserializeFromJson(metadataFile)
-            } catch (e: Exception) {
-                Log.e(tag, "Failed to deserialize metadata file: $e")
-                FileMetadata()
-            }
-        } else {
-            FileMetadata()
-        }
-    }
-
     private fun uploadFile(startPosition: Long, sessionUri: String) {
+        if (startPosition == fileSize)
+            return
+
         val fileIS = FileInputStream(file)
         fileIS.channel.position(startPosition)
         uploadChunk(sessionUri, fileIS)
         fileIS.close()
     }
 
-    private fun uploadChunk(sessionUri: String, fileIS: FileInputStream): Boolean {
+    // TODO move uploadChunk into uploadFile
+    private fun uploadChunk(sessionUri: String, fileIS: FileInputStream) {
         val url = URL(sessionUri)
         val chunkStart = fileIS.channel.position()
+
         val request = url.openConnection() as HttpURLConnection
         request.apply {
             doOutput = true
@@ -80,7 +71,6 @@ class GoogleDriveFile(val file: File,
             outputStream.close()
         }
         ensureRequestSuccessful(request)
-        return request.responseCode == 308
     }
 
     private fun copyFromTo(fileIS: FileInputStream, fileOS: OutputStream) {
@@ -159,8 +149,7 @@ class GoogleDriveFile(val file: File,
     }
 
     private fun retryUpload() {
-        val metadata = FileMetadata()
-        metadata.serializeToJson(file)
+        FileMetadata.associatedWith(file).delete()
     }
 
     private fun getDriveIdFromFileParent(): String {

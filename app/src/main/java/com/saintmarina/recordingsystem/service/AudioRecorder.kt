@@ -43,6 +43,7 @@ class AudioRecorder : Closeable {
             recorder.stop()
             Log.i(TAG, "Audio recorder stopped recording")
             recorder.release()
+            // TODO catch all exceptions and notify the service through a callback. The service needs to stop the recording and show the error on the UI. Once done set peak to 0
         }.apply {
             name = "AudioRecorder pump"
             start()

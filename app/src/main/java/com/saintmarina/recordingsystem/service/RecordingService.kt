@@ -68,7 +68,6 @@ class RecordingService: Service() {
             destination = dest
         }
 
-
         fun toggleStartStop() {
             Log.i(TAG, "toggleStartStop invoked")
             when (state.recorderState) {
@@ -81,7 +80,7 @@ class RecordingService: Service() {
         fun togglePauseResume() {
             Log.i(TAG, "togglePauseResume invoked")
             when (state.recorderState) {
-                RecorderState.IDLE -> showToast()
+                RecorderState.IDLE -> showToast("You are not recording")
                 RecorderState.RECORDING -> pause()
                 RecorderState.PAUSED -> resume()
             }
@@ -204,13 +203,12 @@ class RecordingService: Service() {
         invalidateActivity()
 
         recorder.outputFile = null
-        // Now we are sure, that the AudioRecorder is no longer touching the file
+        // Now we are sure that the AudioRecorder is no longer touching the file
         outputFile?.let {
             it.close() // Writes .wav header
             it.renameToDatedFile(state.recordingDuration)
             fileSync.maybeUploadFile(it.file)
         }
-
         outputFile = null
 
         stopForeground(true)
@@ -228,7 +226,7 @@ class RecordingService: Service() {
         state.recorderState = RecorderState.PAUSED
         invalidateActivity()
 
-        try {
+        try { // TODO take out this try, catch
             recorder.outputFile = null
         } catch (e: Exception) {
             Log.e(TAG, e.message.toString())
@@ -248,7 +246,7 @@ class RecordingService: Service() {
          state.recorderState = RecorderState.RECORDING
          invalidateActivity()
 
-         try {
+         try { // TODO take out this try, catch
              recorder.outputFile = outputFile
          } catch (e: Exception) {
              Log.e(TAG, e.message.toString())
@@ -274,11 +272,7 @@ class RecordingService: Service() {
         return PendingIntent.getActivity(applicationContext, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
-    private fun showToast() {
-        Toast.makeText(
-            this,
-            "You are not recording",
-            Toast.LENGTH_SHORT
-        ).show()
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

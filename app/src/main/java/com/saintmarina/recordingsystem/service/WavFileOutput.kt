@@ -18,7 +18,7 @@ private const val NUM_CHANNELS: Short = 1
 private const val FILE_NAME_FMT: String = "d MMM yyyy"
 private const val TAG = "WavFileOutput"
 
-class WavFileOutput(private val localDir: String): Closeable {
+class WavFileOutput(private val recordingDir: String): Closeable {
     private var output: FileOutputStream
     lateinit var file: File
 
@@ -40,7 +40,7 @@ class WavFileOutput(private val localDir: String): Closeable {
 
     private fun createDatedFile() : FileOutputStream {
         // Creating Recording directory if it doesn't exist
-        val recordingsDir = File(localDir)
+        val recordingsDir = File(recordingDir) // TODO refactor when type of recordingDir changed
         recordingsDir.mkdirs()
 
         val baseName = getCurrentDateTime().toString(FILE_NAME_FMT)
@@ -59,18 +59,18 @@ class WavFileOutput(private val localDir: String): Closeable {
         Log.i(TAG, "WaveFileOutput $file closed")
     }
 
-    private fun numOfSameDayFiles(basename: String): Int {
-        return File(localDir).walk()
-            .filter { f -> f.isFile && f.name.startsWith(basename) && f.name.endsWith(".wav") }
+    private fun numWavFilesStartingWith(basename: String): Int {
+        return File(recordingDir).walk()
+            .filter { f -> f.name.startsWith(basename) && f.name.endsWith(".wav") }
             .count()
     }
 
     fun renameToDatedFile(duration: Long) {
         val baseName = getCurrentDateTime().toString(FILE_NAME_FMT)
-        val fileIndex = numOfSameDayFiles(baseName) + 1
+        val fileIndex = numWavFilesStartingWith(baseName) + 1
         val prettyDuration = prettyDuration(nanosToSec(duration))
         val fileName = "$baseName ($fileIndex) ($prettyDuration).wav"
-        val newFile = File(localDir, fileName)
+        val newFile = File(recordingDir, fileName)
         if (!file.renameTo(newFile))
             throw Exception("Failed to rename file. Contact the developer.")
         this.file = newFile
@@ -109,12 +109,12 @@ class WavFileOutput(private val localDir: String): Closeable {
         output.channel.write(byteBuf)
     }
 
-    private fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String {
+    private fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String { // TODO throw this fun into getCurrentDateTime()
         val formatter = SimpleDateFormat(format, locale)
         return formatter.format(this)
     }
 
-    private fun getCurrentDateTime(): Date {
+    private fun getCurrentDateTime(): Date { //TODO redo this fun to getBaseName. Add .toString().format(nameFormat)
         return Calendar.getInstance().time
     }
 }
