@@ -18,7 +18,7 @@ private const val NUM_CHANNELS: Short = 1
 private const val FILE_NAME_FMT: String = "d MMM yyyy"
 private const val TAG = "WavFileOutput"
 
-class WavFileOutput(private val recordingDir: String): Closeable {
+class WavFileOutput(private val recordingDir: File): Closeable {
     private var output: FileOutputStream
     lateinit var file: File
 
@@ -31,7 +31,7 @@ class WavFileOutput(private val recordingDir: String): Closeable {
         output.channel.position(HEADER_SIZE.toLong())
     }
 
-    fun getRandomString(length: Int) : String {
+    private fun getRandomString(length: Int) : String {
         val allowedChars = ('A'..'Z') + ('a'..'z')
         return (1..length)
             .map { allowedChars.random() }
@@ -40,13 +40,12 @@ class WavFileOutput(private val recordingDir: String): Closeable {
 
     private fun createDatedFile() : FileOutputStream {
         // Creating Recording directory if it doesn't exist
-        val recordingsDir = File(recordingDir) // TODO refactor when type of recordingDir changed
-        recordingsDir.mkdirs()
+        recordingDir.mkdirs()
 
-        val baseName = getCurrentDateTime().toString(FILE_NAME_FMT)
+        val baseName = getBaseName()
         val tempFileName = "${baseName}_recovery_file_${getRandomString(4)}.wav"
 
-        file = File(recordingsDir, tempFileName)
+        file = File(recordingDir, tempFileName)
         Log.i(TAG, "WaveFileOutput $file created")
         return FileOutputStream(file)
     }
@@ -60,13 +59,13 @@ class WavFileOutput(private val recordingDir: String): Closeable {
     }
 
     private fun numWavFilesStartingWith(basename: String): Int {
-        return File(recordingDir).walk()
-            .filter { f -> f.name.startsWith(basename) && f.name.endsWith(".wav") }
+        return recordingDir.walk()
+            .filter { it.name.startsWith(basename) && it.name.endsWith(".wav") }
             .count()
     }
 
     fun renameToDatedFile(duration: Long) {
-        val baseName = getCurrentDateTime().toString(FILE_NAME_FMT)
+        val baseName = getBaseName()
         val fileIndex = numWavFilesStartingWith(baseName) + 1
         val prettyDuration = prettyDuration(nanosToSec(duration))
         val fileName = "$baseName ($fileIndex) ($prettyDuration).wav"
@@ -109,12 +108,9 @@ class WavFileOutput(private val recordingDir: String): Closeable {
         output.channel.write(byteBuf)
     }
 
-    private fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String { // TODO throw this fun into getCurrentDateTime()
-        val formatter = SimpleDateFormat(format, locale)
-        return formatter.format(this)
-    }
-
-    private fun getCurrentDateTime(): Date { //TODO redo this fun to getBaseName. Add .toString().format(nameFormat)
-        return Calendar.getInstance().time
+    private fun getBaseName(): String {
+        val locale: Locale = Locale.getDefault()
+        val formatter = SimpleDateFormat(FILE_NAME_FMT, locale)
+        return formatter.format(Calendar.getInstance().time)
     }
 }
