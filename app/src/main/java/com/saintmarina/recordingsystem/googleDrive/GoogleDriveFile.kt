@@ -12,7 +12,7 @@ const val KB_IN_BYTES = 1000
 
 class GoogleDriveFile(val file: File,
                       private val drive: GoogleDrive,
-                      var onStatusChange: (value: Pair<String, Boolean>) -> Unit
+                      var onStatusChange: (FileStatus) -> Unit
 ) {
     private val tag: String = "GoogleDriveFile (${file.name})"
     private val fileSize = file.length()
@@ -49,16 +49,8 @@ class GoogleDriveFile(val file: File,
             return
 
         val fileIS = FileInputStream(file)
-        fileIS.channel.position(startPosition)
-        uploadChunk(sessionUri, fileIS)
-        fileIS.close()
-    }
-
-    // TODO move uploadChunk into uploadFile
-    private fun uploadChunk(sessionUri: String, fileIS: FileInputStream) {
+        val chunkStart = fileIS.channel.position(startPosition)
         val url = URL(sessionUri)
-        val chunkStart = fileIS.channel.position()
-
         val request = url.openConnection() as HttpURLConnection
         request.apply {
             doOutput = true
@@ -71,6 +63,7 @@ class GoogleDriveFile(val file: File,
             outputStream.close()
         }
         ensureRequestSuccessful(request)
+        fileIS.close()
     }
 
     private fun copyFromTo(fileIS: FileInputStream, fileOS: OutputStream) {
@@ -89,10 +82,9 @@ class GoogleDriveFile(val file: File,
     }
 
     private fun reportProgress(bytesUploaded: Int) {
-        // TODO talk to N about progress
         val percent = (bytesUploaded.toDouble()/fileSize * 100).toInt()
         val message = "${file.name} $percent% uploaded"
-        onStatusChange(Pair(message, false))
+        onStatusChange(FileStatus.success(message))
     }
 
     private fun createSession(): String {
@@ -155,7 +147,7 @@ class GoogleDriveFile(val file: File,
 
     private fun getDriveIdFromFileParent(): String {
         return DESTINATIONS.find { dest ->
-            dest.localDir == file.parent
+            dest.localDir.path == file.parent // Check the values for existence of '/'
         }?.driveID ?:
             throw Exception("Lookup of associated drive location failed. Contact the developer")
     }

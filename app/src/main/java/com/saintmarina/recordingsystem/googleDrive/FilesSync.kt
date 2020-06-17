@@ -9,13 +9,22 @@ import java.util.concurrent.LinkedBlockingQueue
 private const val TAG: String = "Files Sync"
 private const val TIMEOUT_AFTER_FAILURE: Long = 10000
 
+class FileStatus(val success: String = "", val  error: String = "") {
+    companion object {
+        fun success(value: String): FileStatus {
+            return FileStatus(value, "")
+        }
+
+        fun error(value: String): FileStatus {
+            return FileStatus("", value)
+        }
+    }
+}
+
 class FilesSync(private val drive: GoogleDrive) {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: (() -> Unit)? = null
-    // TODO instead of using Pair, make a FileStatus class with a message string, and an error boolean.
-    // FileStatus: make two constructor so we can do: FileStatus.success("Blah") or FileStatus.error("Oh no")
-    // Instead of FileStatus("Blah", false) or FileStatus("Oh no", true)
-    var uploadStatus: Pair<String, Boolean> = Pair("", false)
+    var uploadStatus: FileStatus = FileStatus.success("")
         set(value) {
             field = value
             onStatusChange?.invoke()
@@ -26,9 +35,9 @@ class FilesSync(private val drive: GoogleDrive) {
             val job = jobQueue.take()
             try {
                 job.upload()
-                uploadStatus = Pair("${job.file.name} uploaded", false)
+                uploadStatus = FileStatus.success("${job.file.name} uploaded")
             } catch (e: Exception) {
-                uploadStatus = Pair("${job.file.name} upload unsuccessful", true)
+                uploadStatus = FileStatus.error("${job.file.name} upload unsuccessful")
                 Log.e(TAG, "Error: ${e.message}")
                 Thread.sleep(TIMEOUT_AFTER_FAILURE)
                 jobQueue.add(job)
@@ -42,7 +51,7 @@ class FilesSync(private val drive: GoogleDrive) {
 
     fun scanForFiles() {  //done once at a boot time
         DESTINATIONS.forEach { dest ->
-            File(dest.localDir).walk().forEach() { f ->
+            dest.localDir.walk().forEach() { f ->
                 if (f.isFile && f.name.endsWith(".wav"))
                     maybeUploadFile(f)
             }

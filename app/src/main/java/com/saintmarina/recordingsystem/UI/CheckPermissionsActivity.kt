@@ -46,7 +46,7 @@ class CheckPermissionsActivity : AppCompatActivity() {
     private fun maybeCreateLocalDestinations() {
         Log.i(TAG, "verify existence of DESTINATION local directories")
         DESTINATIONS.forEach { destination ->
-            val dir = File(destination.localDir)
+            val dir = destination.localDir
             if (!dir.exists()) dir.mkdirs()
         }
     }

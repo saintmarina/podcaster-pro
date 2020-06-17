@@ -16,6 +16,7 @@ import com.saintmarina.recordingsystem.googleDrive.FilesSync
 import com.saintmarina.recordingsystem.googleDrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.UI.RecordingSystemActivity
+import com.saintmarina.recordingsystem.googleDrive.FileStatus
 import java.lang.Exception
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -39,7 +40,7 @@ class RecordingService: Service() {
         var micPlugged: Boolean = true
         var powerAvailable: Boolean = true
         var audioError: String? = null
-        var fileSyncStatus: Pair<String, Boolean> = Pair("", false)
+        var fileSyncStatus: FileStatus = FileStatus()
         var recordingDuration: Long = 0
         var timeWhenStopped: Date? = null
     }
