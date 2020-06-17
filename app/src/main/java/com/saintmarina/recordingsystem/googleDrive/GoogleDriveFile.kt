@@ -10,12 +10,10 @@ import java.net.URL
 
 const val KB_IN_BYTES = 1000
 
-class GoogleDriveFile(val file: File,
-                      private val drive: GoogleDrive,
-                      var onStatusChange: (FileStatus) -> Unit
-) {
+class GoogleDriveFile(val file: File, private val drive: GoogleDrive) {
     private val tag: String = "GoogleDriveFile (${file.name})"
     private val fileSize = file.length()
+    var onStatusChange: ((value: FileStatus) -> Unit)? = null
 
     fun upload() {
         val metadata = FileMetadata.associatedWith(file)
@@ -85,7 +83,7 @@ class GoogleDriveFile(val file: File,
     private fun reportProgress(bytesUploaded: Int) {
         val percent = (bytesUploaded.toDouble()/fileSize * 100).toInt()
         val message = "${file.name} $percent% uploaded"
-        onStatusChange(FileStatus.success(message))
+        onStatusChange?.let { it(FileStatus.success(message)) }
     }
 
     private fun createSession(): String {
@@ -110,7 +108,6 @@ class GoogleDriveFile(val file: File,
     }
 
     private fun getPosFromResumedSession(sessionUri: String): Long {
-        Log.d(tag, "in")
         val url = URL(sessionUri)
         val request = drive.openRequest(url)
         request.apply {
