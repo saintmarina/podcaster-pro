@@ -14,6 +14,8 @@ import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
+import androidx.room.*
+import com.saintmarina.recordingsystem.googleDrive.MetadataDatabase
 
 /*
  * TODO:
@@ -27,7 +29,7 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
  * Card view instead of viewPager2
- * Check what happens to UI if an exception in raised in service onCreate
+ * Check what happens to UI if an exception in raised in service onCreate // TODO talk to N the app crashes right away
  * Wake lock
  */
 
@@ -41,6 +43,8 @@ class RecordingSystemActivity : AppCompatActivity() {
     private lateinit var serviceConnection: ServiceConnection
     private var uiUpdater: UiUpdater? = null
     private var noMicPopup: NoMicPopup? = null
+    val db = Room.databaseBuilder(applicationContext, MetadataDatabase::class.java, "MetadataDatabase").build()
+
 
     // Lifecycle methods
     @RequiresApi(Build.VERSION_CODES.P)
@@ -78,7 +82,7 @@ class RecordingSystemActivity : AppCompatActivity() {
                     view_pager2.isUserInputEnabled = false
                 }
             }
-            //noMicPopup?.isMicPresent = state.micPlugged // Comment this line out if app needs to be tested on a Tablet without mic
+            //noMicPopup?.isMicPresent = state.micPlugged // Uncomment for production
         }
     }
 

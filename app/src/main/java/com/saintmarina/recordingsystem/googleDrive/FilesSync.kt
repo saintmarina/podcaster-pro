@@ -60,8 +60,6 @@ class FilesSync(private val drive: GoogleDrive) {
     }
 
     fun maybeUploadFile(file: File) {
-        // the { uploadStatus = it } is for status callback
-        // TODO GoogleDriveFile should not take the callback in its constructor, but rather, the callback should be set after object construction here, like we do in RecordingService with google drive.
         jobQueue.add(GoogleDriveFile(file, drive).apply {
             onStatusChange = { value ->
                 uploadStatus = value

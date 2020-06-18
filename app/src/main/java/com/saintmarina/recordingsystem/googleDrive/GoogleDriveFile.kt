@@ -8,12 +8,14 @@ import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
 
+
 const val KB_IN_BYTES = 1000
 
-class GoogleDriveFile(val file: File, private val drive: GoogleDrive) {
+class GoogleDriveFile(private val file: File, private val drive: GoogleDrive) {
     private val tag: String = "GoogleDriveFile (${file.name})"
     private val fileSize = file.length()
     var onStatusChange: ((value: FileStatus) -> Unit)? = null
+
 
     fun upload() {
         val metadata = FileMetadata.associatedWith(file)
@@ -146,7 +148,7 @@ class GoogleDriveFile(val file: File, private val drive: GoogleDrive) {
 
     private fun getDriveIdFromFileParent(): String {
         return DESTINATIONS.find { dest ->
-            dest.localDir.path == file.parent // Check the values for existence of '/'
+            dest.localDir.path == file.parent
         }?.driveID ?:
             throw Exception("Lookup of associated drive location failed. Contact the developer")
     }

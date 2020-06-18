@@ -1,6 +1,8 @@
 package com.saintmarina.recordingsystem.googleDrive
 
 import android.util.Log
+import androidx.room.*
+import androidx.sqlite.db.SupportSQLiteOpenHelper
 import com.google.gson.Gson
 import org.json.JSONObject
 import java.io.File
@@ -9,14 +11,44 @@ import java.io.FileOutputStream
 import java.lang.Exception
 import java.nio.channels.FileChannel
 import java.nio.charset.Charset
+import javax.annotation.Nullable
 
 private const val JSON_EXT: String = ".metadata.json"
 private const val TAG = "FileMetadata"
 
-// TODO Replace this with a https://developer.android.com/training/data-storage/room Dao
+// TODO Replace this with a https://developer.android.com/training/data-storage/room entity+Dao
 // There should be a new folder in recordingsystem: db (like service or ui)
 // In this folder, there should be a Database.kt and a FileMetadata.kt file
 // all folders should be lowercase, so UI -> ui, googleDrive -> googledrive
+
+@Database(entities = [FileMetadataEntity::class], version = 1)
+abstract class MetadataDatabase: RoomDatabase() {
+    abstract fun metadataDao(): MetadataDao
+}
+
+@Entity
+data class FileMetadataEntity(
+    @PrimaryKey val fileName: String,
+    @ColumnInfo(name = "uploaded", defaultValue = "false") var uploaded: Boolean,
+    @Nullable
+    @ColumnInfo(name = "sessionUri", defaultValue = "null") var sessionUri: String?
+)
+
+@Dao
+interface MetadataDao {
+    @Insert
+    fun insertMetadataFile(metadata: FileMetadataEntity)
+
+    @Update
+    fun updateMetadataFile(metadata: FileMetadataEntity)
+
+    @Delete
+    fun deleteMetadataFile(metadata: FileMetadataEntity)
+
+    @Query("SELECT * FROM FileMetadataEntity WHERE fileName == :name")
+    fun getMetadataFile(name: String): List<FileMetadataEntity>
+
+}
 
 class FileMetadata() {
     var uploaded: Boolean = false
