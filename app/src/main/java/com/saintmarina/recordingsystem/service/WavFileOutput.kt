@@ -84,7 +84,7 @@ class WavFileOutput(private val recordingDir: File): Closeable {
                 putInt(0x45564157) // "WAVE"
                 putInt(0x20746d66) // "fmt "
                 putInt(16) // Length of format data
-                putShort(1) // PCM
+                putShort(1) // PCM // TODO 3 would mean float
                 putShort(NUM_CHANNELS)
                 putInt(SAMPLE_RATE)
                 putInt(SAMPLE_RATE * BITS_PER_SAMPLE /8 * NUM_CHANNELS)

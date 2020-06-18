@@ -17,6 +17,13 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
 import androidx.room.*
 import com.saintmarina.recordingsystem.googleDrive.MetadataDatabase
 
+// TODO extra space on microphone popup. There could be a glitch in the power, or a faulty cable. Check everything. Also work on microphone connected again msg.
+// TODO replace "uncomment for production" with a expertmode const on top.
+// TODO fileStatus should be (String, Boolean), not (String, String)
+// TODO make FileStatus constructor private
+// TODO scanforfile -> use filter().
+// TODO maybeUploadFile: use a one-liner for callback
+
 /*
  * TODO:
  * Make sure that the sound recorded on software and on the device is the same as recorded on tablet

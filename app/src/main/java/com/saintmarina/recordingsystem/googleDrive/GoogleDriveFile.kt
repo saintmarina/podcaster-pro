@@ -48,23 +48,24 @@ class GoogleDriveFile(private val file: File, private val drive: GoogleDrive) {
         if (startPosition == fileSize)
             return
 
-        val fileIS = FileInputStream(file)
-        fileIS.channel.position(startPosition)
-        val chunkStart = fileIS.channel.position()
-        val url = URL(sessionUri)
-        val request = url.openConnection() as HttpURLConnection
-        request.apply {
+        val fs = FileInputStream(file).apply {
+            channel.position(startPosition)
+        }
+
+        val request = URL(sessionUri).openConnection() as HttpURLConnection
+        request.run {
             doOutput = true
             requestMethod = "PUT"
             connectTimeout = 10000
             setRequestProperty("Content-Length", "$fileSize")
-            setRequestProperty("Content-Range", "bytes $chunkStart-${fileSize-1}/${fileSize}")
-            setRequestProperty("Accept","*/*")
-            copyFromTo(fileIS, outputStream)
+            setRequestProperty("Content-Range", "bytes $startPosition-${fileSize - 1}/${fileSize}")
+            setRequestProperty("Accept", "*/*")
+            copyFromTo(fs, outputStream)
             outputStream.close()
+            ensureRequestSuccessful(this)
         }
-        ensureRequestSuccessful(request)
-        fileIS.close()
+
+        fs.close()
     }
 
     private fun copyFromTo(fileIS: FileInputStream, fileOS: OutputStream) {
@@ -85,7 +86,7 @@ class GoogleDriveFile(private val file: File, private val drive: GoogleDrive) {
     private fun reportProgress(bytesUploaded: Int) {
         val percent = (bytesUploaded.toDouble()/fileSize * 100).toInt()
         val message = "${file.name} $percent% uploaded"
-        onStatusChange?.let { it(FileStatus.success(message)) }
+        onStatusChange?.invoke(FileStatus.success(message))
     }
 
     private fun createSession(): String {

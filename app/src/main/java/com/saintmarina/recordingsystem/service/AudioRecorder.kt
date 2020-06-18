@@ -16,6 +16,7 @@ const val INIT_TIMEOUT: Long = 5* NANOS_IN_SEC
 const val AUDIO_SOURCE: Int = MediaRecorder.AudioSource.MIC
 const val SAMPLE_RATE: Int = 48000
 const val CHANNEL: Int = AudioFormat.CHANNEL_IN_MONO
+// TODO change to PCM_FLOAT (warning: data size changes from 16 bits to 32 bits (2 bytes to 4 bytes)
 const val ENCODING: Int = AudioFormat.ENCODING_PCM_16BIT
 const val BUFFER_SIZE: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioFlinger die with error -12 (ENOMEM) error
 const val PUMP_BUF_SIZE: Int = 1*1024
@@ -30,7 +31,9 @@ class AudioRecorder : Closeable {
     private var terminationRequested: Boolean = false
     var peak: Short = 0
 
+    // TODO rename to onError
     var onStatusChange: (() -> Unit)? = null
+    // TODO rename status to error
     var status: String = ""
         set(value) {
             field = value
@@ -38,28 +41,41 @@ class AudioRecorder : Closeable {
         }
 
     init {
-        val recorder = initRecorder()
-        thread = Thread {
-            try {
-                recorder.startRecording()
-                Log.i(TAG, "Audio recorder started")
-                val buf = ShortArray(PUMP_BUF_SIZE)
-                while (!terminationRequested) {
-                    val len = safeAudioRecordRead(recorder, buf)
-                    maybeWriteFile(buf, len)
-                    peak = getPeak(buf, len)
-                }
-                recorder.stop()
-                Log.i(TAG, "Audio recorder stopped recording")
-                recorder.release()
-            } catch (e: Exception) {
-                 recorder.stop()
-                 status = "${e.message}"
-                 peak = 0
-            }
-        }.apply {
+        thread = Thread { mainThread() }.apply {
             name = "AudioRecorder pump"
             start()
+        }
+    }
+
+    private fun mainThread() {
+        val recorder = try {
+            initRecorder()
+        } catch (e: Exception) {
+            Log.e(TAG, "$e")
+            status = "${e.message}"
+            return
+            // TODO if there's an audio error, we should not enable the start recording button
+        }
+
+        try {
+            mainLoop(recorder)
+        } catch (e: Exception) {
+            Log.e(TAG, "Audio capture failure: $e")
+            status = "Audio capture failure: ${e.message}"
+        }
+
+        peak = 0
+        recorder.stop()
+        recorder.release()
+        Log.i(TAG, "Audio recorder stopped recording")
+    }
+
+    private fun mainLoop(recorder: AudioRecord) {
+        val buf = ShortArray(PUMP_BUF_SIZE)
+        while (!terminationRequested) {
+            val len = safeAudioRecordRead(recorder, buf)
+            maybeWriteFile(buf, len)
+            peak = getPeak(buf, len)
         }
     }
 
@@ -83,16 +99,15 @@ class AudioRecorder : Closeable {
             )
 
             if (recorder.state == AudioRecord.STATE_INITIALIZED) {
+                recorder.startRecording()
                 Log.i(TAG, "Audio recorder initialization successful")
                 return recorder
             }
             Log.e(TAG, "Audio recorder initialization FAILED. Retrying")
             Thread.sleep(100)
         }
-        val message = "AudioRecord failed to initialize"
-        status = message
-        peak = 0
-        throw IllegalStateException(message)
+
+        throw IllegalStateException("AudioRecord failed to initialize")
     }
 
     private fun safeAudioRecordRead(recorder: AudioRecord, buf: ShortArray): Int {
