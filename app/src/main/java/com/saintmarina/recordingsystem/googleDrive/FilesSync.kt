@@ -54,6 +54,7 @@ class FilesSync(private val drive: GoogleDrive) {
         DESTINATIONS.forEach { dest ->
             dest.localDir.walk().forEach() { f ->
                 // TODO pass dest to maybeUploadFile. This way you don't need to figure out the folder id (remove getdestFromLocalDir fun)
+                // TODO no more .wav
                 if (f.isFile && f.name.endsWith(".wav"))
                     maybeUploadFile(f)
             }

@@ -17,7 +17,6 @@ class GoogleDriveFile(val file: File, private val drive: GoogleDrive) {
     private val fileSize = file.length()
     var onStatusChange: ((value: FileStatus) -> Unit)? = null
 
-
     fun upload() {
         val metadata = FileMetadata.associatedWith(file)
         if (metadata.uploaded) {
