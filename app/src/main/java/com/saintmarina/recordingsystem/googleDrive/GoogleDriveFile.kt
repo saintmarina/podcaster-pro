@@ -3,6 +3,7 @@ package com.saintmarina.recordingsystem.googleDrive
 import android.util.Log
 import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.Util
+import com.saintmarina.recordingsystem.db.FileMetadata
 import java.io.*
 import java.lang.Exception
 import java.net.HttpURLConnection
@@ -11,7 +12,7 @@ import java.net.URL
 
 const val KB_IN_BYTES = 1000
 
-class GoogleDriveFile(private val file: File, private val drive: GoogleDrive) {
+class GoogleDriveFile(val file: File, private val drive: GoogleDrive) {
     private val tag: String = "GoogleDriveFile (${file.name})"
     private val fileSize = file.length()
     var onStatusChange: ((value: FileStatus) -> Unit)? = null
@@ -60,6 +61,7 @@ class GoogleDriveFile(private val file: File, private val drive: GoogleDrive) {
             setRequestProperty("Content-Length", "$fileSize")
             setRequestProperty("Content-Range", "bytes $startPosition-${fileSize - 1}/${fileSize}")
             setRequestProperty("Accept", "*/*")
+            setFixedLengthStreamingMode(fileSize - startPosition)
             copyFromTo(fs, outputStream)
             outputStream.close()
             ensureRequestSuccessful(this)
