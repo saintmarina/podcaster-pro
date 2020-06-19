@@ -41,7 +41,7 @@ class RecordingService: Service() {
         var micPlugged: Boolean = true
         var powerAvailable: Boolean = true
         var audioError: String? = null
-        var fileSyncStatus: FileStatus = FileStatus() // TODO let it be nullable
+        var fileSyncStatus: FileStatus? = null // TODO let it be nullable
         var recordingDuration: Long = 0
         var timeWhenStopped: Date? = null
     }

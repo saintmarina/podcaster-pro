@@ -15,8 +15,6 @@ import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
 
-// TODO fileStatus should be (String, Boolean), not (String, String)
-// TODO make FileStatus constructor private
 // TODO scanforfile -> use filter().
 // TODO maybeUploadFile: use a one-liner for callback
 // TODO statusBar - 100% should say "almost done"

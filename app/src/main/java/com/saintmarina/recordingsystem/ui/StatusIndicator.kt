@@ -30,7 +30,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
-        canvas?.let {
+        canvas?.let { it ->
             val x = width/2.toFloat()
             val y = height/2.toFloat()
             val radius = 15.toFloat()
@@ -53,13 +53,17 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                     paint = painterRed
                     rootView.statusTextView.text = "Contact the developer.Error occurred: ${state.audioError}"
                 }
-                state.fileSyncStatus.error -> {
+                state.fileSyncStatus != null && state.fileSyncStatus!!.errorOccurred() -> {
                     paint = painterRed
-                    rootView.statusTextView.text = "${state.fileSyncStatus.message}. Retrying..."
+                    rootView.statusTextView.text = "${state.fileSyncStatus!!.getStatusMessage()}. Retrying..."
                 }
                 else -> {
                     val lastRecordingTime = if (state.timeWhenStopped != null) prettyTime.format(state.timeWhenStopped) else ""
-                    val status = if (state.fileSyncStatus.message.isEmpty()) "Ready." else "${state.fileSyncStatus.message} $lastRecordingTime"
+                    val status = state.fileSyncStatus?.let {fs->
+                        if (fs.getStatusMessage().isEmpty())
+                            "Ready."
+                        else "${fs.getStatusMessage()} $lastRecordingTime"
+                    } ?: "Ready."
                     paint = painterGreen
                     rootView.statusTextView.text = "$status"
                 }
