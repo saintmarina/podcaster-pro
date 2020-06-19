@@ -14,14 +14,15 @@ import java.net.URL
 
 //https://drive.google.com/drive/folders/1y8LPodwpaPNI-BwGHyrbk5Ci7TEe0_0l?usp=sharing
 
-private const val TAG = "Google Drive"
-class ConnectionNotEstablished(message: String): Exception(message)
+
 /*
  * service account token expiration time is 1 hour
  * Found in Drive Credentials source code
  * See source here https://github.com/googleapis/google-api-java-client/blob/master/google-api-client/src/main/java/com/google/api/client/googleapis/auth/oauth2/GoogleCredential.java#L387
  */
 private const val TOKEN_EXPIRE_TIME_MILLI: Long = 60 * 60 * 1000
+private const val TAG = "Google Drive"
+class ConnectionNotEstablished(message: String): Exception(message)
 
 class GoogleDrive(credFile: InputStream) {
     private var credential = GoogleCredential.fromStream(credFile).createScoped(DriveScopes.all())

@@ -15,7 +15,6 @@ import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
 
-// TODO replace "uncomment for production" with a expertmode const on top.
 // TODO fileStatus should be (String, Boolean), not (String, String)
 // TODO make FileStatus constructor private
 // TODO scanforfile -> use filter().
@@ -42,6 +41,7 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
 
 // TODO takeout clipping bar from the soundBar after ~5 seconds
 // Make sure that all the errors that I possibly see are shown to the UI
+const val EXPERT_MODE: Boolean = true
 const val UI_REFRESH_DELAY: Long = 30
 private const val TAG: String = "RecordingActivity"
 
@@ -87,7 +87,10 @@ class RecordingSystemActivity : AppCompatActivity() {
                     view_pager2.isUserInputEnabled = false
                 }
             }
-            //noMicPopup?.isMicPresent = state.micPlugged // Uncomment for production
+            if (!EXPERT_MODE) {
+                noMicPopup?.isMicPresent = state.micPlugged  // Skipping noMic PopUp for EXPERT MODE
+            }
+
         }
     }
 

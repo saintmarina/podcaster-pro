@@ -12,6 +12,7 @@ import android.os.BatteryManager
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.saintmarina.recordingsystem.ui.EXPERT_MODE
 
 private const val TAG = "StatusChecker"
 
@@ -73,7 +74,9 @@ class StatusChecker(val context: Context): BroadcastReceiver() {
             }
             Intent.ACTION_HEADSET_PLUG -> {
                 val status: Int = intent.getIntExtra("state", -1)
-                 //state.micPlugged = status == 1 // Uncomment this line for production
+                if (!EXPERT_MODE) {
+                    state.micPlugged = status == 1 // Skipping Microphone connection check for EXPERT MODE
+                }
                 state.micPlugged = true // Take this line out for production
             }
         }
