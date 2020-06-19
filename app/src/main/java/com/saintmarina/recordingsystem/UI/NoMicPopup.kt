@@ -38,7 +38,7 @@ class NoMicPopup(private val rootView: View) {
             view.btnDismiss.visibility = View.VISIBLE
             view.background = ColorDrawable(0xff69A75E.toInt())
         } else {
-            view.message.text = "Microphone is disconnected.\n Connect microphone and check the power connection"
+            view.message.text = "Check microphone and power connections"
             view.btnDismiss.visibility = View.INVISIBLE
             view.background = ColorDrawable(0xffff7f7f.toInt())
         }
