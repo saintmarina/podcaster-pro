@@ -1,4 +1,4 @@
-package com.saintmarina.recordingsystem.UI
+package com.saintmarina.recordingsystem.ui
 
 import android.view.LayoutInflater
 import android.view.View

@@ -1,14 +1,12 @@
-package com.saintmarina.recordingsystem.UI
+package com.saintmarina.recordingsystem.ui
 
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import com.saintmarina.recordingsystem.service.RecordingService
-import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.view.*
 import org.ocpsoft.prettytime.PrettyTime
 

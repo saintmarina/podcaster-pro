@@ -1,4 +1,4 @@
-package com.saintmarina.recordingsystem.googleDrive
+package com.saintmarina.recordingsystem.googledrive
 
 import android.util.Log
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential

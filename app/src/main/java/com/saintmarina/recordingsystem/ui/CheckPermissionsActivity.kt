@@ -1,4 +1,4 @@
-package com.saintmarina.recordingsystem.UI
+package com.saintmarina.recordingsystem.ui
 
 import android.Manifest
 import android.content.Intent
@@ -11,10 +11,8 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.R
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.File
 
 private const val TAG = "CheckPermissionActivity"
 private const val REQUEST_CODE: Int = 0

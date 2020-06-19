@@ -12,12 +12,12 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.Destination
-import com.saintmarina.recordingsystem.googleDrive.FilesSync
-import com.saintmarina.recordingsystem.googleDrive.GoogleDrive
+import com.saintmarina.recordingsystem.googledrive.FilesSync
+import com.saintmarina.recordingsystem.googledrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
-import com.saintmarina.recordingsystem.UI.RecordingSystemActivity
+import com.saintmarina.recordingsystem.ui.RecordingSystemActivity
 import com.saintmarina.recordingsystem.db.Database
-import com.saintmarina.recordingsystem.googleDrive.FileStatus
+import com.saintmarina.recordingsystem.googledrive.FileStatus
 import java.lang.Exception
 import java.util.*
 import java.util.concurrent.TimeUnit

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    tools:context=".UI.CheckPermissionsActivity">
+    tools:context=".ui.CheckPermissionsActivity">
 
     <LinearLayout
         android:id="@+id/permission_denied"

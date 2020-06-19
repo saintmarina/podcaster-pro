@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:layout_centerHorizontal="true"
-    tools:context=".UI.RecordingSystemActivity">
+    tools:context=".ui.RecordingSystemActivity">
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager2"
@@ -40,7 +40,7 @@
 
     </TableRow>
 
-    <com.saintmarina.recordingsystem.UI.TimeTextView
+    <com.saintmarina.recordingsystem.ui.TimeTextView
         android:id="@+id/timeTextView"
         android:layout_width="match_parent"
         android:layout_height="120dp"
@@ -71,7 +71,7 @@
             android:layout_margin="30dp" />
     </TableRow>
 
-    <com.saintmarina.recordingsystem.UI.SoundVisualizer
+    <com.saintmarina.recordingsystem.ui.SoundVisualizer
         android:id="@+id/soundVisualizer"
         android:layout_width="match_parent"
         android:layout_height="45dp"
@@ -91,7 +91,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/peakTextView">
 
-        <com.saintmarina.recordingsystem.UI.StatusIndicator
+        <com.saintmarina.recordingsystem.ui.StatusIndicator
             android:id="@+id/statusIndicator"
             android:layout_width="50dp"
             android:layout_height="50dp"

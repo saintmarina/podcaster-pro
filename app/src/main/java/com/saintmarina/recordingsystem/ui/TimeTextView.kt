@@ -1,4 +1,4 @@
-package com.saintmarina.recordingsystem.UI
+package com.saintmarina.recordingsystem.ui
 
 import android.content.Context
 import android.graphics.Canvas
@@ -10,7 +10,6 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.view.View
 import com.saintmarina.recordingsystem.Util
-import org.ocpsoft.prettytime.PrettyTime
 
 private const val TAG = "timeTextView"
 

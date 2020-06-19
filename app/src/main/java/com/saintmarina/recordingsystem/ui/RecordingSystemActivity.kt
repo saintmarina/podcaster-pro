@@ -1,4 +1,4 @@
-package com.saintmarina.recordingsystem.UI
+package com.saintmarina.recordingsystem.ui
 
 import android.content.ComponentName
 import android.content.Context
