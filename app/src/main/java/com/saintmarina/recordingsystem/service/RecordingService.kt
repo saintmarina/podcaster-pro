@@ -41,7 +41,7 @@ class RecordingService: Service() {
         var micPlugged: Boolean = true
         var powerAvailable: Boolean = true
         var audioError: String? = null
-        var fileSyncStatus: FileStatus? = null // TODO let it be nullable
+        var fileSyncStatus: FileStatus? = null
         var recordingDuration: Long = 0
         var timeWhenStopped: Date? = null
     }
@@ -215,7 +215,7 @@ class RecordingService: Service() {
         outputFile?.let {
             it.close() // Writes .wav header
             it.renameToDatedFile(state.recordingDuration)
-            fileSync.maybeUploadFile(it.file)
+            fileSync.maybeUploadFile(it.file, destination)
         }
         outputFile = null
 

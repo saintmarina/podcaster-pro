@@ -2,6 +2,7 @@ package com.saintmarina.recordingsystem.googledrive
 
 import android.util.Log
 import com.saintmarina.recordingsystem.DESTINATIONS
+import com.saintmarina.recordingsystem.Destination
 import java.io.File
 import java.lang.Exception
 import java.util.concurrent.LinkedBlockingQueue
@@ -60,18 +61,15 @@ class FilesSync(private val drive: GoogleDrive) {
 
     fun scanForFiles() {  //done once at a boot time
         DESTINATIONS.forEach { dest ->
-            dest.localDir.walk().forEach() { f ->
-                // TODO pass dest to maybeUploadFile. This way you don't need to figure out the folder id (remove getdestFromLocalDir fun)
-                // TODO no more .wav
-                if (f.isFile && f.name.endsWith(".wav"))
-                    maybeUploadFile(f)
-            }
+            dest.localDir.walk()
+                .filter { it.isFile }
+                .forEach { maybeUploadFile(it, dest) }
         }
         Log.i(TAG, "FileSync initial scan finished")
     }
 
-    fun maybeUploadFile(file: File) {
-        jobQueue.add(GoogleDriveFile(file, drive).apply {
+    fun maybeUploadFile(file: File, dest: Destination) {
+        jobQueue.add(GoogleDriveFile(file, dest, drive).apply {
             onStatusChange = { value ->
                 uploadStatus = value
             }

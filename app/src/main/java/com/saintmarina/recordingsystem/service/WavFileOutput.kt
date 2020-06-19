@@ -58,7 +58,7 @@ class WavFileOutput(private val recordingDir: File): Closeable {
 
     private fun numWavFilesStartingWith(basename: String): Int {
         return recordingDir.walk()
-            .filter { it.name.startsWith(basename) && it.name.endsWith(".wav") } // TODO once database is done, take out the .wav filters
+            .filter { it.name.startsWith(basename) } // TODO once database is done, take out the .wav filters
             .count()
     }
 

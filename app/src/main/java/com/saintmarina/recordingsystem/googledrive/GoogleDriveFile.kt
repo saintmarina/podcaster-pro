@@ -2,6 +2,7 @@ package com.saintmarina.recordingsystem.googledrive
 
 import android.util.Log
 import com.saintmarina.recordingsystem.DESTINATIONS
+import com.saintmarina.recordingsystem.Destination
 import com.saintmarina.recordingsystem.Util
 import com.saintmarina.recordingsystem.db.FileMetadata
 import java.io.*
@@ -12,7 +13,11 @@ import java.net.URL
 
 const val KB_IN_BYTES = 1000
 
-class GoogleDriveFile(val file: File, private val drive: GoogleDrive) {
+class GoogleDriveFile(
+    val file: File,
+    private val dest: Destination,
+    private val drive: GoogleDrive
+) {
     private val tag: String = "GoogleDriveFile (${file.name})"
     private val fileSize = file.length()
     var onStatusChange: ((value: FileStatus) -> Unit)? = null
@@ -92,7 +97,7 @@ class GoogleDriveFile(val file: File, private val drive: GoogleDrive) {
 
     private fun createSession(): String {
         val url = URL("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable")
-        val body = "{\"name\": \"${file.name}\", \"parents\": [\"${getDriveIdFromFileParent()}\"]}"
+        val body = "{\"name\": \"${file.name}\", \"parents\": [\"${dest.driveID}\"]}"
 
         val request = drive.openRequest(url)
         request.apply {
@@ -146,12 +151,5 @@ class GoogleDriveFile(val file: File, private val drive: GoogleDrive) {
 
     private fun retryUpload() {
         FileMetadata.associatedWith(file).delete()
-    }
-
-    private fun getDriveIdFromFileParent(): String {
-        return DESTINATIONS.find { dest ->
-            dest.localDir.path == file.parent
-        }?.driveID ?:
-            throw Exception("Lookup of associated drive location failed. Contact the developer")
     }
 }
