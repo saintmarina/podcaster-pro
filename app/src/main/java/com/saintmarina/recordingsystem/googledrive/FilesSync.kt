@@ -9,14 +9,14 @@ import java.util.concurrent.LinkedBlockingQueue
 private const val TAG: String = "Files Sync"
 private const val TIMEOUT_AFTER_FAILURE: Long = 10000
 
-class FileStatus(val success: String = "", val  error: String = "") {
+class FileStatus(val message: String = "", val  error: Boolean = false) {
     companion object {
         fun success(value: String): FileStatus {
-            return FileStatus(value, "")
+            return FileStatus(value, false)
         }
 
         fun error(value: String): FileStatus {
-            return FileStatus("", value)
+            return FileStatus(value, true)
         }
     }
 }
