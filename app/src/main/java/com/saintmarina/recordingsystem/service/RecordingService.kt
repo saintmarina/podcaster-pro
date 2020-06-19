@@ -16,7 +16,7 @@ import com.saintmarina.recordingsystem.googleDrive.FilesSync
 import com.saintmarina.recordingsystem.googleDrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.UI.RecordingSystemActivity
-import com.saintmarina.recordingsystem.db.MetadataDatabase
+import com.saintmarina.recordingsystem.db.Database
 import com.saintmarina.recordingsystem.googleDrive.FileStatus
 import java.lang.Exception
 import java.util.*
@@ -112,7 +112,7 @@ class RecordingService: Service() {
     override fun onCreate() {
         super.onCreate()
         Log.i(TAG, "inside onCreate of the RecordingService")
-        MetadataDatabase.init(this)
+        Database.init(this)
         ensureRecordingDirsExist()
 
         recorder = AudioRecorder()
