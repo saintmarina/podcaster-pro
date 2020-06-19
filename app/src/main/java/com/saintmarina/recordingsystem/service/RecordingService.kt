@@ -16,6 +16,7 @@ import com.saintmarina.recordingsystem.googleDrive.FilesSync
 import com.saintmarina.recordingsystem.googleDrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.UI.RecordingSystemActivity
+import com.saintmarina.recordingsystem.db.MetadataDatabase
 import com.saintmarina.recordingsystem.googleDrive.FileStatus
 import java.lang.Exception
 import java.util.*
@@ -40,7 +41,7 @@ class RecordingService: Service() {
         var micPlugged: Boolean = true
         var powerAvailable: Boolean = true
         var audioError: String? = null
-        var fileSyncStatus: FileStatus = FileStatus()
+        var fileSyncStatus: FileStatus = FileStatus() // TODO let it be nullable
         var recordingDuration: Long = 0
         var timeWhenStopped: Date? = null
     }
@@ -111,6 +112,9 @@ class RecordingService: Service() {
     override fun onCreate() {
         super.onCreate()
         Log.i(TAG, "inside onCreate of the RecordingService")
+        MetadataDatabase.init(this)
+        ensureRecordingDirsExist()
+
         recorder = AudioRecorder()
         recorder.onStatusChange = {
             state.audioError = recorder.status
@@ -268,5 +272,10 @@ class RecordingService: Service() {
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun ensureRecordingDirsExist() {
+        Log.i(TAG, "verify existence of DESTINATION local directories")
+        DESTINATIONS.forEach { it.localDir.mkdirs() }
     }
 }

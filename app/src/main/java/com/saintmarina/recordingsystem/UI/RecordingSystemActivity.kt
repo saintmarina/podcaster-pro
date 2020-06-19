@@ -14,8 +14,6 @@ import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
-import androidx.room.*
-import com.saintmarina.recordingsystem.googleDrive.MetadataDatabase
 
 // TODO extra space on microphone popup. There could be a glitch in the power, or a faulty cable. Check everything. Also work on microphone connected again msg.
 // TODO replace "uncomment for production" with a expertmode const on top.
@@ -23,6 +21,9 @@ import com.saintmarina.recordingsystem.googleDrive.MetadataDatabase
 // TODO make FileStatus constructor private
 // TODO scanforfile -> use filter().
 // TODO maybeUploadFile: use a one-liner for callback
+// TODO statusBar - 100% should say "almost done"
+
+// TODO grab WakeLock during recording
 
 /*
  * TODO:
@@ -50,8 +51,6 @@ class RecordingSystemActivity : AppCompatActivity() {
     private lateinit var serviceConnection: ServiceConnection
     private var uiUpdater: UiUpdater? = null
     private var noMicPopup: NoMicPopup? = null
-    val db = Room.databaseBuilder(applicationContext, MetadataDatabase::class.java, "MetadataDatabase").build()
-
 
     // Lifecycle methods
     @RequiresApi(Build.VERSION_CODES.P)

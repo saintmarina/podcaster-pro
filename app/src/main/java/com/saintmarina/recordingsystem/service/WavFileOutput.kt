@@ -15,39 +15,37 @@ import java.util.*
 private const val HEADER_SIZE: Int = 44
 private const val BITS_PER_SAMPLE: Short = 16
 private const val NUM_CHANNELS: Short = 1
+// TODO year comes first for sorting, then month, then day
 private const val FILE_NAME_FMT: String = "d MMM yyyy"
 private const val TAG = "WavFileOutput"
 
 class WavFileOutput(private val recordingDir: File): Closeable {
+    // TODO both should be private
     private var output: FileOutputStream
-    lateinit var file: File
+    var file: File
+
+    // TODO reorder functions in something more sensible
 
     private fun getDataSize(): Int {
         return output.channel.position().toInt() - HEADER_SIZE
     }
 
     init {
-        output = createDatedFile()
+        // TODO save getBaseName() in instance variable, so you can reuse it in renameToDatedFile().
+        val tempFileName = "${getBaseName()}_recovery_file_${getRandomString(4)}.wav" // TODO that 4 should be const
+        // recordingDir already exists, because it is created in CheckPermissionsActivity
+        file = File(recordingDir, tempFileName)
+        Log.i(TAG, "WaveFileOutput $file created")
+
+        output = FileOutputStream(file)
         output.channel.position(HEADER_SIZE.toLong())
     }
 
     private fun getRandomString(length: Int) : String {
-        val allowedChars = ('A'..'Z') + ('a'..'z')
+        val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9') // TODO make const
         return (1..length)
             .map { allowedChars.random() }
             .joinToString("")
-    }
-
-    private fun createDatedFile() : FileOutputStream {
-        // Creating Recording directory if it doesn't exist
-        recordingDir.mkdirs()
-
-        val baseName = getBaseName()
-        val tempFileName = "${baseName}_recovery_file_${getRandomString(4)}.wav"
-
-        file = File(recordingDir, tempFileName)
-        Log.i(TAG, "WaveFileOutput $file created")
-        return FileOutputStream(file)
     }
 
     override fun close() {
@@ -60,7 +58,7 @@ class WavFileOutput(private val recordingDir: File): Closeable {
 
     private fun numWavFilesStartingWith(basename: String): Int {
         return recordingDir.walk()
-            .filter { it.name.startsWith(basename) && it.name.endsWith(".wav") }
+            .filter { it.name.startsWith(basename) && it.name.endsWith(".wav") } // TODO once database is done, take out the .wav filters
             .count()
     }
 
@@ -71,7 +69,7 @@ class WavFileOutput(private val recordingDir: File): Closeable {
         val fileName = "$baseName ($fileIndex) ($prettyDuration).wav"
         val newFile = File(recordingDir, fileName)
         if (!file.renameTo(newFile))
-            throw Exception("Failed to rename file. Contact the developer.")
+            throw Exception("Failed to rename file. Contact the developer.") // TODO The UI should be the one responsible to put this error message (dev is Nico or Anna)
         this.file = newFile
     }
 

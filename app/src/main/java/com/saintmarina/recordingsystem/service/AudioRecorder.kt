@@ -22,8 +22,7 @@ const val BUFFER_SIZE: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioF
 const val PUMP_BUF_SIZE: Int = 1*1024
 
 @RequiresApi(Build.VERSION_CODES.P)
-class AudioRecorder : Closeable {
-    private var thread: Thread
+class AudioRecorder : Closeable, Thread() {
     var outputFile: WavFileOutput? = null
         @Synchronized set // Thread safe. Protects the outputFile to be set while it's being written to
         @Synchronized get
@@ -41,13 +40,11 @@ class AudioRecorder : Closeable {
         }
 
     init {
-        thread = Thread { mainThread() }.apply {
-            name = "AudioRecorder pump"
-            start()
-        }
+        name = "AudioRecorder pump"
+        start()
     }
 
-    private fun mainThread() {
+    override fun run() {
         val recorder = try {
             initRecorder()
         } catch (e: Exception) {
@@ -112,19 +109,14 @@ class AudioRecorder : Closeable {
 
     private fun safeAudioRecordRead(recorder: AudioRecord, buf: ShortArray): Int {
         val len = recorder.read(buf, 0, buf.size)
-        if (len <= 0) {
-            val message = "AudioRecord.read() failed with $len"
-            status = message
-            peak = 0
-            throw IllegalStateException(message)
-        }
-
+        if (len <= 0)
+            throw IllegalStateException("AudioRecord.read() failed with $len")
         return len
     }
 
     override fun close() {
         terminationRequested = true;
-        thread.join()
+        join()
     }
 
     private fun getPeak(buf: ShortArray, len: Int): Short {

@@ -1,6 +1,5 @@
 package com.saintmarina.recordingsystem.googleDrive
 
-//import java.io.File
 import android.util.Log
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.http.javanet.NetHttpTransport

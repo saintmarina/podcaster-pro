@@ -21,6 +21,7 @@ class FileStatus(val success: String = "", val  error: String = "") {
     }
 }
 
+// TODO Make it a Thread()
 class FilesSync(private val drive: GoogleDrive) {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: (() -> Unit)? = null

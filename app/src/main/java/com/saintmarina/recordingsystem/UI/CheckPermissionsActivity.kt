@@ -35,19 +35,10 @@ class CheckPermissionsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Log.i(TAG, "inside onCreate CheckPermissionActivity")
         setContentView(R.layout.activity_main)
-        maybeCreateLocalDestinations()
         acquirePermissions(permissions)
 
         try_again_btn.setOnClickListener {
             acquirePermissions(permissions)
-        }
-    }
-
-    private fun maybeCreateLocalDestinations() {
-        Log.i(TAG, "verify existence of DESTINATION local directories")
-        DESTINATIONS.forEach { destination ->
-            val dir = destination.localDir
-            if (!dir.exists()) dir.mkdirs()
         }
     }
 

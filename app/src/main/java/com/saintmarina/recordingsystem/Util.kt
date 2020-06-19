@@ -30,4 +30,13 @@ object Util {
 
         return if (minutes > 0) "$minutes min" else "$seconds sec"
     }
+
+    // Might be useful
+    /*
+    private fun readFileContent(file: File): String {
+        val stream = FileInputStream(file)
+        val byteBuffer = stream.channel.map(FileChannel.MapMode.READ_ONLY, 0, stream.channel.size())
+        return Charset.defaultCharset().decode(byteBuffer).toString()
+    }
+     */
 }
