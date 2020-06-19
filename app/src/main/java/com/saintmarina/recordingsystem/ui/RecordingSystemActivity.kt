@@ -15,7 +15,6 @@ import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
 
-// TODO extra space on microphone popup. There could be a glitch in the power, or a faulty cable. Check everything. Also work on microphone connected again msg.
 // TODO replace "uncomment for production" with a expertmode const on top.
 // TODO fileStatus should be (String, Boolean), not (String, String)
 // TODO make FileStatus constructor private
