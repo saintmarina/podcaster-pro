@@ -14,8 +14,7 @@ import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
-
-// TODO scanforfile -> use filter().
+// TODO clean up the service manifest
 // TODO maybeUploadFile: use a one-liner for callback
 // TODO statusBar - 100% should say "almost done"
 
@@ -33,7 +32,6 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
  * Card view instead of viewPager2
- * Check what happens to UI if an exception in raised in service onCreate // TODO talk to N the app crashes right away
  * Wake lock
  */
 
