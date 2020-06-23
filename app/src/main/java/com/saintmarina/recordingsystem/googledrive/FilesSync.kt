@@ -31,7 +31,7 @@ class FileStatus private constructor(val message: String = "", val  error: Boole
 }
 
 // TODO Make it a Thread()
-class FilesSync(private val drive: GoogleDrive) {
+class FilesSync(private val drive: GoogleDrive): Thread() {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: (() -> Unit)? = null
     var uploadStatus: FileStatus = FileStatus.success("")
@@ -40,7 +40,8 @@ class FilesSync(private val drive: GoogleDrive) {
             onStatusChange?.invoke()
         }
 
-    private val thread = Thread {
+    override fun run() {
+        super.run()
         while (true) {
             val job = jobQueue.take()
             try {
@@ -56,7 +57,7 @@ class FilesSync(private val drive: GoogleDrive) {
     }
 
     init {
-        thread.start()
+        start()
     }
 
     fun scanForFiles() {  //done once at a boot time
