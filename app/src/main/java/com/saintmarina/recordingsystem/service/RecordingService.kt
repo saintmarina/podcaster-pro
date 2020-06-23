@@ -115,8 +115,8 @@ class RecordingService: Service() {
         ensureRecordingDirsExist()
 
         recorder = AudioRecorder()
-        recorder.onStatusChange = {
-            state.audioError = recorder.status
+        recorder.onError = {
+            state.audioError = recorder.error
             invalidateActivity()
         }
         soundEffect = SoundEffect(this)

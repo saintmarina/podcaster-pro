@@ -52,12 +52,12 @@ class RecordingSystemActivity : AppCompatActivity() {
     }
 
     private fun handleServiceInvalidate(service: RecordingService.API) {
-        val state = service.getState()
-        statusIndicator.state = state
         this@RecordingSystemActivity.runOnUiThread {
             Log.i(TAG, "Invalidating UI of the Activity")
+            val state = service.getState()
+            statusIndicator.state = state
 
-            when (service.getState().recorderState) {
+            when (state.recorderState) {
                 RecordingService.RecorderState.IDLE -> {
                     btnStart.text = "Start"
                     btnPause.text = "Pause"
@@ -78,6 +78,12 @@ class RecordingSystemActivity : AppCompatActivity() {
                     view_pager2.isUserInputEnabled = false
                 }
             }
+
+            if (state.audioError != null) {
+                btnStart.isEnabled = false
+                btnPause.isEnabled = false
+            }
+
             if (!EXPERT_MODE) {
                 noMicPopup?.isMicPresent = state.micPlugged  // Skipping noMic PopUp for EXPERT MODE
             }

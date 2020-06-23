@@ -30,13 +30,11 @@ class AudioRecorder : Closeable, Thread() {
     private var terminationRequested: Boolean = false
     var peak: Short = 0
 
-    // TODO rename to onError
-    var onStatusChange: (() -> Unit)? = null
-    // TODO rename status to error
-    var status: String = ""
+    var onError: (() -> Unit)? = null
+    var error: String = ""
         set(value) {
             field = value
-            onStatusChange?.invoke()
+            onError?.invoke()
         }
 
     init {
@@ -49,16 +47,15 @@ class AudioRecorder : Closeable, Thread() {
             initRecorder()
         } catch (e: Exception) {
             Log.e(TAG, "$e")
-            status = "${e.message}"
+            error = "${e.message}"
             return
-            // TODO if there's an audio error, we should not enable the start recording button
         }
 
         try {
             mainLoop(recorder)
         } catch (e: Exception) {
             Log.e(TAG, "Audio capture failure: $e")
-            status = "Audio capture failure: ${e.message}"
+            error = "Audio capture failure: ${e.message}"
         }
 
         peak = 0
