@@ -53,13 +53,13 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                     paint = painterRed
                     rootView.statusTextView.text = "Contact the developer.Error occurred: ${state.audioError}"
                 }
-                state.fileSyncStatus != null && state.fileSyncStatus!!.errorOccurred() -> {
+                state.fileSyncSyncStatus != null && state.fileSyncSyncStatus!!.errorOccurred() -> {
                     paint = painterRed
-                    rootView.statusTextView.text = "${state.fileSyncStatus!!.getStatusMessage()}. Retrying..."
+                    rootView.statusTextView.text = "${state.fileSyncSyncStatus!!.getStatusMessage()}. Retrying..."
                 }
                 else -> {
                     val lastRecordingTime = if (state.timeWhenStopped != null) "Recording done ${prettyTime.format(state.timeWhenStopped)}" else ""
-                    val status = state.fileSyncStatus?.let {
+                    val status = state.fileSyncSyncStatus?.let {
                         if (it.getStatusMessage().isEmpty())
                             "Ready."
                         else "${it.getStatusMessage()}. $lastRecordingTime"
