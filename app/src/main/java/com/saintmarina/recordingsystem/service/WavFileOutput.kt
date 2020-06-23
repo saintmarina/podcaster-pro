@@ -17,22 +17,19 @@ private const val BITS_PER_SAMPLE: Short = 32
 private const val NUM_CHANNELS: Short = 1
 private const val FILE_NAME_FMT: String = "yyyy MMM d"
 private const val TAG = "WavFileOutput"
+private const val RANDOM_LEN = 4
+private val ALLOWED_CHARS = ('A'..'Z') + ('a'..'z') + ('0'..'9')
+
 
 class WavFileOutput(private val recordingDir: File): Closeable {
-    // TODO both should be private
     private var output: FileOutputStream
-    var file: File
-
-    // TODO reorder functions in something more sensible
-
-    private fun getDataSize(): Int {
-        return output.channel.position().toInt() - HEADER_SIZE
-    }
+    private var file: File
+    private val baseName = getBaseName()
 
     init {
-        // TODO save getBaseName() in instance variable, so you can reuse it in renameToDatedFile().
-        val tempFileName = "${getBaseName()}_recovery_file_${getRandomString(4)}.wav" // TODO that 4 should be const
         // recordingDir already exists, because it is created in CheckPermissionsActivity
+
+        val tempFileName = "${baseName}_recovery_file_${getRandomString(RANDOM_LEN)}.wav"
         file = File(recordingDir, tempFileName)
         Log.i(TAG, "WaveFileOutput $file created")
 
@@ -40,36 +37,12 @@ class WavFileOutput(private val recordingDir: File): Closeable {
         output.channel.position(HEADER_SIZE.toLong())
     }
 
-    private fun getRandomString(length: Int) : String {
-        val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9') // TODO make const
-        return (1..length)
-            .map { allowedChars.random() }
-            .joinToString("")
-    }
-
     override fun close() {
-        val header = generateWavHeader(getDataSize())
+        val header = generateWavHeader(getTotalFileSize())
         output.channel.write(header, 0)
         output.flush()
         output.close()
         Log.i(TAG, "WaveFileOutput $file closed")
-    }
-
-    private fun numWavFilesStartingWith(basename: String): Int {
-        return recordingDir.walk()
-            .filter { it.name.startsWith(basename) } // TODO once database is done, take out the .wav filters
-            .count()
-    }
-
-    fun renameToDatedFile(duration: Long) {
-        val baseName = getBaseName()
-        val fileIndex = numWavFilesStartingWith(baseName) + 1
-        val prettyDuration = prettyDuration(nanosToSec(duration))
-        val fileName = "$baseName ($fileIndex) ($prettyDuration).wav"
-        val newFile = File(recordingDir, fileName)
-        if (!file.renameTo(newFile))
-            throw Exception("Failed to rename file. Contact the developer.") // TODO The UI should be the one responsible to put this error message (dev is Nico or Anna)
-        this.file = newFile
     }
 
     private fun generateWavHeader(dataSize: Int): ByteBuffer {
@@ -105,9 +78,35 @@ class WavFileOutput(private val recordingDir: File): Closeable {
         output.channel.write(byteBuf)
     }
 
+    fun renameToDatedFile(duration: Long) {
+        val fileIndex = numWavFilesStartingWith() + 1
+        val prettyDuration = prettyDuration(nanosToSec(duration))
+        val fileName = "$baseName ($fileIndex) ($prettyDuration).wav"
+        val newFile = File(recordingDir, fileName)
+        if (!file.renameTo(newFile))
+            throw Exception("Failed to rename file.")
+        this.file = newFile
+    }
+
+    private fun numWavFilesStartingWith(): Int {
+        return recordingDir.walk()
+            .filter { it.name.startsWith(baseName) }
+            .count()
+    }
+
     private fun getBaseName(): String {
         val locale: Locale = Locale.getDefault()
         val formatter = SimpleDateFormat(FILE_NAME_FMT, locale)
         return formatter.format(Calendar.getInstance().time)
+    }
+
+    private fun getRandomString(length: Int) : String {
+        return (1..length)
+            .map { ALLOWED_CHARS.random() }
+            .joinToString("")
+    }
+
+    private fun getTotalFileSize(): Int {
+        return output.channel.position().toInt() - HEADER_SIZE
     }
 }

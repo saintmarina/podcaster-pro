@@ -51,7 +51,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 }
                 state.audioError != null -> {
                     paint = painterRed
-                    rootView.statusTextView.text = "Contact the developer.Error occurred: ${state.audioError}"
+                    rootView.statusTextView.text = "Contact Nico at 646-504-6464. Error occurred: ${state.audioError}"
                 }
                 state.fileSyncSyncStatus != null && state.fileSyncSyncStatus!!.errorOccurred() -> {
                     paint = painterRed
