@@ -18,8 +18,6 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
 // TODO maybeUploadFile: use a one-liner for callback
 // TODO statusBar - 100% should say "almost done"
 
-// TODO grab WakeLock during recording
-
 /*
  * TODO:
  * Make sure that the sound recorded on software and on the device is the same as recorded on tablet
