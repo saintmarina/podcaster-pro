@@ -58,9 +58,9 @@ class RecordingService: Service() {
     inner class API : Binder() {
         var activityInvalidate: (() -> Unit)? = null
         fun getAudioPeek(): Float { return recorder.peak }
-        fun getState(): State { return state }
         fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos() }
         fun getDestination(): Destination { return destination }
+        fun getState(): State { return state }
         fun setDestination(dest: Destination) {
             if (dest == destination)
                 return
@@ -116,6 +116,8 @@ class RecordingService: Service() {
 
         recorder = AudioRecorder()
         recorder.onError = {
+            if (state.audioError != null)
+                stop()
             state.audioError = recorder.error
             invalidateActivity()
         }

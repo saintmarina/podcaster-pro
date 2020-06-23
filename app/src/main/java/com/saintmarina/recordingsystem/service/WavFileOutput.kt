@@ -23,7 +23,7 @@ private val ALLOWED_CHARS = ('A'..'Z') + ('a'..'z') + ('0'..'9')
 
 class WavFileOutput(private val recordingDir: File): Closeable {
     private var output: FileOutputStream
-    private var file: File
+    var file: File
     private val baseName = getBaseName()
 
     init {
