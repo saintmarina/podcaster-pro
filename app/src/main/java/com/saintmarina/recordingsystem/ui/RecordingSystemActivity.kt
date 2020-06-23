@@ -27,7 +27,6 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
  * Card view instead of viewPager2
- * Wake lock
  */
 
 // Make sure that all the errors that I possibly see are shown to the UI
