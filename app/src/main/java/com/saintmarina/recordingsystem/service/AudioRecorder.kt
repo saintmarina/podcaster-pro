@@ -29,8 +29,9 @@ class AudioRecorder : Closeable, Thread() {
 
     private var terminationRequested: Boolean = false
     var peak: Short = 0
-
+    
     var onError: (() -> Unit)? = null
+    // TODO rename status to error
     var error: String = ""
         set(value) {
             field = value
@@ -49,6 +50,7 @@ class AudioRecorder : Closeable, Thread() {
             Log.e(TAG, "$e")
             error = "${e.message}"
             return
+            // TODO if there's an audio error, we should not enable the start recording button
         }
 
         try {
