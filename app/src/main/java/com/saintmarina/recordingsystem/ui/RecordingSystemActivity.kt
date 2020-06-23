@@ -30,11 +30,11 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  * Wake lock
  */
 
-// TODO takeout clipping bar from the soundBar after ~5 seconds
 // Make sure that all the errors that I possibly see are shown to the UI
 const val EXPERT_MODE: Boolean = true
 const val UI_REFRESH_DELAY: Long = 30
 private const val TAG: String = "RecordingActivity"
+private const val SEC_TO_KEEP_DID_CLIP = 5
 
 
 class RecordingSystemActivity : AppCompatActivity() {
@@ -150,6 +150,7 @@ class RecordingSystemActivity : AppCompatActivity() {
     inner class UiUpdater(private val service: RecordingService.API): Runnable {
         private var handler = Handler(Looper.getMainLooper())
         private var count = 0
+        private var whenClipped = 0L
 
         override fun run() {
             service.let { s ->
@@ -159,9 +160,16 @@ class RecordingSystemActivity : AppCompatActivity() {
                 if (s.getState().micPlugged) {
                     peakTextView.text = "$count -- ${s.getAudioPeek()}"
                     soundVisualizer.volume = s.getAudioPeek()
-                    if (s.getAudioPeek() == Float.MAX_VALUE && s.getState().recorderState != RecordingService.RecorderState.IDLE) {
+                    if (s.getAudioPeek() >= 0.9 && s.getState().recorderState != RecordingService.RecorderState.IDLE) {
                         soundVisualizer.didClip = true
+                        whenClipped = SystemClock.elapsedRealtimeNanos()
                     }
+                    // Taking out the didClip indicator after SEC_TO_KEEP_DID_CLIP seconds
+                    if (whenClipped!= 0L)
+                        if (Util.nanosToSec(SystemClock.elapsedRealtimeNanos() - whenClipped) > SEC_TO_KEEP_DID_CLIP) {
+                            soundVisualizer.didClip = false
+                            whenClipped = 0L
+                        }
                 } else {
                     peakTextView.text = "$count -- ${0}"
                     soundVisualizer.volume = 0F
