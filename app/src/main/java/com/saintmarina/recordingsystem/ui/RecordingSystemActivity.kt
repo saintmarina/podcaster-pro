@@ -14,9 +14,7 @@ import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
-// TODO clean up the service manifest
 // TODO maybeUploadFile: use a one-liner for callback
-// TODO statusBar - 100% should say "almost done"
 
 /*
  * TODO:

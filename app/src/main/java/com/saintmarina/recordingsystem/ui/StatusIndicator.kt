@@ -58,11 +58,11 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                     rootView.statusTextView.text = "${state.fileSyncStatus!!.getStatusMessage()}. Retrying..."
                 }
                 else -> {
-                    val lastRecordingTime = if (state.timeWhenStopped != null) prettyTime.format(state.timeWhenStopped) else ""
-                    val status = state.fileSyncStatus?.let {fs->
-                        if (fs.getStatusMessage().isEmpty())
+                    val lastRecordingTime = if (state.timeWhenStopped != null) "Recording done ${prettyTime.format(state.timeWhenStopped)}" else ""
+                    val status = state.fileSyncStatus?.let {
+                        if (it.getStatusMessage().isEmpty())
                             "Ready."
-                        else "${fs.getStatusMessage()} $lastRecordingTime"
+                        else "${it.getStatusMessage()}. $lastRecordingTime"
                     } ?: "Ready."
                     paint = painterGreen
                     rootView.statusTextView.text = "$status"
