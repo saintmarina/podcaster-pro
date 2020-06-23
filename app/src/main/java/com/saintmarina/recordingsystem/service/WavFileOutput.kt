@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 private const val HEADER_SIZE: Int = 44
-private const val BITS_PER_SAMPLE: Short = 16
+private const val BITS_PER_SAMPLE: Short = 32
 private const val NUM_CHANNELS: Short = 1
 // TODO year comes first for sorting, then month, then day
 private const val FILE_NAME_FMT: String = "d MMM yyyy"
@@ -82,7 +82,7 @@ class WavFileOutput(private val recordingDir: File): Closeable {
                 putInt(0x45564157) // "WAVE"
                 putInt(0x20746d66) // "fmt "
                 putInt(16) // Length of format data
-                putShort(1) // PCM // TODO 3 would mean float
+                putShort(3) // floating point PCM
                 putShort(NUM_CHANNELS)
                 putInt(SAMPLE_RATE)
                 putInt(SAMPLE_RATE * BITS_PER_SAMPLE /8 * NUM_CHANNELS)
@@ -96,12 +96,12 @@ class WavFileOutput(private val recordingDir: File): Closeable {
             }
     }
 
-    fun write(buf: ShortArray, len: Int) {
+    fun write(buf: FloatArray, len: Int) {
         // Sadly, we must do a memory copy due to the endianness
-        val byteBuf = ByteBuffer.allocate(2 * len)
+        val byteBuf = ByteBuffer.allocate(4 * len) // 4 is .sizeOfFloat
             .order(ByteOrder.LITTLE_ENDIAN)
             .apply {
-                asShortBuffer().put(buf, 0, len)
+                asFloatBuffer().put(buf, 0, len)
             }
         output.channel.write(byteBuf)
     }

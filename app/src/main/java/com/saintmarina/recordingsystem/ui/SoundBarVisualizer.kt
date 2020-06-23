@@ -18,7 +18,7 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
     private val painterRed = Paint().apply { color = Color.parseColor("#FF0000") }
 
     var didClip: Boolean = false
-    var volume: Short = 0
+    var volume: Float = 0F
         set(value) {
             field = value
             invalidate()
@@ -56,7 +56,7 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
         return (width*(MIN_DB - dB)/ MIN_DB).roundToInt()
     }
 
-    private fun sampleToDb(value: Short) : Double {
-        return 20 * ln(value.toDouble()/Short.MAX_VALUE) / ln(10.0)
+    private fun sampleToDb(value: Float) : Double {
+        return 20 * ln(value.toDouble()/Float.MAX_VALUE) / ln(10.0)
     }
 }

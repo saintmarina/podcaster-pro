@@ -7,17 +7,17 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import java.io.Closeable
-import java.lang.Exception
 
 private const val TAG = "AudioRecorder"
 const val NANOS_IN_SEC: Long = 1_000_000_000
-const val INIT_TIMEOUT: Long = 5* NANOS_IN_SEC
+const val INIT_TIMEOUT: Long = 5 * NANOS_IN_SEC
 
 const val AUDIO_SOURCE: Int = MediaRecorder.AudioSource.MIC
 const val SAMPLE_RATE: Int = 48000
 const val CHANNEL: Int = AudioFormat.CHANNEL_IN_MONO
 // TODO change to PCM_FLOAT (warning: data size changes from 16 bits to 32 bits (2 bytes to 4 bytes)
-const val ENCODING: Int = AudioFormat.ENCODING_PCM_16BIT
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+const val ENCODING: Int = AudioFormat.ENCODING_PCM_FLOAT
 const val BUFFER_SIZE: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioFlinger die with error -12 (ENOMEM) error
 const val PUMP_BUF_SIZE: Int = 1*1024
 
@@ -28,10 +28,9 @@ class AudioRecorder : Closeable, Thread() {
         @Synchronized get
 
     private var terminationRequested: Boolean = false
-    var peak: Short = 0
+    var peak: Float = 0F
     
     var onError: (() -> Unit)? = null
-    // TODO rename status to error
     var error: String = ""
         set(value) {
             field = value
@@ -50,7 +49,6 @@ class AudioRecorder : Closeable, Thread() {
             Log.e(TAG, "$e")
             error = "${e.message}"
             return
-            // TODO if there's an audio error, we should not enable the start recording button
         }
 
         try {
@@ -60,23 +58,10 @@ class AudioRecorder : Closeable, Thread() {
             error = "Audio capture failure: ${e.message}"
         }
 
-        peak = 0
+        peak = 0F
         recorder.stop()
         recorder.release()
         Log.i(TAG, "Audio recorder stopped recording")
-    }
-
-    private fun mainLoop(recorder: AudioRecord) {
-        val buf = ShortArray(PUMP_BUF_SIZE)
-        while (!terminationRequested) {
-            val len = safeAudioRecordRead(recorder, buf)
-            maybeWriteFile(buf, len)
-            peak = getPeak(buf, len)
-        }
-    }
-
-    @Synchronized private fun maybeWriteFile(buf: ShortArray, len: Int) {
-        outputFile?.write(buf, len)
     }
 
     private fun initRecorder(): AudioRecord {
@@ -100,31 +85,44 @@ class AudioRecorder : Closeable, Thread() {
                 return recorder
             }
             Log.e(TAG, "Audio recorder initialization FAILED. Retrying")
-            Thread.sleep(100)
+            sleep(100)
         }
 
         throw IllegalStateException("AudioRecord failed to initialize")
     }
 
-    private fun safeAudioRecordRead(recorder: AudioRecord, buf: ShortArray): Int {
-        val len = recorder.read(buf, 0, buf.size)
+    private fun mainLoop(recorder: AudioRecord) {
+        val buf = FloatArray(PUMP_BUF_SIZE)
+        while (!terminationRequested) {
+            val len = safeAudioRecordRead(recorder, buf)
+            maybeWriteFile(buf, len)
+            peak = getPeak(buf, len)
+        }
+    }
+
+    private fun safeAudioRecordRead(recorder: AudioRecord, buf: FloatArray): Int {
+        val len = recorder.read(buf, 0, buf.size, AudioRecord.READ_BLOCKING)
         if (len <= 0)
             throw IllegalStateException("AudioRecord.read() failed with $len")
         return len
     }
 
+    @Synchronized private fun maybeWriteFile(buf: FloatArray, len: Int) {
+        outputFile?.write(buf, len)
+    }
+
     override fun close() {
-        terminationRequested = true;
+        terminationRequested = true
         join()
     }
 
-    private fun getPeak(buf: ShortArray, len: Int): Short {
-        var maxValue: Short = 0
+    private fun getPeak(buf: FloatArray, len: Int): Float {
+        var maxValue = 0F
         buf.take(len).forEach {
-            var value: Short = it
+            var value: Float = it
 
             if (value < 0)
-                value = (-value).toShort()
+                value = (-value)
 
             if (maxValue < value)
                 maxValue = value

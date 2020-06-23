@@ -57,7 +57,7 @@ class RecordingService: Service() {
 
     inner class API : Binder() {
         var activityInvalidate: (() -> Unit)? = null
-        fun getAudioPeek(): Short { return recorder.peak }
+        fun getAudioPeek(): Float { return recorder.peak }
         fun getState(): State { return state }
         fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos() }
         fun getDestination(): Destination { return destination }

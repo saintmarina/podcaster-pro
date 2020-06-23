@@ -159,12 +159,12 @@ class RecordingSystemActivity : AppCompatActivity() {
                 if (s.getState().micPlugged) {
                     peakTextView.text = "$count -- ${s.getAudioPeek()}"
                     soundVisualizer.volume = s.getAudioPeek()
-                    if (s.getAudioPeek() == Short.MAX_VALUE && s.getState().recorderState != RecordingService.RecorderState.IDLE) {
+                    if (s.getAudioPeek() == Float.MAX_VALUE && s.getState().recorderState != RecordingService.RecorderState.IDLE) {
                         soundVisualizer.didClip = true
                     }
                 } else {
                     peakTextView.text = "$count -- ${0}"
-                    soundVisualizer.volume = 0
+                    soundVisualizer.volume = 0F
                 }
             }
             handler.postDelayed(this, UI_REFRESH_DELAY)
