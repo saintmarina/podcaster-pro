@@ -15,7 +15,6 @@ const val INIT_TIMEOUT: Long = 5 * NANOS_IN_SEC
 const val AUDIO_SOURCE: Int = MediaRecorder.AudioSource.MIC
 const val SAMPLE_RATE: Int = 48000
 const val CHANNEL: Int = AudioFormat.CHANNEL_IN_MONO
-// TODO change to PCM_FLOAT (warning: data size changes from 16 bits to 32 bits (2 bytes to 4 bytes)
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 const val ENCODING: Int = AudioFormat.ENCODING_PCM_FLOAT
 const val BUFFER_SIZE: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioFlinger die with error -12 (ENOMEM) error

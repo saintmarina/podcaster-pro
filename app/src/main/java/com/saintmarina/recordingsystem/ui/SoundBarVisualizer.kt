@@ -57,6 +57,6 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
     }
 
     private fun sampleToDb(value: Float) : Double {
-        return 20 * ln(value.toDouble()/Float.MAX_VALUE) / ln(10.0)
+        return 20 * ln(value.toDouble()) / ln(10.0)
     }
 }
