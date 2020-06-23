@@ -15,8 +15,7 @@ import java.util.*
 private const val HEADER_SIZE: Int = 44
 private const val BITS_PER_SAMPLE: Short = 32
 private const val NUM_CHANNELS: Short = 1
-// TODO year comes first for sorting, then month, then day
-private const val FILE_NAME_FMT: String = "d MMM yyyy"
+private const val FILE_NAME_FMT: String = "yyyy MMM d"
 private const val TAG = "WavFileOutput"
 
 class WavFileOutput(private val recordingDir: File): Closeable {
