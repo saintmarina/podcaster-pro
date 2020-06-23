@@ -14,7 +14,6 @@ import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
 import kotlinx.android.synthetic.main.activity_recording_system.*
-// TODO maybeUploadFile: use a one-liner for callback
 
 /*
  * TODO:

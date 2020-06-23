@@ -69,11 +69,7 @@ class FilesSync(private val drive: GoogleDrive) {
     }
 
     fun maybeUploadFile(file: File, dest: Destination) {
-        jobQueue.add(GoogleDriveFile(file, dest, drive).apply {
-            onStatusChange = { value ->
-                uploadStatus = value
-            }
-        })
+        jobQueue.add(GoogleDriveFile(file, dest, drive).apply { onStatusChange = { uploadStatus = it } })
         Log.i(TAG, "$file added to upload job queue")
 
     }
