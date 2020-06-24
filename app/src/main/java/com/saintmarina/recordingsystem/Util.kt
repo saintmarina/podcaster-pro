@@ -27,7 +27,7 @@ object Util {
     @JvmStatic fun prettyDuration(time: Int): String {
         val seconds = time % 60
         val minutes = time / 60 % 60
-        return if (minutes > 0) "${minutes}min" else "${seconds}sec"
+        return if (minutes > 0) "${minutes} min" else "${seconds} sec"
     }
 
     // Might be useful

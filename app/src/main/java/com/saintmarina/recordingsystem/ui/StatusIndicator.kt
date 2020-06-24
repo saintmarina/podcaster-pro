@@ -74,8 +74,9 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 val radius = 15.toFloat()
                 it.drawCircle(x, y, radius, color);
             }()
-            // TODO search and replace '.wav' into ''
-            rootView.statusTextView.text = status
+            rootView.statusTextView.text = status.replace(".wav", "")
         }
     }
+
+   // private fun
 }
