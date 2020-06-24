@@ -92,9 +92,9 @@ class GoogleDriveFile(
     private fun reportProgress(bytesUploaded: Int) {
         val percent = (bytesUploaded.toDouble()/fileSize * 100).toInt()
         val message = if (percent == 100)
-                        "${file.name} almost done uploading"
-                    else
-                        "${file.name} $percent% uploaded"
+                          "${file.name} almost done uploading"
+                      else
+                          "${file.name} $percent% uploaded"
         onStatusChange?.invoke(FileSyncStatus.success(message))
     }
 

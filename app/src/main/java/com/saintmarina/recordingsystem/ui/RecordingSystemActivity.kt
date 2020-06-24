@@ -82,10 +82,8 @@ class RecordingSystemActivity : AppCompatActivity() {
                 }
             }
 
-            if (state.audioError != null) {
-                btnStart.isEnabled = false
-                btnPause.isEnabled = false
-            }
+            btnStart.isEnabled = state.audioError == null
+            btnPause.isEnabled = state.audioError == null
 
             if (!EXPERT_MODE) {
                 noMicPopup?.isMicPresent = state.micPlugged  // Skipping noMic PopUp for EXPERT MODE

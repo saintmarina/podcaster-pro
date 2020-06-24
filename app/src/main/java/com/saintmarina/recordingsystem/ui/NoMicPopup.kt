@@ -34,11 +34,11 @@ class NoMicPopup(private val rootView: View) {
 
     private fun updateView() {
         if (isMicPresent) {
-            view.message.text = "Power and Microphone connection established"
+            view.message.text = "The microphone was disconnected due to a faulty cable or power outage.\nIt is now reconnected"
             view.btnDismiss.visibility = View.VISIBLE
             view.background = ColorDrawable(0xff69A75E.toInt())
         } else {
-            view.message.text = "Check microphone and power connections"
+            view.message.text = "The microphone seems to be disconnected.\nThis can be due to a faulty cable or power outage.\nCheck cable connections"
             view.btnDismiss.visibility = View.INVISIBLE
             view.background = ColorDrawable(0xffff7f7f.toInt())
         }

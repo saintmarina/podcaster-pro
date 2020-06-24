@@ -14,6 +14,7 @@ private const val TAG = "StatusIndicator"
 
 // TODO do not show .wav in the status message
 // TODO When starting recording, display an empowering message from a random list (5 messages)
+// TODO grab the wake lock only when recording
 
 class StatusIndicator(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
     private val green = Paint().apply {
@@ -60,6 +61,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 }
                 else -> {
                     color = green
+                    // TODO Only say lastRecordingTime when more than 5 mins
                     val lastRecordingTime = state.timeWhenStopped?.let { "Last recording made ${prettyTime.format(it)}" } ?: ""
                     status = state.fileSyncSyncStatus?.let { "${it.message}. $lastRecordingTime" } ?: "Ready. Make sure you have water and lip balm"
                 }
@@ -71,6 +73,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 val radius = 15.toFloat()
                 it.drawCircle(x, y, radius, color);
             }()
+            // TODO search and replace '.wav' into ''
             rootView.statusTextView.text = status
         }
     }
