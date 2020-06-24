@@ -17,6 +17,7 @@ import com.saintmarina.recordingsystem.googledrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.ui.RecordingSystemActivity
 import com.saintmarina.recordingsystem.db.Database
+import com.saintmarina.recordingsystem.googledrive.FileSyncStatus
 import java.lang.Exception
 import java.util.*
 import java.util.concurrent.TimeUnit

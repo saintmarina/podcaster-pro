@@ -3,7 +3,6 @@ package com.saintmarina.recordingsystem.googledrive
 import android.util.Log
 import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.Destination
-import com.saintmarina.recordingsystem.service.FileSyncStatus
 import java.io.File
 import java.lang.Exception
 import java.util.concurrent.LinkedBlockingQueue
@@ -21,7 +20,6 @@ class FilesSync(private val drive: GoogleDrive): Thread() {
             val job = jobQueue.take()
             try {
                 job.upload()
-                onStatusChange?.invoke(FileSyncStatus.success("${job.file.name} uploaded"))
             } catch (e: Exception) {
                 onStatusChange?.invoke(FileSyncStatus.error("${job.file.name} upload unsuccessful"))
                 Log.e(TAG, "Error: ${e.message}")

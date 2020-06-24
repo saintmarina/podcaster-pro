@@ -4,7 +4,6 @@ import android.util.Log
 import com.saintmarina.recordingsystem.Destination
 import com.saintmarina.recordingsystem.Util
 import com.saintmarina.recordingsystem.db.FileMetadata
-import com.saintmarina.recordingsystem.service.FileSyncStatus
 import java.io.*
 import java.lang.Exception
 import java.net.HttpURLConnection
@@ -47,6 +46,8 @@ class GoogleDriveFile(
         metadata.uploaded = true
         metadata.save()
         Log.i(tag, "uploaded")
+
+        onStatusChange?.invoke(FileSyncStatus.success("${file.name} uploaded"))
     }
 
     private fun uploadFile(startPosition: Long, sessionUri: String) {

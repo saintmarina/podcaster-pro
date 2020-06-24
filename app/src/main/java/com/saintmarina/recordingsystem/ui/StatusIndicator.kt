@@ -62,6 +62,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 else -> {
                     color = green
                     // TODO Only say lastRecordingTime when more than 5 mins
+                    // TODO show the water message if last recording time was more than 24hours
                     val lastRecordingTime = state.timeWhenStopped?.let { "Last recording made ${prettyTime.format(it)}" } ?: ""
                     status = state.fileSyncSyncStatus?.let { "${it.message}. $lastRecordingTime" } ?: "Ready. Make sure you have water and lip balm"
                 }

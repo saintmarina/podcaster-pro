@@ -31,7 +31,7 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  * Tell the user clipping occurred when stopping a recording if it occurred
  */
 
-
+// TODO fade in the destination, and make the card have rounded corners, and a drop shadow
 
 // Make sure that all the errors that I possibly see are shown to the UI
 const val EXPERT_MODE: Boolean = true
