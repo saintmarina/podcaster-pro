@@ -7,6 +7,8 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import java.io.Closeable
+import java.lang.Float.max
+import kotlin.math.abs
 
 private const val TAG = "AudioRecorder"
 const val NANOS_IN_SEC: Long = 1_000_000_000
@@ -20,6 +22,8 @@ const val ENCODING: Int = AudioFormat.ENCODING_PCM_FLOAT
 const val BUFFER_SIZE: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioFlinger die with error -12 (ENOMEM) error
 const val PUMP_BUF_SIZE: Int = 1*1024
 
+// On the emulator, we get values that goes higher than 1.0 (like 1.37).
+// But on the real device, with internal, or external microphone, we get a peak of 1.0
 @RequiresApi(Build.VERSION_CODES.P)
 class AudioRecorder : Closeable, Thread() {
     var outputFile: WavFileOutput? = null
@@ -95,7 +99,7 @@ class AudioRecorder : Closeable, Thread() {
         while (!terminationRequested) {
             val len = safeAudioRecordRead(recorder, buf)
             maybeWriteFile(buf, len)
-            peak = getPeak(buf, len)
+            peak = max(peak, getMax(buf, len))
         }
     }
 
@@ -115,17 +119,15 @@ class AudioRecorder : Closeable, Thread() {
         join()
     }
 
-    private fun getPeak(buf: FloatArray, len: Int): Float {
-        var maxValue = 0F
-        buf.take(len).forEach {
-            var value: Float = it
+    fun resetAudioPeak(): Float {
+        val p = peak
+        peak = 0F
+        return p
+    }
 
-            if (value < 0)
-                value = (-value)
-
-            if (maxValue < value)
-                maxValue = value
+    private fun getMax(buf: FloatArray, len: Int): Float {
+        return buf.take(len).fold(0F) { maxValue, v ->
+            max(maxValue, abs(v))
         }
-        return maxValue
     }
 }

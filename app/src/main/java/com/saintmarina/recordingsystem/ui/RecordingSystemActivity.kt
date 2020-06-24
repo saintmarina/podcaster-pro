@@ -27,13 +27,17 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
  * Card view instead of viewPager2
+ *
+ * Tell the user clipping occurred when stopping a recording if it occurred
  */
+
+// TODO activate the peak didclip feature during any state of the recorder (not just recording)
 
 // Make sure that all the errors that I possibly see are shown to the UI
 const val EXPERT_MODE: Boolean = true
 const val UI_REFRESH_DELAY: Long = 30
 private const val TAG: String = "RecordingActivity"
-private const val SEC_TO_KEEP_DID_CLIP = 5
+private const val DID_CLIP_TIMEOUT_SECS = 5
 
 
 class RecordingSystemActivity : AppCompatActivity() {
@@ -153,19 +157,25 @@ class RecordingSystemActivity : AppCompatActivity() {
 
         override fun run() {
             service.let { s ->
+                // TODO this guy should be broken up in different functions
+                // TODO take out peakTextView + count
                 count++
                 timeTextView.timeSec = Util.nanosToSec(s.getElapsedTime()) // Nanoseconds to seconds
                 timeTextView.isFlashing = s.getState().recorderState == RecordingService.RecorderState.PAUSED
                 if (s.getState().micPlugged) {
-                    peakTextView.text = "$count -- ${s.getAudioPeek()}"
-                    soundVisualizer.volume = s.getAudioPeek()
-                    if (s.getAudioPeek() >= 0.9 && s.getState().recorderState != RecordingService.RecorderState.IDLE) {
+                    val peak = s.resetAudioPeak()
+
+                    peakTextView.text = "$count -- ${peak}"
+                    soundVisualizer.volume = peak
+
+                    if (peak >= 1.0) {
                         soundVisualizer.didClip = true
                         whenClipped = SystemClock.elapsedRealtimeNanos()
                     }
+
                     // Taking out the didClip indicator after SEC_TO_KEEP_DID_CLIP seconds
-                    if (whenClipped!= 0L)
-                        if (Util.nanosToSec(SystemClock.elapsedRealtimeNanos() - whenClipped) > SEC_TO_KEEP_DID_CLIP) {
+                    if (whenClipped != 0L)
+                        if (Util.nanosToSec(SystemClock.elapsedRealtimeNanos() - whenClipped) > DID_CLIP_TIMEOUT_SECS) {
                             soundVisualizer.didClip = false
                             whenClipped = 0L
                         }
