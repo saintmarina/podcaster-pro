@@ -1,14 +1,6 @@
 package com.saintmarina.recordingsystem.service
 
-class FileSyncStatus (private val message: String = "", private val  error: Boolean = false) {
-    fun getStatusMessage(): String {
-        return message
-    }
-
-    fun errorOccurred(): Boolean {
-        return error
-    }
-
+class FileSyncStatus private constructor (val message: String, val error: Boolean) {
     companion object {
         fun success(value: String): FileSyncStatus {
             return FileSyncStatus(value, false)

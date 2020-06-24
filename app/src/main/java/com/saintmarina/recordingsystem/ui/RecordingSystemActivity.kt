@@ -31,7 +31,7 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  * Tell the user clipping occurred when stopping a recording if it occurred
  */
 
-// TODO activate the peak didclip feature during any state of the recorder (not just recording)
+
 
 // Make sure that all the errors that I possibly see are shown to the UI
 const val EXPERT_MODE: Boolean = true

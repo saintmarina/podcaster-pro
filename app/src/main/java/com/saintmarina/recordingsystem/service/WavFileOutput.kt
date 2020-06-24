@@ -27,7 +27,7 @@ class WavFileOutput(private val recordingDir: File): Closeable {
     private val baseName = getBaseName()
 
     init {
-        // recordingDir already exists, because it is created in CheckPermissionsActivity
+        // recordingDir already exists, because it is created in service onCreate()
 
         val tempFileName = "${baseName}_recovery_file_${getRandomString(RANDOM_LEN)}.wav"
         file = File(recordingDir, tempFileName)
@@ -38,15 +38,16 @@ class WavFileOutput(private val recordingDir: File): Closeable {
     }
 
     override fun close() {
-        val header = generateWavHeader(getTotalFileSize())
-        output.channel.write(header, 0)
+        writeWavHeader()
         output.flush()
         output.close()
         Log.i(TAG, "WaveFileOutput $file closed")
     }
 
-    private fun generateWavHeader(dataSize: Int): ByteBuffer {
-        return ByteBuffer.allocate(HEADER_SIZE)
+    private fun writeWavHeader() {
+        val dataSize = output.channel.position().toInt() - HEADER_SIZE
+
+        val header = ByteBuffer.allocate(HEADER_SIZE)
             .apply {
                 order(ByteOrder.LITTLE_ENDIAN)
                 putInt(0x46464952) // "RIFF"
@@ -66,11 +67,13 @@ class WavFileOutput(private val recordingDir: File): Closeable {
                 assert(position() == HEADER_SIZE)
                 position(0)
             }
+
+        output.channel.write(header, 0)
     }
 
     fun write(buf: FloatArray, len: Int) {
         // Sadly, we must do a memory copy due to the endianness
-        val byteBuf = ByteBuffer.allocate(4 * len) // 4 is .sizeOfFloat
+        val byteBuf = ByteBuffer.allocate(4 * len) // 4 is sizeof(Float)
             .order(ByteOrder.LITTLE_ENDIAN)
             .apply {
                 asFloatBuffer().put(buf, 0, len)
@@ -81,10 +84,10 @@ class WavFileOutput(private val recordingDir: File): Closeable {
     fun renameToDatedFile(duration: Long) {
         val fileIndex = numWavFilesStartingWith() + 1
         val prettyDuration = prettyDuration(nanosToSec(duration))
-        val fileName = "$baseName ($fileIndex) ($prettyDuration).wav"
+        val fileName = "$baseName ($fileIndex) [$prettyDuration].wav"
         val newFile = File(recordingDir, fileName)
         if (!file.renameTo(newFile))
-            throw Exception("Failed to rename file.")
+            throw Exception("Failed to rename file")
         this.file = newFile
     }
 
@@ -104,9 +107,5 @@ class WavFileOutput(private val recordingDir: File): Closeable {
         return (1..length)
             .map { ALLOWED_CHARS.random() }
             .joinToString("")
-    }
-
-    private fun getTotalFileSize(): Int {
-        return output.channel.position().toInt() - HEADER_SIZE
     }
 }

@@ -210,8 +210,14 @@ class RecordingService: Service() {
         state.recorderState = RecorderState.IDLE
         invalidateActivity()
 
+        // 1) We set the recorder's outputFile to null. It is synchronized so that once we
+        //    are done with setting it to null, we know that the AudioRecorder no longer touches
+        //    the file. This is important (otherwise, we would have the wrong length and all that).
+        // 2) We write the .wav header. It contains the length of the file (hence we can't do it before)
+        // 3) We rename the file to a pleasant format (e.g., 2020 Jun 24 (i) [11min].wav), which we only
+        //    have when we know the duration of the file
+        // 4) We enqueue the file to be synced
         recorder.outputFile = null
-        // Now we are sure that the AudioRecorder is no longer touching the file
         outputFile?.let {
             it.close() // Writes .wav header
             it.renameToDatedFile(state.recordingDuration)

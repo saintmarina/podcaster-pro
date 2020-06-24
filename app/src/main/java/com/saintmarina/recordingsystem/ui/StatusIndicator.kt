@@ -12,11 +12,14 @@ import org.ocpsoft.prettytime.PrettyTime
 
 private const val TAG = "StatusIndicator"
 
+// TODO do not show .wav in the status message
+// TODO When starting recording, display an empowering message from a random list (5 messages)
+
 class StatusIndicator(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
-    private val painterGreen = Paint().apply {
+    private val green = Paint().apply {
         color = Color.parseColor("#32CD32")
         isAntiAlias = true }
-    private val painterRed = Paint().apply {
+    private val red = Paint().apply {
         color = Color.parseColor("#FF0000")
         isAntiAlias = true }
     private var prettyTime = PrettyTime()
@@ -31,44 +34,44 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
         super.onDraw(canvas)
 
         canvas?.let { it ->
-            val x = width/2.toFloat()
-            val y = height/2.toFloat()
-            val radius = 15.toFloat()
-            val paint: Paint
+            val color: Paint
+            val status: String
 
             when {
-                !state.micPlugged -> {
-                    paint = painterRed
-                    rootView.statusTextView.text = "Microphone is not connected"
+                state.audioError != null -> {
+                    color = red
+                    status = "Contact Nico at +1-646-504-6464. Audio failure: ${state.audioError}"
                 }
-                !state.powerAvailable -> {
-                    paint = painterRed
-                    rootView.statusTextView.text = "Power is not connected"
+                !state.micPlugged -> {
+                    color = red
+                    status = "Microphone is not connected"
                 }
                 !state.internetAvailable -> {
-                    paint = painterRed
-                    rootView.statusTextView.text = "Internet is not connected"
+                    color = red
+                    status = "Internet is not connected"
                 }
-                state.audioError != null -> {
-                    paint = painterRed
-                    rootView.statusTextView.text = "Contact Nico at 646-504-6464. Error occurred: ${state.audioError}"
+                !state.powerAvailable -> {
+                    color = red
+                    status = "Power is not connected"
                 }
-                state.fileSyncSyncStatus != null && state.fileSyncSyncStatus!!.errorOccurred() -> {
-                    paint = painterRed
-                    rootView.statusTextView.text = "${state.fileSyncSyncStatus!!.getStatusMessage()}. Retrying..."
+                state.fileSyncSyncStatus != null && state.fileSyncSyncStatus!!.error -> {
+                    color = red
+                    status = "${state.fileSyncSyncStatus!!.message}. Retrying..."
                 }
                 else -> {
-                    val lastRecordingTime = if (state.timeWhenStopped != null) "Last recording made ${prettyTime.format(state.timeWhenStopped)}" else ""
-                    val status = state.fileSyncSyncStatus?.let {
-                        if (it.getStatusMessage().isEmpty())
-                            "Ready."
-                        else "${it.getStatusMessage()}. $lastRecordingTime"
-                    } ?: "Ready."
-                    paint = painterGreen
-                    rootView.statusTextView.text = "$status"
+                    color = green
+                    val lastRecordingTime = state.timeWhenStopped?.let { "Last recording made ${prettyTime.format(it)}" } ?: ""
+                    status = state.fileSyncSyncStatus?.let { "${it.message}. $lastRecordingTime" } ?: "Ready. Make sure you have water and lip balm"
                 }
             }
-            it.drawCircle(x, y, radius, paint);
+
+            {
+                val x = width / 2.toFloat()
+                val y = height / 2.toFloat()
+                val radius = 15.toFloat()
+                it.drawCircle(x, y, radius, color);
+            }()
+            rootView.statusTextView.text = status
         }
     }
 }
