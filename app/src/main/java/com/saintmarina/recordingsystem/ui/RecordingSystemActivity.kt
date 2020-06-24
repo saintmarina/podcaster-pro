@@ -113,7 +113,6 @@ class RecordingSystemActivity : AppCompatActivity() {
                 view_pager2.currentItem = DESTINATIONS.indexOf(service.getDestination())
                 view_pager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
                     override fun onPageSelected(position: Int) {
-                        currentItem.text = (view_pager2.currentItem).toString() // Take out before deploy
                         service.setDestination(DESTINATIONS[position])
                     }
                 })
@@ -124,11 +123,6 @@ class RecordingSystemActivity : AppCompatActivity() {
 
                 btnPause.setOnClickListener {
                     service.togglePauseResume()
-                }
-
-                soundVisualizer.setOnClickListener {
-                    if (service.getState().recorderState == RecordingService.RecorderState.RECORDING && soundVisualizer.didClip)
-                        soundVisualizer.didClip = false
                 }
 
                 handleServiceInvalidate(service)

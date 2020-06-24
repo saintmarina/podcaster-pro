@@ -14,38 +14,23 @@
         android:layout_height="375dp">
     </androidx.viewpager2.widget.ViewPager2>
 
-    <TableRow
-        android:id="@+id/title_row"
-        android:layout_width="fill_parent"
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_below="@+id/view_pager2"
-        android:paddingRight="200dp"
-        android:paddingLeft="200dp">
+        android:layout_centerHorizontal="true"
+        android:text="Recording System"
+        android:textColor="#000"
+        android:textSize="50sp"
+        android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/textview_sound_recorder_heading"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sound Recorder"
-            android:textColor="#000"
-            android:textSize="40sp"
-            android:textStyle="bold" />
-
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/currentItem"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="4dp"
-            android:textSize="30sp" />
-
-    </TableRow>
 
     <com.saintmarina.recordingsystem.ui.TimeTextView
         android:id="@+id/timeTextView"
         android:layout_width="match_parent"
         android:layout_height="120dp"
-        android:layout_below="@+id/title_row"
+        android:layout_below="@+id/title"
         android:layout_centerHorizontal="true" />
 
     <TableRow
@@ -78,36 +63,19 @@
         android:layout_height="45dp"
         android:layout_below="@+id/button_row"/>
 
-    <TextView
-        android:id="@+id/peakTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="30dp"
+    <com.saintmarina.recordingsystem.ui.StatusIndicator
+        android:id="@+id/statusIndicator"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_below="@+id/soundVisualizer"
         />
 
-    <TableRow
-        android:id="@+id/status_row"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/statusTextView"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/peakTextView">
-
-        <com.saintmarina.recordingsystem.ui.StatusIndicator
-            android:id="@+id/statusIndicator"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_below="@+id/button_row"
-            />
-
-        <TextView
-            android:id="@+id/statusTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:textSize="30sp"
-            android:layout_toRightOf="@+id/statusIndicator" />
-
-    </TableRow>
-
-
+        android:layout_centerHorizontal="true"
+        android:textSize="30sp"
+        android:layout_below="@+id/soundVisualizer"
+        android:layout_toEndOf="@+id/statusIndicator" />
 </RelativeLayout>
