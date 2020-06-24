@@ -150,36 +150,16 @@ class RecordingSystemActivity : AppCompatActivity() {
 
     inner class UiUpdater(private val service: RecordingService.API): Runnable {
         private var handler = Handler(Looper.getMainLooper())
-        private var count = 0
         private var whenClipped = 0L
 
         override fun run() {
             service.let { s ->
-                // TODO this guy should be broken up in different functions
-                // TODO take out peakTextView + count
-                count++
-                timeTextView.timeSec = Util.nanosToSec(s.getElapsedTime()) // Nanoseconds to seconds
-                timeTextView.isFlashing = s.getState().recorderState == RecordingService.RecorderState.PAUSED
+                setTimer(s)
+
                 if (s.getState().micPlugged) {
-                    val peak = s.resetAudioPeak()
-
-                    peakTextView.text = "$count -- ${peak}"
-                    soundVisualizer.volume = peak
-
-                    if (peak >= 1.0) {
-                        soundVisualizer.didClip = true
-                        whenClipped = SystemClock.elapsedRealtimeNanos()
-                    }
-
-                    // Taking out the didClip indicator after SEC_TO_KEEP_DID_CLIP seconds
-                    if (whenClipped != 0L)
-                        if (Util.nanosToSec(SystemClock.elapsedRealtimeNanos() - whenClipped) > DID_CLIP_TIMEOUT_SECS) {
-                            soundVisualizer.didClip = false
-                            whenClipped = 0L
-                        }
+                    showSoundBar(s)
                 } else {
-                    peakTextView.text = "$count -- ${0}"
-                    soundVisualizer.volume = 0F
+                    hideSoundBar()
                 }
             }
             handler.postDelayed(this, UI_REFRESH_DELAY)
@@ -187,6 +167,34 @@ class RecordingSystemActivity : AppCompatActivity() {
 
         fun stop() {
             handler.removeCallbacksAndMessages(null)
+        }
+
+        private fun setTimer(service: RecordingService.API) {
+            timeTextView.timeSec = Util.nanosToSec(service.getElapsedTime()) // Nanoseconds to seconds
+            timeTextView.isFlashing = service.getState().recorderState == RecordingService.RecorderState.PAUSED
+        }
+
+        private fun showSoundBar(service: RecordingService.API) {
+            val peak = service.resetAudioPeak()
+            soundVisualizer.volume = peak
+            if (peak >= 1.0) {
+                soundVisualizer.didClip = true
+                whenClipped = SystemClock.elapsedRealtimeNanos()
+            }
+            whenClipped = maybeResetClipBar(whenClipped)
+        }
+
+        private fun hideSoundBar() {
+            soundVisualizer.volume = 0F
+        }
+
+        private fun maybeResetClipBar(whenClipped: Long): Long {
+            if (whenClipped != 0L)
+                if (Util.nanosToSec(SystemClock.elapsedRealtimeNanos() - whenClipped) > DID_CLIP_TIMEOUT_SECS) {
+                    soundVisualizer.didClip = false
+                    return 0L
+                }
+            return whenClipped
         }
     }
 
