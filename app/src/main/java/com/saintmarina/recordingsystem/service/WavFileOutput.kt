@@ -84,7 +84,7 @@ class WavFileOutput(private val recordingDir: File): Closeable {
     fun renameToDatedFile(duration: Long) {
         val fileIndex = numWavFilesStartingWith() + 1
         val prettyDuration = prettyDuration(nanosToSec(duration))
-        val fileName = "$baseName ($fileIndex) [$prettyDuration].wav"
+        val fileName = "$baseName ($fileIndex) $prettyDuration.wav"
         val newFile = File(recordingDir, fileName)
         if (!file.renameTo(newFile))
             throw Exception("Failed to rename file")

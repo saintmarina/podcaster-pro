@@ -12,7 +12,7 @@ import org.ocpsoft.prettytime.PrettyTime
 
 private const val TAG = "StatusIndicator"
 
-// TODO do not show .wav in the status message
+
 // TODO When starting recording, display an empowering message from a random list (5 messages)
 // TODO grab the wake lock only when recording
 
@@ -74,8 +74,9 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 val radius = 15.toFloat()
                 it.drawCircle(x, y, radius, color);
             }()
-            // TODO search and replace '.wav' into ''
-            rootView.statusTextView.text = status
+            rootView.statusTextView.text = status.replace(".wav", "")
         }
     }
+
+   // private fun
 }
