@@ -13,12 +13,7 @@ private const val TIMEOUT_AFTER_FAILURE: Long = 10000
 
 class FilesSync(private val drive: GoogleDrive): Thread() {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
-    var onStatusChange: (() -> Unit)? = null
-    var uploadSyncStatus: FileSyncStatus = FileSyncStatus.success("")
-        set(value) {
-            field = value
-            onStatusChange?.invoke()
-        }
+    var onStatusChange: ((FileSyncStatus) -> Unit)? = null
 
     override fun run() {
         super.run()
@@ -26,11 +21,11 @@ class FilesSync(private val drive: GoogleDrive): Thread() {
             val job = jobQueue.take()
             try {
                 job.upload()
-                uploadSyncStatus = FileSyncStatus.success("${job.file.name} uploaded")
+                onStatusChange?.invoke(FileSyncStatus.success("${job.file.name} uploaded"))
             } catch (e: Exception) {
-                uploadSyncStatus = FileSyncStatus.error("${job.file.name} upload unsuccessful")
+                onStatusChange?.invoke(FileSyncStatus.error("${job.file.name} upload unsuccessful"))
                 Log.e(TAG, "Error: ${e.message}")
-                Thread.sleep(TIMEOUT_AFTER_FAILURE)
+                sleep(TIMEOUT_AFTER_FAILURE)
                 jobQueue.add(job)
             }
         }
@@ -50,7 +45,10 @@ class FilesSync(private val drive: GoogleDrive): Thread() {
     }
 
     fun maybeUploadFile(file: File, dest: Destination) {
-        jobQueue.add(GoogleDriveFile(file, dest, drive).apply { onStatusChange = { uploadSyncStatus = it } })
+        val job = GoogleDriveFile(file, dest, drive).apply {
+            onStatusChange = this@FilesSync.onStatusChange
+        }
+        jobQueue.add(job)
         Log.i(TAG, "$file added to upload job queue")
 
     }

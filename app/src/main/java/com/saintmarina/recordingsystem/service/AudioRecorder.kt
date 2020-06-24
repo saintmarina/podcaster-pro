@@ -32,13 +32,9 @@ class AudioRecorder : Closeable, Thread() {
 
     private var terminationRequested: Boolean = false
     var peak: Float = 0F
-    
-    var onError: (() -> Unit)? = null
-    var error: String = ""
-        set(value) {
-            field = value
-            onError?.invoke()
-        }
+
+    // Once audioError occurred, the application is broken. Assistance is needed
+    var onError: ((msg: String) -> Unit)? = null
 
     init {
         name = "AudioRecorder pump"
@@ -50,7 +46,7 @@ class AudioRecorder : Closeable, Thread() {
             initRecorder()
         } catch (e: Exception) {
             Log.e(TAG, "$e")
-            error = "${e.message}"
+            onError?.invoke("${e.message}")
             return
         }
 
@@ -58,7 +54,7 @@ class AudioRecorder : Closeable, Thread() {
             mainLoop(recorder)
         } catch (e: Exception) {
             Log.e(TAG, "Audio capture failure: $e")
-            error = "Audio capture failure: ${e.message}"
+            onError?.invoke("Audio capture failure: ${e.message}")
         }
 
         peak = 0F

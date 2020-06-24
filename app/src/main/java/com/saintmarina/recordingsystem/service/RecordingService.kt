@@ -39,7 +39,7 @@ class RecordingService: Service() {
         var internetAvailable: Boolean = true
         var micPlugged: Boolean = true
         var powerAvailable: Boolean = true
-        var audioError: String? = null
+        var audioError: String? = null // Does not go back to being null
         var fileSyncSyncStatus: FileSyncStatus? = null
         var recordingDuration: Long = 0
         var timeWhenStopped: Date? = null
@@ -57,10 +57,10 @@ class RecordingService: Service() {
 
     inner class API : Binder() {
         var activityInvalidate: (() -> Unit)? = null
+        fun getState(): State { return state }
         fun resetAudioPeak(): Float { return recorder.resetAudioPeak() }
         fun getElapsedTime(): Long { return stopWatch.getElapsedTimeNanos() }
         fun getDestination(): Destination { return destination }
-        fun getState(): State { return state }
         fun setDestination(dest: Destination) {
             if (dest == destination)
                 return
@@ -116,9 +116,8 @@ class RecordingService: Service() {
 
         recorder = AudioRecorder()
         recorder.onError = {
-            if (state.audioError != null)
-                stop()
-            state.audioError = recorder.error
+            state.audioError = it
+            stop()
             invalidateActivity()
         }
         soundEffect = SoundEffect(this)
@@ -129,7 +128,7 @@ class RecordingService: Service() {
 
         fileSync = FilesSync(drive)
         fileSync.onStatusChange = {
-            state.fileSyncSyncStatus = fileSync.uploadSyncStatus
+            state.fileSyncSyncStatus = it
             invalidateActivity()
         }
 
