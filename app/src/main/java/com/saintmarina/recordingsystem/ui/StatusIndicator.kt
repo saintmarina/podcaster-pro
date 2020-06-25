@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.os.SystemClock
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
@@ -45,6 +44,8 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
             invalidate()
         }
 
+    var randomInspiration = getNewRandomInspiration()
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
@@ -69,9 +70,9 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                     color = red
                     status = "Power is not connected"
                 }
-                state.fileSyncSyncStatus != null && state.fileSyncSyncStatus!!.error -> {
+                state.fileSyncStatus != null && state.fileSyncStatus!!.error -> {
                     color = red
-                    status = "${state.fileSyncSyncStatus!!.message}. Retrying..."
+                    status = "${state.fileSyncStatus!!.message}. Retrying..."
                 }
                 else -> {
                     color = green
@@ -89,10 +90,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
         }
     }
 
-<<<<<<< HEAD
     private fun lastRecordingTimeMoreThan(minutes: Int, timeWhenStopped: Date): Boolean {
-        Log.d(TAG, "Date().time == ${Date().time}, timeWhenStopped == $timeWhenStopped")
-        Log.d(TAG, "result = ${Date().time - timeWhenStopped.time}")
         return Date().time - timeWhenStopped.time > minutes * MINUTE_IN_MILLIS
     }
 
@@ -110,21 +108,33 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
         // Show information about previous recording for the first 24 hours after the recording
         // If it has been 24 hours since last recording, display the message to get ready
         val getReady = "Ready. Make sure you have water and lip balm"
-        val messageBeforeRecording = state.timeWhenStopped?.let {
+        val messageWhileIdle = state.timeWhenStopped?.let {
             if (!lastRecordingTimeMoreThan(DAY_IN_MINS, it)) {
-                state.fileSyncSyncStatus?.let {fs-> "${fs.message}. $lastRecordingTime"}
-            } else getReady
+                state.fileSyncStatus?.let { fs-> "${fs.message}. $lastRecordingTime"} ?: randomInspiration
+            } else {
+                Log.d(TAG, "Last recording time is less than 24 hours")
+                getReady
+            }
         } ?: getReady
 
-        // Random inspirational quotes
-        val messageAfterRecordingStart = INSPIRATION[Random().nextInt(INSPIRATION.size)]
 
-        return if (state.recorderState == RecordingService.RecorderState.IDLE)
-                    messageBeforeRecording
-               else messageAfterRecordingStart
+            // Random inspirational quotes
+            // Don't change the inspirational quote while the same recording
+            val messageWhileRecording =
+                if (state.recorderState != RecordingService.RecorderState.IDLE )
+                    randomInspiration
+                else {
+                    randomInspiration = getNewRandomInspiration()
+                    randomInspiration
+                }
 
+            return if (state.recorderState == RecordingService.RecorderState.IDLE)
+                messageWhileIdle
+            else messageWhileRecording
+        }
+
+    private fun getNewRandomInspiration(): String {
+        Log.d(TAG, "Generating new INSPIRATION")
+        return INSPIRATION[Random().nextInt(INSPIRATION.size)]
     }
-=======
-   // private fun
->>>>>>> ce705b1c19ed60e8d60fda8795c331166d7c7100
 }

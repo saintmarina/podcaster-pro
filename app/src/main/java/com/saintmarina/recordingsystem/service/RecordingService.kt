@@ -41,7 +41,7 @@ class RecordingService: Service() {
         var micPlugged: Boolean = true
         var powerAvailable: Boolean = true
         var audioError: String? = null // Does not go back to being null
-        var fileSyncSyncStatus: FileSyncStatus? = null
+        var fileSyncStatus: FileSyncStatus? = null
         var recordingDuration: Long = 0
         var timeWhenStopped: Date? = null
     }
@@ -129,7 +129,7 @@ class RecordingService: Service() {
 
         fileSync = FilesSync(drive)
         fileSync.onStatusChange = {
-            state.fileSyncSyncStatus = it
+            state.fileSyncStatus = it
             invalidateActivity()
         }
 
@@ -188,7 +188,6 @@ class RecordingService: Service() {
         stopWatch.start()
         soundEffect.playStartSound()
         autoStopTimer.enable()
-
         state.recorderState = RecorderState.RECORDING
         invalidateActivity()
 
@@ -204,10 +203,8 @@ class RecordingService: Service() {
         soundEffect.playStopSound()
         autoStopTimer.disable()
         state.timeWhenStopped = Date()
-
         state.recordingDuration = stopWatch.getElapsedTimeNanos()
         stopWatch.reset()
-
         state.recorderState = RecorderState.IDLE
         invalidateActivity()
 

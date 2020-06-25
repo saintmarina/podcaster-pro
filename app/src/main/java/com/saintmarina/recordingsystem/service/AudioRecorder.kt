@@ -19,8 +19,11 @@ const val SAMPLE_RATE: Int = 48000
 const val CHANNEL: Int = AudioFormat.CHANNEL_IN_MONO
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 const val ENCODING: Int = AudioFormat.ENCODING_PCM_FLOAT
-const val BUFFER_SIZE: Int = 1 * 1024 * 1024 // 2MB seems okay, 3MB makes AudioFlinger die with error -12 (ENOMEM) error
-const val PUMP_BUF_SIZE: Int = 1*1024
+
+// 2MB seems okay, 3MB makes AudioFlinger die with error -12 (ENOMEM) error. We pick 1MB.
+// It can hold ~5s of MONO data. Should be good to avoid losing data.
+const val BUFFER_SIZE: Int = 1 * 1024 * 1024
+const val PUMP_BUF_SIZE: Int = 2 * 1024 // ~10ms of MONO data
 
 // On the emulator, we get values that goes higher than 1.0 (like 1.37).
 // But on the real device, with internal, or external microphone, we get a peak of 1.0
