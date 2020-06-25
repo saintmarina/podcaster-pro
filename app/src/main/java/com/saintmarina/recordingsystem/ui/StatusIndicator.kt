@@ -89,6 +89,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
         }
     }
 
+<<<<<<< HEAD
     private fun lastRecordingTimeMoreThan(minutes: Int, timeWhenStopped: Date): Boolean {
         Log.d(TAG, "Date().time == ${Date().time}, timeWhenStopped == $timeWhenStopped")
         Log.d(TAG, "result = ${Date().time - timeWhenStopped.time}")
@@ -123,4 +124,7 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                else messageAfterRecordingStart
 
     }
+=======
+   // private fun
+>>>>>>> ce705b1c19ed60e8d60fda8795c331166d7c7100
 }
