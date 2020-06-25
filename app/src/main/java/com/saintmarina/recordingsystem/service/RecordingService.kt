@@ -43,7 +43,8 @@ class RecordingService: Service() {
         var audioError: String? = null // Does not go back to being null
         var fileSyncStatus: FileSyncStatus? = null
         var recordingDuration: Long = 0
-        var timeWhenStopped: Date? = null
+        var timeWhenStarted: Date? = null
+        var timeWhenStopped: Date? = null // TODO take out
     }
 
     private val state = State()
@@ -143,7 +144,6 @@ class RecordingService: Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.i(TAG, "Service started")
-        fileSync.scanForFiles()
         return START_NOT_STICKY
     }
 
@@ -189,7 +189,10 @@ class RecordingService: Service() {
         soundEffect.playStartSound()
         autoStopTimer.enable()
         state.recorderState = RecorderState.RECORDING
+        state.timeWhenStarted = Date()
+        state.timeWhenStopped = null
         invalidateActivity()
+
 
         startForeground(FOREGROUND_ID, createNotification())
         Log.i(TAG, "Audio recording started. Saving file to ${destination.localDir}")
@@ -202,11 +205,11 @@ class RecordingService: Service() {
         stopWatch.stop()
         soundEffect.playStopSound()
         autoStopTimer.disable()
+        state.timeWhenStarted = null
         state.timeWhenStopped = Date()
         state.recordingDuration = stopWatch.getElapsedTimeNanos()
         stopWatch.reset()
         state.recorderState = RecorderState.IDLE
-        invalidateActivity()
 
         // 1) We set the recorder's outputFile to null. It is synchronized so that once we
         //    are done with setting it to null, we know that the AudioRecorder no longer touches
@@ -219,9 +222,14 @@ class RecordingService: Service() {
         outputFile?.let {
             it.close() // Writes .wav header
             it.renameToDatedFile(state.recordingDuration)
-            fileSync.maybeUploadFile(it.file, destination)
+            val job = fileSync.makeJob(it.file, destination)
+            // To show the upload status message early, preventing a status message glitch due to threading
+            job.reportProgress(0)
+            fileSync.addJob(job)
         }
         outputFile = null
+
+        invalidateActivity()
 
         stopForeground(true)
         Log.i(TAG, "Audio recording stopped. File successfully recorded and passed to fileSync for upload.")

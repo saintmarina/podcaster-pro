@@ -98,7 +98,7 @@ class AudioRecorder : Closeable, Thread() {
         while (!terminationRequested) {
             val len = safeAudioRecordRead(recorder, buf)
             maybeWriteFile(buf, len)
-            peak = max(peak?.let { it } ?: 0F, getMax(buf, len))
+            peak = max(peak ?: 0F, getMax(buf, len))
         }
     }
 

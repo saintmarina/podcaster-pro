@@ -8,18 +8,38 @@ import java.io.*
 import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.*
 
 
 const val KB_IN_BYTES = 1000
 
+class FileSyncStatus(val message: String, val error: Boolean, val date: Date? = null)
+
+// TODO say that you upload to some folder name
 class GoogleDriveFile(
-    val file: File,
+    private val file: File,
     private val dest: Destination,
     private val drive: GoogleDrive
 ) {
     private val tag: String = "GoogleDriveFile (${file.name})"
     private val fileSize = file.length()
     var onStatusChange: ((value: FileSyncStatus) -> Unit)? = null
+
+    override fun toString(): String {
+        return tag
+    }
+
+    private fun reportSuccessStatus(msg: String) {
+        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg", error=false))
+    }
+
+    private fun reportSuccessStatusWithDate(msg: String) {
+        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg", error=false, date=Date()))
+    }
+
+    fun reportErrorStatus(msg: String) {
+        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg", error=true))
+    }
 
     fun upload() {
         val metadata = FileMetadata.associatedWith(file)
@@ -47,7 +67,7 @@ class GoogleDriveFile(
         metadata.save()
         Log.i(tag, "uploaded")
 
-        onStatusChange?.invoke(FileSyncStatus.success("${file.name} uploaded"))
+        reportSuccessStatusWithDate("uploaded")
     }
 
     private fun uploadFile(startPosition: Long, sessionUri: String) {
@@ -90,13 +110,12 @@ class GoogleDriveFile(
         }
     }
 
-    private fun reportProgress(bytesUploaded: Int) {
+    fun reportProgress(bytesUploaded: Int) {
         val percent = (bytesUploaded.toDouble()/fileSize * 100).toInt()
-        val message = if (percent == 100)
-                          "${file.name} almost done uploading"
-                      else
-                          "${file.name} $percent% uploaded"
-        onStatusChange?.invoke(FileSyncStatus.success(message))
+        if (percent == 100)
+            reportSuccessStatus("almost done uploading")
+        else
+            reportSuccessStatus("$percent% uploaded")
     }
 
     private fun createSession(): String {

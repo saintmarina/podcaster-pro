@@ -11,6 +11,7 @@ import com.saintmarina.recordingsystem.service.RecordingService
 import kotlinx.android.synthetic.main.activity_recording_system.view.*
 import org.ocpsoft.prettytime.PrettyTime
 import java.util.*
+import kotlin.time.ExperimentalTime
 
 private val INSPIRATION = arrayOf(
     // Before start
@@ -23,8 +24,8 @@ private val INSPIRATION = arrayOf(
 )
 
 private const val TAG = "StatusIndicator"
-private const val MINUTE_IN_MILLIS: Long = 60000
-private const val DAY_IN_MINS: Int = 1440
+private const val MILLIS_IN_MINUTE: Long = 60000
+private const val FORGET_LAST_RECORDING_MINS: Long = 2*60
 
 // TODO When starting recording, display an empowering message from a random list (5 messages)
 // TODO grab the wake lock only when recording
@@ -44,14 +45,12 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
             invalidate()
         }
 
-    var randomInspiration = getNewRandomInspiration()
-
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
         canvas?.let { it ->
             val color: Paint
-            val status: String
+            var status: String
 
             when {
                 state.audioError != null -> {
@@ -72,11 +71,11 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 }
                 state.fileSyncStatus != null && state.fileSyncStatus!!.error -> {
                     color = red
-                    status = "${state.fileSyncStatus!!.message}. Retrying..."
+                    status = state.fileSyncStatus!!.message
                 }
                 else -> {
                     color = green
-                    status = generateStatusMessage()
+                    status = generateSuccessMessage()
                 }
             }
 
@@ -86,55 +85,40 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
                 val radius = 15.toFloat()
                 it.drawCircle(x, y, radius, color);
             }()
-            rootView.statusTextView.text = status.replace(".wav", "")
+
+            status = status.replace(".wav", "")
+            rootView.statusTextView.text = status
         }
     }
 
-    private fun lastRecordingTimeMoreThan(minutes: Int, timeWhenStopped: Date): Boolean {
-        return Date().time - timeWhenStopped.time > minutes * MINUTE_IN_MILLIS
-    }
-
-    // TODO Only say lastRecordingTime when more than 5 mins
-    // TODO show the water message if last recording time was more than 24hours
-    private fun generateStatusMessage(): String {
-        // Show last recording time only after 5 minutes after the recording
-        // Show empty String meanwhile
-        val lastRecordingTime = state.timeWhenStopped?.let {
-            if (lastRecordingTimeMoreThan(5, it)) {
-                "Last recording made ${prettyTime.format(it)}"
-            } else ""
-        } ?: ""
-
-        // Show information about previous recording for the first 24 hours after the recording
-        // If it has been 24 hours since last recording, display the message to get ready
-        val getReady = "Ready. Make sure you have water and lip balm"
-        val messageWhileIdle = state.timeWhenStopped?.let {
-            if (!lastRecordingTimeMoreThan(DAY_IN_MINS, it)) {
-                state.fileSyncStatus?.let { fs-> "${fs.message}. $lastRecordingTime"} ?: randomInspiration
-            } else {
-                Log.d(TAG, "Last recording time is less than 24 hours")
-                getReady
+    private fun generateSuccessMessage(): String {
+        return when (state.recorderState) {
+            RecordingService.RecorderState.IDLE -> {
+                // IDLE
+                state.fileSyncStatus?.let { fileSyncStatus ->
+                    val ageOfStatusMessageMins = fileSyncStatus.date?.time?.let {
+                        (Date().time - it) / MILLIS_IN_MINUTE
+                    }
+                    when (ageOfStatusMessageMins) {
+                        null, 0L -> {
+                            // Upload percent progress
+                            fileSyncStatus.message
+                        }
+                        in 1..FORGET_LAST_RECORDING_MINS -> {
+                            "${fileSyncStatus.message} ${prettyTime.format(fileSyncStatus.date)}"
+                        }
+                        else -> {
+                            // It's been a while, display the message to get ready
+                            null
+                        }
+                    }
+                } ?: "Ready. Make sure you have water and lip balm"
             }
-        } ?: getReady
-
-
-            // Random inspirational quotes
-            // Don't change the inspirational quote while the same recording
-            val messageWhileRecording =
-                if (state.recorderState != RecordingService.RecorderState.IDLE )
-                    randomInspiration
-                else {
-                    randomInspiration = getNewRandomInspiration()
-                    randomInspiration
-                }
-
-            return if (state.recorderState == RecordingService.RecorderState.IDLE)
-                messageWhileIdle
-            else messageWhileRecording
+            else -> {
+                // RECORDING, PAUSED
+                val quoteIndex = ((state.timeWhenStarted?.time ?: 0) % INSPIRATION.size).toInt()
+                INSPIRATION[quoteIndex]
+            }
         }
-
-    private fun getNewRandomInspiration(): String {
-        Log.d(TAG, "Generating new INSPIRATION")
-        return INSPIRATION[Random().nextInt(INSPIRATION.size)]
     }
 }
