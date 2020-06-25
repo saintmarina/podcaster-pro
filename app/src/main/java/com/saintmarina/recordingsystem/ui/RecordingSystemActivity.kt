@@ -169,11 +169,12 @@ class RecordingSystemActivity : AppCompatActivity() {
         }
 
         private fun showSoundBar(service: RecordingService.API) {
-            val peak = service.resetAudioPeak()
-            soundVisualizer.volume = peak
-            if (peak >= 1.0) {
-                soundVisualizer.didClip = true
-                whenClipped = SystemClock.elapsedRealtimeNanos()
+            service.resetAudioPeak()?.let { peak ->
+                soundVisualizer.volume = peak
+                if (peak >= 1.0) {
+                    soundVisualizer.didClip = true
+                    whenClipped = SystemClock.elapsedRealtimeNanos()
+                }
             }
             whenClipped = maybeResetClipBar(whenClipped)
         }

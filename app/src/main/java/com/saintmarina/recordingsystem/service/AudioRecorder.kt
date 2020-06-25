@@ -31,7 +31,7 @@ class AudioRecorder : Closeable, Thread() {
         @Synchronized get
 
     private var terminationRequested: Boolean = false
-    var peak: Float = 0F
+    var peak: Float? = null
 
     // Once audioError occurred, the application is broken. Assistance is needed
     var onError: ((msg: String) -> Unit)? = null
@@ -95,7 +95,7 @@ class AudioRecorder : Closeable, Thread() {
         while (!terminationRequested) {
             val len = safeAudioRecordRead(recorder, buf)
             maybeWriteFile(buf, len)
-            peak = max(peak, getMax(buf, len))
+            peak = max(peak?.let { it } ?: 0F, getMax(buf, len))
         }
     }
 
@@ -115,9 +115,9 @@ class AudioRecorder : Closeable, Thread() {
         join()
     }
 
-    fun resetAudioPeak(): Float {
+    fun resetAudioPeak(): Float? {
         val p = peak
-        peak = 0F
+        peak = null
         return p
     }
 
