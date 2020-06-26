@@ -15,6 +15,7 @@ import com.saintmarina.recordingsystem.Destination
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
+import com.saintmarina.recordingsystem.service.RecordingService.RecorderState
 import kotlinx.android.synthetic.main.activity_recording_system.*
 
 /*
@@ -63,24 +64,21 @@ class RecordingSystemActivity : AppCompatActivity() {
             statusIndicator.state = state
 
             when (state.recorderState) {
-                RecordingService.RecorderState.IDLE -> {
+                RecorderState.IDLE -> {
                     btnStart.text = "Start"
                     btnPause.text = "Pause"
                     btnPause.isEnabled = false
                     soundVisualizer.didClip = false
-                    view_pager2.isUserInputEnabled = true
+                    destination_pager.isUserInputEnabled = true
                 }
-                RecordingService.RecorderState.RECORDING -> {
+                RecorderState.RECORDING, RecorderState.PAUSED -> {
                     btnStart.text = "Stop"
-                    btnPause.text = "Pause"
+                    btnPause.text = if (state.recorderState == RecorderState.RECORDING)
+                                        "Pause"
+                                    else
+                                        "Resume"
                     btnPause.isEnabled = true
-                    view_pager2.isUserInputEnabled = false
-                }
-                RecordingService.RecorderState.PAUSED -> {
-                    btnStart.text = "Stop"
-                    btnPause.text = "Resume"
-                    btnPause.isEnabled = true
-                    view_pager2.isUserInputEnabled = false
+                    destination_pager.isUserInputEnabled = false
                 }
             }
 
@@ -112,16 +110,19 @@ class RecordingSystemActivity : AppCompatActivity() {
                 }
 
                 noMicPopup = NoMicPopup(window.decorView.rootView)
-                view_pager2.adapter = ViewPagerAdapter()
-                view_pager2.currentItem = DESTINATIONS.indexOf(service.getDestination())
-                view_pager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                    override fun onPageSelected(position: Int) {
-                        service.setDestination(DESTINATIONS[position])
-                    }
-                })
+                destination_pager.run {
+                    adapter = ViewPagerAdapter()
+                    currentItem = DESTINATIONS.indexOf(service.getDestination())
+                    registerOnPageChangeCallback(object :
+                        ViewPager2.OnPageChangeCallback() {
+                        override fun onPageSelected(position: Int) {
+                            service.setDestination(DESTINATIONS[position])
+                        }
+                    })
+                }
 
                 btnStart.setOnClickListener {
-                    if (service.getState().recorderState == RecordingService.RecorderState.IDLE) {
+                    if (service.getState().recorderState == RecorderState.IDLE) {
                         Log.d(TAG, "supposed to fade in")
                         val fadeIn = AnimationUtils.loadAnimation(this@RecordingSystemActivity, R.anim.fade_in)
                         fade_background.setImageResource(service.getDestination().imgPath)
@@ -131,7 +132,6 @@ class RecordingSystemActivity : AppCompatActivity() {
                         val fadeOut = AnimationUtils.loadAnimation(this@RecordingSystemActivity, R.anim.fade_out)
                         fade_background.setImageResource(0)
                         fade_background.startAnimation(fadeOut)
-
                     }
                     service.toggleStartStop()
                 }
@@ -198,7 +198,7 @@ class RecordingSystemActivity : AppCompatActivity() {
 
         private fun setTimer(service: RecordingService.API) {
             timeTextView.timeSec = Util.nanosToSec(service.getElapsedTime()) // Nanoseconds to seconds
-            timeTextView.isFlashing = service.getState().recorderState == RecordingService.RecorderState.PAUSED
+            timeTextView.isFlashing = service.getState().recorderState == RecorderState.PAUSED
         }
 
         private fun showSoundBar(service: RecordingService.API) {

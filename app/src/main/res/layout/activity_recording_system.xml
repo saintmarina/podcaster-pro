@@ -14,7 +14,7 @@
         android:layout_alignParentBottom="true" />
 
     <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/view_pager2"
+        android:id="@+id/destination_pager"
         android:layout_width="match_parent"
         android:layout_height="375dp">
     </androidx.viewpager2.widget.ViewPager2>
@@ -23,7 +23,7 @@
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/view_pager2"
+        android:layout_below="@+id/destination_pager"
         android:layout_centerHorizontal="true"
         android:text="Recording System"
         android:textColor="#000"
