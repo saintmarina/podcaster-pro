@@ -45,7 +45,6 @@ class RecordingService: Service() {
         var fileSyncStatus: FileSyncStatus? = null
         var recordingDuration: Long = 0
         var timeWhenStarted: Date? = null
-        var timeWhenStopped: Date? = null // TODO take out
     }
 
     private val state = State()
@@ -199,7 +198,6 @@ class RecordingService: Service() {
         autoStopTimer.enable()
         state.recorderState = RecorderState.RECORDING
         state.timeWhenStarted = Date()
-        state.timeWhenStopped = null
         invalidateActivity()
 
 
@@ -217,7 +215,6 @@ class RecordingService: Service() {
         soundEffect.playStopSound()
         autoStopTimer.disable()
         state.timeWhenStarted = null
-        state.timeWhenStopped = Date()
         state.recordingDuration = stopWatch.getElapsedTimeNanos()
         stopWatch.reset()
         state.recorderState = RecorderState.IDLE

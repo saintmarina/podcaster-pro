@@ -21,7 +21,6 @@ private val INSPIRATION = arrayOf(
 private const val TAG = "StatusIndicator"
 private const val MILLIS_IN_MINUTE: Long = 60000
 private const val FORGET_LAST_RECORDING_MINS: Long = 2*60
-// TODO grab the wake lock only when recording
 
 class StatusIndicator(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
     private val green = Paint().apply {
