@@ -15,7 +15,6 @@ const val KB_IN_BYTES = 1000
 
 class FileSyncStatus(val message: String, val error: Boolean, val date: Date? = null)
 
-// TODO say that you upload to some folder name
 class GoogleDriveFile(
     private val file: File,
     private val dest: Destination,
@@ -30,15 +29,15 @@ class GoogleDriveFile(
     }
 
     private fun reportSuccessStatus(msg: String) {
-        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg", error=false))
+        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg to ${dest.localDir.name}", error=false))
     }
 
     private fun reportSuccessStatusWithDate(msg: String) {
-        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg", error=false, date=Date()))
+        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg to ${dest.localDir.name}", error=false, date=Date()))
     }
 
     fun reportErrorStatus(msg: String) {
-        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg", error=true))
+        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg to ${dest.localDir.name}", error=true))
     }
 
     fun upload() {
