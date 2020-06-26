@@ -5,8 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:layout_centerHorizontal="true"
-    tools:context=".ui.RecordingSystemActivity"
-    android:keepScreenOn="true">
+    tools:context=".ui.RecordingSystemActivity">
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager2"

@@ -3,6 +3,7 @@ package com.saintmarina.recordingsystem.service
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.telephony.AvailableNetworkInfo.PRIORITY_HIGH
@@ -50,6 +51,7 @@ class RecordingService: Service() {
     private val state = State()
     private var api: API = API()
     private var statusChecker = StatusChecker(this)
+    private var wakeLock: PowerManager.WakeLock? = null
     private var outputFile: WavFileOutput? = null // We need this variable for setting fileOutput in pause() and resume()
     private lateinit var recorder: AudioRecorder
     private lateinit var soundEffect: SoundEffect
@@ -113,6 +115,9 @@ class RecordingService: Service() {
     override fun onCreate() {
         super.onCreate()
         Log.i(TAG, "inside onCreate of the RecordingService")
+        wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
+                newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "RecordingSystem::Wakelock")
+            }
         Database.init(this)
         ensureRecordingDirsExist()
 
@@ -172,6 +177,10 @@ class RecordingService: Service() {
     }
 
     private fun start() {
+        // Setting timeout to release a wake lock after 3 hours in case something went wrong and
+        // the stop() method never releases the wake lock
+        wakeLock?.acquire(180*60*1000L /*180 minutes*/)
+
         if (state.recorderState != RecorderState.IDLE)
             return
 
@@ -199,6 +208,8 @@ class RecordingService: Service() {
     }
 
     private fun stop() {
+        wakeLock?.release()
+
         if (state.recorderState == RecorderState.IDLE)
             return
 

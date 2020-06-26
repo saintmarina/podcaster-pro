@@ -5,18 +5,13 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import com.saintmarina.recordingsystem.service.RecordingService
 import kotlinx.android.synthetic.main.activity_recording_system.view.*
 import org.ocpsoft.prettytime.PrettyTime
 import java.util.*
-import kotlin.time.ExperimentalTime
 
 private val INSPIRATION = arrayOf(
-    // Before start
-
-    // After start
     "'Passion is the secret ingredient that drives hard work and excellence.' -- Kelly Ayuote",
     "'Be someone who knows the way, goes the way and shows the way.' -- John C. Maxwell",
     "'Strive not to be a success, but rather to be of value.' -- Albert Einstein",
@@ -26,8 +21,6 @@ private val INSPIRATION = arrayOf(
 private const val TAG = "StatusIndicator"
 private const val MILLIS_IN_MINUTE: Long = 60000
 private const val FORGET_LAST_RECORDING_MINS: Long = 2*60
-
-// TODO When starting recording, display an empowering message from a random list (5 messages)
 // TODO grab the wake lock only when recording
 
 class StatusIndicator(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
