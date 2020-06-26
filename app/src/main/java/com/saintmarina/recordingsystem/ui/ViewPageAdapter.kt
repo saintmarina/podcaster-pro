@@ -13,20 +13,45 @@ import kotlinx.android.synthetic.main.view_pager_items_page.view.*
 class PagerVH(itemView: View) : RecyclerView.ViewHolder(itemView)
 
 class ViewPagerAdapter : RecyclerView.Adapter<PagerVH>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PagerVH =
-        PagerVH(
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PagerVH {
+        return PagerVH(
             LayoutInflater.from(parent.context).inflate(
                 R.layout.view_pager_items_page,
                 parent,
                 false
             )
         )
+    }
 
-    override fun getItemCount(): Int = DESTINATIONS.size
+    override fun getItemCount(): Int {
+        return DESTINATIONS.size
+    }
 
-    //binding the screen with view
-    override fun onBindViewHolder(holder: PagerVH, position: Int) = holder.itemView.run {
-        ivImage.setImageResource(DESTINATIONS[position].imgPath)
+    //binding the screen with view TODO Rewrite comment
+    override fun onBindViewHolder(holder: PagerVH, position: Int) {
+        holder.itemView.run {
+            ivImage.setImageResource(DESTINATIONS[position].imgPath)
+        }
     }
 }
 
+/*
+
+{
+  // main ui
+  "pager": {
+    "currentItem": X,
+    "adapter": { RecyclerAdapter
+
+    }
+    "views": [
+        PagerVH(inflated layout),
+        PagerVH(),
+        PagerVH(),
+        PagerVH(),
+        PagerVH(),
+      ]
+  }
+}
+
+ */

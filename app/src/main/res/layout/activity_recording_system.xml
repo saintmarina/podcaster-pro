@@ -6,6 +6,12 @@
     android:orientation="vertical"
     android:layout_centerHorizontal="true"
     tools:context=".ui.RecordingSystemActivity">
+    <ImageView
+        android:id="@+id/fade_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager2"

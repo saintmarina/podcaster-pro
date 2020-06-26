@@ -6,10 +6,12 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.*
 import android.util.Log
+import android.view.animation.AnimationUtils
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.saintmarina.recordingsystem.DESTINATIONS
+import com.saintmarina.recordingsystem.Destination
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
@@ -93,6 +95,7 @@ class RecordingSystemActivity : AppCompatActivity() {
     }
 
     private fun startRecordingService() {
+        val fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out);
         Log.i(TAG, "starting Recording service")
         serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName, serviceAPI: IBinder) {
@@ -118,6 +121,18 @@ class RecordingSystemActivity : AppCompatActivity() {
                 })
 
                 btnStart.setOnClickListener {
+                    if (service.getState().recorderState == RecordingService.RecorderState.IDLE) {
+                        Log.d(TAG, "supposed to fade in")
+                        val fadeIn = AnimationUtils.loadAnimation(this@RecordingSystemActivity, R.anim.fade_in)
+                        fade_background.setImageResource(service.getDestination().imgPath)
+                        fade_background.startAnimation(fadeIn)
+                    } else {
+                        Log.d(TAG, "supposed to fade out")
+                        val fadeOut = AnimationUtils.loadAnimation(this@RecordingSystemActivity, R.anim.fade_out)
+                        fade_background.setImageResource(0)
+                        fade_background.startAnimation(fadeOut)
+
+                    }
                     service.toggleStartStop()
                 }
 
@@ -135,6 +150,24 @@ class RecordingSystemActivity : AppCompatActivity() {
                 Thread.sleep(1000L)
                 startRecordingService()
             }
+
+
+            /*
+            imageView.startAnimation(fadeOut);
+
+            fadeOut.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                }
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    Animation fadeIn = AnimationUtils.loadAnimation(YourActivity.this, R.anim.fade_in);
+                    imageView.startAnimation(fadeIn);
+                }
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+                }
+            });*/
         }
 
         val serviceIntent = Intent(this, RecordingService::class.java)
