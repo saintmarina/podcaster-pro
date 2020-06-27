@@ -10,6 +10,8 @@ import android.util.Log
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.Window
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnimationUtils
 import android.view.animation.LinearInterpolator
 import androidx.annotation.RequiresApi
@@ -136,22 +138,22 @@ class RecordingSystemActivity : Activity() {
                 btnStart.setOnClickListener {
                     if (service.getState().recorderState == RecorderState.IDLE) {
                         Log.d(TAG, "supposed to fade in")
-                        //val fadeIn = AnimationUtils.loadAnimation(this@RecordingSystemActivity, R.anim.fade_in)
-
-                        fade_background.animate().cancel()
-                        fade_background.clearAnimation()
-                        val anim = ViewAnimationUtils.createCircularReveal(fade_background, 0, 0, 10F, 3000F)
-
-                        fade_background.alpha = 1f
+                        fade_background.alpha = 0f
                         fade_background.setImageResource(service.getDestination().imgPath)
-                        anim.start()
+
+                        fade_background.animate().apply {
+                            cancel()
+                            interpolator = AccelerateDecelerateInterpolator()
+                            duration = 800
+                            alpha(1f)
+                            start()
+                        }
                     } else {
                         Log.d(TAG, "supposed to fade out")
-                        fade_background.animate().cancel()
-                        fade_background.clearAnimation()
                         fade_background.animate().apply {
-                            interpolator = LinearInterpolator()
-                            duration = 500
+                            cancel()
+                            interpolator = AccelerateDecelerateInterpolator()
+                            duration = 800
                             alpha(0f)
                             start()
                         }
