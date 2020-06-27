@@ -8,8 +8,10 @@ import android.content.ServiceConnection
 import android.os.*
 import android.util.Log
 import android.view.View
+import android.view.ViewAnimationUtils
 import android.view.Window
 import android.view.animation.AnimationUtils
+import android.view.animation.LinearInterpolator
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
@@ -105,6 +107,7 @@ class RecordingSystemActivity : Activity() {
         val fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out);
         Log.i(TAG, "starting Recording service")
         serviceConnection = object : ServiceConnection {
+            @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             override fun onServiceConnected(className: ComponentName, serviceAPI: IBinder) {
                 Log.i(TAG, "service Connected. Initializing UI")
                 val service = (serviceAPI as RecordingService.API)
@@ -133,14 +136,25 @@ class RecordingSystemActivity : Activity() {
                 btnStart.setOnClickListener {
                     if (service.getState().recorderState == RecorderState.IDLE) {
                         Log.d(TAG, "supposed to fade in")
-                        val fadeIn = AnimationUtils.loadAnimation(this@RecordingSystemActivity, R.anim.fade_in)
+                        //val fadeIn = AnimationUtils.loadAnimation(this@RecordingSystemActivity, R.anim.fade_in)
+
+                        fade_background.animate().cancel()
+                        fade_background.clearAnimation()
+                        val anim = ViewAnimationUtils.createCircularReveal(fade_background, 0, 0, 10F, 3000F)
+
+                        fade_background.alpha = 1f
                         fade_background.setImageResource(service.getDestination().imgPath)
-                        fade_background.startAnimation(fadeIn)
+                        anim.start()
                     } else {
                         Log.d(TAG, "supposed to fade out")
-                        val fadeOut = AnimationUtils.loadAnimation(this@RecordingSystemActivity, R.anim.fade_out)
-                        fade_background.setImageResource(0)
-                        fade_background.startAnimation(fadeOut)
+                        fade_background.animate().cancel()
+                        fade_background.clearAnimation()
+                        fade_background.animate().apply {
+                            interpolator = LinearInterpolator()
+                            duration = 500
+                            alpha(0f)
+                            start()
+                        }
                     }
                     service.toggleStartStop()
                 }
