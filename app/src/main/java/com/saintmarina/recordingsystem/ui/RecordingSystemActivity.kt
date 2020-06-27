@@ -59,16 +59,11 @@ class RecordingSystemActivity : Activity() {
         Log.i(TAG, "inside onCreate of the Recording Activity")
         startRecordingService()
 
-
-        /*
-        window.decorView.run {
-            // Hide both the navigation bar and the status bar
-            systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
-        }
-
-         */
-
-
+        /* This is to make full screen */
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_FULLSCREEN or
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
     }
 
     private fun handleServiceInvalidate(service: RecordingService.API) {
