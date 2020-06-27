@@ -1,6 +1,7 @@
 package com.saintmarina.recordingsystem.ui
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -17,7 +18,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 private const val TAG = "CheckPermissionActivity"
 private const val REQUEST_CODE: Int = 0
 
-class CheckPermissionsActivity : AppCompatActivity() {
+class CheckPermissionsActivity : Activity() {
     @RequiresApi(Build.VERSION_CODES.P)
     private val permissions = arrayOf(
         Manifest.permission.RECORD_AUDIO,
@@ -40,6 +41,12 @@ class CheckPermissionsActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        val intent = Intent(this, RecordingSystemActivity::class.java)
+        startActivity(intent)
+    }
+
     private fun acquirePermissions(permissions: Array<String>) :Unit {
         Log.i(TAG, "acquirePermissions if not granted")
         for (item in permissions) {
@@ -48,8 +55,8 @@ class CheckPermissionsActivity : AppCompatActivity() {
                 return
             }
         }
-        val intent = Intent(this, RecordingSystemActivity::class.java)
-        startActivity(intent);
+
+        startRecordingSystemActivity()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,
@@ -59,10 +66,14 @@ class CheckPermissionsActivity : AppCompatActivity() {
                 permission_denied.visibility = View.VISIBLE
                 Log.i(TAG, "Permission denied by user")
             } else {
-                startActivity(Intent(this, RecordingSystemActivity::class.java))
                 Log.i(TAG, "Permission granted by user")
+                startRecordingSystemActivity()
             }
         }
+    }
+
+    private fun startRecordingSystemActivity() {
+        startActivity(Intent(this, RecordingSystemActivity::class.java))
     }
 }
 

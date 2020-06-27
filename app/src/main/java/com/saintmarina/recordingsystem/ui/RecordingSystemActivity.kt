@@ -1,11 +1,14 @@
 package com.saintmarina.recordingsystem.ui
 
+import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.*
 import android.util.Log
+import android.view.View
+import android.view.Window
 import android.view.animation.AnimationUtils
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -43,7 +46,7 @@ private const val TAG: String = "RecordingActivity"
 private const val DID_CLIP_TIMEOUT_SECS = 5
 
 
-class RecordingSystemActivity : AppCompatActivity() {
+class RecordingSystemActivity : Activity() {
     private lateinit var serviceConnection: ServiceConnection
     private var uiUpdater: UiUpdater? = null
     private var noMicPopup: NoMicPopup? = null
@@ -55,6 +58,17 @@ class RecordingSystemActivity : AppCompatActivity() {
         setContentView(R.layout.activity_recording_system)
         Log.i(TAG, "inside onCreate of the Recording Activity")
         startRecordingService()
+
+
+        /*
+        window.decorView.run {
+            // Hide both the navigation bar and the status bar
+            systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
+        }
+
+         */
+
+
     }
 
     private fun handleServiceInvalidate(service: RecordingService.API) {
@@ -181,7 +195,7 @@ class RecordingSystemActivity : AppCompatActivity() {
 
         override fun run() {
             service.let { s ->
-                setTimer(s)
+                updateTimer(s)
 
                 if (s.getState().micPlugged) {
                     showSoundBar(s)
@@ -196,7 +210,7 @@ class RecordingSystemActivity : AppCompatActivity() {
             handler.removeCallbacksAndMessages(null)
         }
 
-        private fun setTimer(service: RecordingService.API) {
+        private fun updateTimer(service: RecordingService.API) {
             timeTextView.timeSec = Util.nanosToSec(service.getElapsedTime()) // Nanoseconds to seconds
             timeTextView.isFlashing = service.getState().recorderState == RecorderState.PAUSED
         }
@@ -228,6 +242,7 @@ class RecordingSystemActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         unbindService(serviceConnection)
+        uiUpdater?.stop()
         super.onDestroy()
     }
 }
