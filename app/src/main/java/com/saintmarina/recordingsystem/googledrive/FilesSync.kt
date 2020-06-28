@@ -1,9 +1,12 @@
 package com.saintmarina.recordingsystem.googledrive
 
+import android.content.Context
+import android.os.PowerManager
 import android.util.Log
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.room.RoomSQLiteQuery.acquire
 import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.Destination
-import com.saintmarina.recordingsystem.db.FileMetadata
 import java.io.File
 import java.lang.Exception
 import java.util.concurrent.LinkedBlockingQueue
@@ -11,9 +14,12 @@ import java.util.concurrent.LinkedBlockingQueue
 private const val TAG: String = "Files Sync"
 private const val TIMEOUT_AFTER_FAILURE_MILLIS: Long = 10000
 
-class FilesSync(private val drive: GoogleDrive): Thread() {
+class FilesSync(private val drive: GoogleDrive, val context: Context): Thread() {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: ((FileSyncStatus) -> Unit)? = null
+    private val wakeLock = (context.getSystemService(Context.POWER_SERVICE) as PowerManager).run {
+        newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "RecordingSystem::Wakelock")
+    }
 
     override fun run() {
         super.run()
@@ -21,13 +27,13 @@ class FilesSync(private val drive: GoogleDrive): Thread() {
             val job = jobQueue.take()
             try {
                 job.upload()
+                wakeLock.release()
             } catch (e: Exception) {
                 job.reportErrorStatus("failed to upload: ${e.message}. Retrying")
                 Log.e(TAG, "Error: $e")
                 sleep(TIMEOUT_AFTER_FAILURE_MILLIS)
                 jobQueue.add(job)
             }
-            // TODO have the PARTIAL_WAKE_LOCK when there's > 0 jobs in the queue. Be careful with races
         }
     }
 
@@ -52,6 +58,7 @@ class FilesSync(private val drive: GoogleDrive): Thread() {
     }
 
     fun addJob(job: GoogleDriveFile) {
+        wakeLock.acquire()
         jobQueue.add(job)
         Log.i(TAG, "$job added to upload job queue")
     }
