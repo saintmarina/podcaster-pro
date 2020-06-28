@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.Window
+import android.view.WindowManager
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnimationUtils
@@ -26,9 +27,6 @@ import com.saintmarina.recordingsystem.service.RecordingService.RecorderState
 import kotlinx.android.synthetic.main.activity_recording_system.*
 
 /*
- * TODO:
- * Make sure that the sound recorded on software and on the device is the same as recorded on tablet
- *
  * NICE TO HAVE:
  * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
@@ -41,7 +39,19 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  * Tell the user clipping occurred when stopping a recording if it occurred
  */
 
-// TODO fade in the destination, and make the card have rounded corners, and a drop shadow
+// TODO
+// Buttons should be using https://developer.android.com/reference/android/widget/ImageButton
+// https://developer.android.com/guide/topics/resources/drawable-resource#Transition
+// startTransition(500) reverseTransition(500)
+//
+//
+// For these two, use TransitionDrawable to transition between nothing, and an image
+// When the status is error: fade in an image
+// When the sound viz is clipping, fade in an image.
+//
+// Have a background image, that flips back and forth between idle and recording screens, using TransitionDrawable
+// Hide the cards gracefully when we start recording. Use TransitionDrawable
+// Same for the timer. Use TransitionDrawable
 
 // Make sure that all the errors that I possibly see are shown to the UI
 const val EXPERT_MODE: Boolean = true
@@ -68,6 +78,10 @@ class RecordingSystemActivity : Activity() {
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
             View.SYSTEM_UI_FLAG_FULLSCREEN or
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+
+        // TODO keep screen on only when we are recording
+        // Try         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); if that doesn't work
+        window.decorView.keepScreenOn = true
     }
 
     private fun handleServiceInvalidate(service: RecordingService.API) {

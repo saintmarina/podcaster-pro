@@ -28,6 +28,7 @@ class GoogleDriveFile(
         return tag
     }
 
+    // TODO to -> for
     private fun reportSuccessStatus(msg: String) {
         onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg to ${dest.localDir.name}", error=false))
     }

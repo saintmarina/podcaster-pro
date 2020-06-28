@@ -27,6 +27,7 @@ class FilesSync(private val drive: GoogleDrive): Thread() {
                 sleep(TIMEOUT_AFTER_FAILURE_MILLIS)
                 jobQueue.add(job)
             }
+            // TODO have the PARTIAL_WAKE_LOCK when there's > 0 jobs in the queue. Be careful with races
         }
     }
 
