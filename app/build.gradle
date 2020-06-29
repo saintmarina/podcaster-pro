@@ -11,9 +11,9 @@ android {
         applicationId "com.saintmarina.recordingsystem"
         minSdkVersion 19
         targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
-
+        // When doing updates: 1) Increment versioncode 2) Increment the minor of version name
+        versionCode 3
+        versionName "1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -23,12 +23,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
 }
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-version = '1.0'
 
 repositories {
     mavenCentral()

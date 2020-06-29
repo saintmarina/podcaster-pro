@@ -1,10 +1,15 @@
 package com.saintmarina.recordingsystem.service
 
 import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.net.Uri
 import android.os.*
 import android.telephony.AvailableNetworkInfo.PRIORITY_HIGH
 import android.util.Log
@@ -24,6 +29,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 const val FOREGROUND_ID = 1
+const val CHANNEL_ID: String = "1001"
 private const val MAX_RECORDING_TIME_MILLIS: Long = 3 * 3600 * 1000
 private const val TAG: String = "RecordingService"
 
@@ -115,6 +121,9 @@ class RecordingService: Service() {
         Log.i(TAG, "inside onCreate of the RecordingService")
         Database.init(this)
         ensureRecordingDirsExist()
+
+        createNotificationChannel()
+
         // TODO The invalidate activity timer should be in activity
         // Going to update Activity UI every minute
         // Purpose: keep StatusIndicator message up to date
@@ -284,6 +293,29 @@ class RecordingService: Service() {
 
          recorder.outputFile = outputFile
          Log.i(TAG, "Audio recording is resumed.")
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val sound: Uri =
+                Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + packageName + "/" + R.raw.silence)
+
+            val att = AudioAttributes.Builder().apply {
+                setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            }
+
+            val serviceChannel = NotificationChannel(
+                CHANNEL_ID,
+                "Recording System service Channel",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                setSound(sound, att.build())
+            }
+
+            (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+                .createNotificationChannel(serviceChannel)
+        }
     }
 
     private fun createNotification(): Notification {
