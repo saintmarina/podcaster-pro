@@ -38,7 +38,7 @@ import kotlinx.android.synthetic.main.activity_recording_system.*
  *
  * Tell the user clipping occurred when stopping a recording if it occurred
  */
-
+// MDM make sure it doesn't have the title bar
 // TODO
 // Buttons should be using https://developer.android.com/reference/android/widget/ImageButton
 // https://developer.android.com/guide/topics/resources/drawable-resource#Transition
