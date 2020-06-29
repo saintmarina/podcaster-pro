@@ -124,11 +124,6 @@ class RecordingService: Service() {
 
         createNotificationChannel()
 
-        // TODO The invalidate activity timer should be in activity
-        // Going to update Activity UI every minute
-        // Purpose: keep StatusIndicator message up to date
-        invalidateActivityTimer.enable()
-
         recorder = AudioRecorder()
         recorder.onError = {
             state.audioError = it
@@ -163,7 +158,6 @@ class RecordingService: Service() {
     override fun onDestroy() {
         Log.i(TAG, "Service destroyed")
         super.onDestroy()
-        invalidateActivityTimer.disable()
         statusChecker.stopMonitoring()
         soundEffect.releaseSoundEffects()
     }
@@ -178,23 +172,6 @@ class RecordingService: Service() {
         fun enable() {
             val deadline = MAX_RECORDING_TIME_MILLIS - TimeUnit.NANOSECONDS.toMillis(stopWatch.getElapsedTimeNanos())
             handler.postDelayed(this, deadline.coerceAtLeast(0))
-        }
-
-        fun disable() {
-            handler.removeCallbacksAndMessages(null)
-        }
-    }
-
-    private val invalidateActivityTimer = object : Runnable {
-        private val handler = Handler(Looper.getMainLooper())
-
-        override fun run() {
-            Log.d(TAG, "INVALIDATE FROM TIMER")
-            invalidateActivity()
-        }
-
-        fun enable() {
-            handler.postDelayed(this, 60000 /*1 minute*/)
         }
 
         fun disable() {

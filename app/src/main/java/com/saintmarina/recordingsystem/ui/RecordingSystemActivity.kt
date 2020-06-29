@@ -8,18 +8,11 @@ import android.content.ServiceConnection
 import android.os.*
 import android.util.Log
 import android.view.View
-import android.view.ViewAnimationUtils
-import android.view.Window
-import android.view.WindowManager
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnimationUtils
-import android.view.animation.LinearInterpolator
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.saintmarina.recordingsystem.DESTINATIONS
-import com.saintmarina.recordingsystem.Destination
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.Util
@@ -69,10 +62,16 @@ The status error indicator is at X=105, Y=2072
 // Have a background image, that flips back and forth between idle and recording screens, using TransitionDrawable
 // Hide the cards gracefully when we start recording. Use TransitionDrawable
 // Same for the timer. Use TransitionDrawable
+//
+// * Swipe up wallpaper
+
+//TODO fix the thread soundBar bug (onResume solution)
+
 
 // Make sure that all the errors that I possibly see are shown to the UI
 const val EXPERT_MODE: Boolean = true
 const val UI_REFRESH_DELAY: Long = 30
+const val ACTIVITY_INVALIDATE_REFRESH_DELAY: Long = 60000 /*1 minute*/
 private const val TAG: String = "RecordingActivity"
 private const val DID_CLIP_TIMEOUT_SECS = 5
 
@@ -80,6 +79,7 @@ private const val DID_CLIP_TIMEOUT_SECS = 5
 class RecordingSystemActivity : Activity() {
     private lateinit var serviceConnection: ServiceConnection
     private var uiUpdater: UiUpdater? = null
+    private var invalidateActivityTimer: InvalidateActivityTimer? = null
     private var noMicPopup: NoMicPopup? = null
 
     // Lifecycle methods
@@ -89,12 +89,15 @@ class RecordingSystemActivity : Activity() {
         setContentView(R.layout.activity_recording_system)
         Log.i(TAG, "inside onCreate of the Recording Activity")
         startRecordingService()
+    }
 
+    override fun onResume() {
+        super.onResume()
         /* This is to make full screen */
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    View.SYSTEM_UI_FLAG_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
 
         // TODO keep screen on only when we are recording
         // Try         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); if that doesn't work
@@ -151,6 +154,10 @@ class RecordingSystemActivity : Activity() {
 
                 // initUI
                 uiUpdater = UiUpdater(service).apply {
+                    run()
+                }
+
+                invalidateActivityTimer = InvalidateActivityTimer(service).apply {
                     run()
                 }
 
@@ -282,9 +289,27 @@ class RecordingSystemActivity : Activity() {
         }
     }
 
+    // Going to update Activity UI every minute
+    // Purpose: keep StatusIndicator message up to date
+    inner class InvalidateActivityTimer(private val service: RecordingService.API): Runnable {
+        private val handler = Handler(Looper.getMainLooper())
+
+        override fun run() {
+            Log.d(TAG, "INVALIDATE FROM TIMER")
+            handleServiceInvalidate(service)
+            handler.postDelayed(this, ACTIVITY_INVALIDATE_REFRESH_DELAY)
+        }
+
+        fun stop() {
+            handler.removeCallbacksAndMessages(null)
+        }
+
+    }
+
     override fun onDestroy() {
         unbindService(serviceConnection)
-        uiUpdater?.stop()
+        invalidateActivityTimer?.stop()
+        uiUpdater?.stop() // TODO start the thread onResume, and stop it onPause.
         super.onDestroy()
     }
 }
