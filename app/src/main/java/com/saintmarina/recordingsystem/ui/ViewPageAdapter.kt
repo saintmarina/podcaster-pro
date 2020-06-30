@@ -27,7 +27,6 @@ class ViewPagerAdapter : RecyclerView.Adapter<PagerVH>() {
         return DESTINATIONS.size
     }
 
-    //binding the screen with view TODO Rewrite comment
     override fun onBindViewHolder(holder: PagerVH, position: Int) {
         holder.itemView.run {
             ivImage.setImageResource(DESTINATIONS[position].imgPath)

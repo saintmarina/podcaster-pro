@@ -126,7 +126,6 @@ class RecordingSystemActivity : Activity() {
         val fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out);
         Log.i(TAG, "starting Recording service")
         serviceConnection = object : ServiceConnection {
-            @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             override fun onServiceConnected(className: ComponentName, serviceAPI: IBinder) {
                 Log.i(TAG, "service Connected. Initializing UI")
                 val service = (serviceAPI as RecordingService.API)

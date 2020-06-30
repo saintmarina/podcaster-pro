@@ -180,7 +180,6 @@ class RecordingService: Service() {
     }
 
     private fun start() {
-        // TODO Add the wakelock in the activity callback of the service idle change.
         if (state.recorderState != RecorderState.IDLE)
             return
 
