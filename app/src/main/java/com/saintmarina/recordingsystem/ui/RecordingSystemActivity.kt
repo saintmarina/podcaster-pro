@@ -12,12 +12,13 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AnimationUtils
 import androidx.annotation.RequiresApi
 import androidx.viewpager2.widget.ViewPager2
-import com.saintmarina.recordingsystem.DESTINATIONS
-import com.saintmarina.recordingsystem.R
+import com.saintmarina.recordingsystem.*
 import com.saintmarina.recordingsystem.service.RecordingService
-import com.saintmarina.recordingsystem.Util
+import com.saintmarina.recordingsystem.service.NANOS_IN_SEC
 import com.saintmarina.recordingsystem.service.RecordingService.RecorderState
 import kotlinx.android.synthetic.main.activity_recording_system.*
+import java.lang.Float.max
+import java.util.*
 
 
 /* UI:
@@ -45,6 +46,7 @@ The status error indicator is at X=105, Y=2072
  * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
  * Card view instead of viewPager2
+ * Recovery files should have their header correctly set when uploaded
  *
  * Tell the user clipping occurred when stopping a recording if it occurred
  */
@@ -65,34 +67,36 @@ The status error indicator is at X=105, Y=2072
 //
 // * Swipe up wallpaper
 
-//TODO fix the thread soundBar bug (onResume solution)
+const val EXPERT_MODE = true
 
+private const val UI_REFRESH_DELAY = 10L
+private const val ACTIVITY_INVALIDATE_REFRESH_DELAY = 60000L /*1 minute*/
+private const val VOLUME_BAR_SLOWDOWN_RATE_DB_PER_SEC = 100
+private const val VOLUME_BAR_CLIP_DB = -1.0F
+private const val DID_CLIP_TIMEOUT_MILLIS = 5000L
 
-// Make sure that all the errors that I possibly see are shown to the UI
-const val EXPERT_MODE: Boolean = true
-const val UI_REFRESH_DELAY: Long = 30
-const val ACTIVITY_INVALIDATE_REFRESH_DELAY: Long = 60000 /*1 minute*/
-private const val TAG: String = "RecordingActivity"
-private const val DID_CLIP_TIMEOUT_SECS = 5
+private const val TAG = "RecordingActivity"
 
-
+@RequiresApi(Build.VERSION_CODES.P)
 class RecordingSystemActivity : Activity() {
     private lateinit var serviceConnection: ServiceConnection
     private var uiUpdater: UiUpdater? = null
-    private var invalidateActivityTimer: InvalidateActivityTimer? = null
     private var noMicPopup: NoMicPopup? = null
 
     // Lifecycle methods
-    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recording_system)
-        Log.i(TAG, "inside onCreate of the Recording Activity")
+        Log.i(TAG, "onCreate of the Recording Activity")
         startRecordingService()
     }
 
     override fun onResume() {
         super.onResume()
+        Log.d(TAG, "$this ONRESUME")
+
+        uiUpdater?.reset()
+
         /* This is to make full screen */
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
@@ -104,38 +108,9 @@ class RecordingSystemActivity : Activity() {
         window.decorView.keepScreenOn = true
     }
 
-    private fun handleServiceInvalidate(service: RecordingService.API) {
+    private fun handleServiceInvalidate(_service: RecordingService.API) {
         this@RecordingSystemActivity.runOnUiThread {
-            Log.i(TAG, "Invalidating UI of the Activity")
-            val state = service.getState()
-            statusIndicator.state = state
-
-            when (state.recorderState) {
-                RecorderState.IDLE -> {
-                    btnStart.text = "Start"
-                    btnPause.text = "Pause"
-                    btnPause.isEnabled = false
-                    soundVisualizer.didClip = false
-                    destination_pager.isUserInputEnabled = true
-                }
-                RecorderState.RECORDING, RecorderState.PAUSED -> {
-                    btnStart.text = "Stop"
-                    btnPause.text = if (state.recorderState == RecorderState.RECORDING)
-                                        "Pause"
-                                    else
-                                        "Resume"
-                    btnPause.isEnabled = true
-                    destination_pager.isUserInputEnabled = false
-                }
-            }
-
-            btnStart.isEnabled = state.audioError == null
-            btnPause.isEnabled = state.audioError == null
-
-            if (!EXPERT_MODE) {
-                noMicPopup?.isMicPresent = state.micPlugged  // Skipping noMic PopUp for EXPERT MODE
-            }
-
+            uiUpdater?.invalidate()
         }
     }
 
@@ -152,14 +127,7 @@ class RecordingSystemActivity : Activity() {
                     handleServiceInvalidate(service)
                 }
 
-                // initUI
-                uiUpdater = UiUpdater(service).apply {
-                    run()
-                }
-
-                invalidateActivityTimer = InvalidateActivityTimer(service).apply {
-                    run()
-                }
+                uiUpdater = UiUpdater(service)
 
                 noMicPopup = NoMicPopup(window.decorView.rootView)
                 destination_pager.run {
@@ -238,79 +206,108 @@ class RecordingSystemActivity : Activity() {
         startService(serviceIntent)
     }
 
-    inner class UiUpdater(private val service: RecordingService.API): Runnable {
-        private var handler = Handler(Looper.getMainLooper())
-        private var whenClipped = 0L
-
-        override fun run() {
-            service.let { s ->
-                updateTimer(s)
-
-                if (s.getState().micPlugged) {
-                    showSoundBar(s)
-                } else {
-                    hideSoundBar()
-                }
-            }
-            handler.postDelayed(this, UI_REFRESH_DELAY)
+    inner class UiUpdater(private val service: RecordingService.API) {
+        private val slowTimer = RepeatTimer(ACTIVITY_INVALIDATE_REFRESH_DELAY) { invalidate() }
+        private val fastTimer = RepeatTimer(UI_REFRESH_DELAY) { fastInvalidate() }
+        private val resetClippingTimer = OneshotTimer(DID_CLIP_TIMEOUT_MILLIS) {
+            soundVisualizer.didClip = false
         }
+        private var lastFastFrameUpdate = 0L
 
         fun stop() {
-            handler.removeCallbacksAndMessages(null)
+            fastTimer.stop()
+            slowTimer.stop()
         }
 
-        private fun updateTimer(service: RecordingService.API) {
+        fun reset() {
+            fastTimer.reset()
+            slowTimer.reset()
+        }
+
+        fun invalidate() {
+            val state = service.getState()
+            statusIndicator.state = state
+
+            when (state.recorderState) {
+                RecorderState.IDLE -> {
+                    btnStart.text = "Start"
+                    btnPause.text = "Pause"
+                    btnPause.isEnabled = false
+                    soundVisualizer.didClip = false
+                    destination_pager.isUserInputEnabled = true
+                }
+                RecorderState.RECORDING, RecorderState.PAUSED -> {
+                    btnStart.text = "Stop"
+                    btnPause.text = if (state.recorderState == RecorderState.RECORDING)
+                        "Pause"
+                    else
+                        "Resume"
+                    btnPause.isEnabled = true
+                    destination_pager.isUserInputEnabled = false
+                }
+            }
+
+            btnStart.isEnabled = state.audioError == null
+            btnPause.isEnabled = state.audioError == null
+
+            if (!EXPERT_MODE) {
+                noMicPopup?.isMicPresent = state.micPlugged  // Skipping noMic PopUp for EXPERT MODE
+            }
+
+            fastInvalidate()
+        }
+
+        private fun fastInvalidate() {
+            // This is executed every 30ms. It has to be fast!
+            val now = SystemClock.elapsedRealtimeNanos()
+            val nanosSinceLastUpdate = now - lastFastFrameUpdate
+
+            updateTimer()
+            updateSoundBar(nanosSinceLastUpdate)
+
+            lastFastFrameUpdate = now
+        }
+
+        private fun updateTimer() {
+            // TODO rename timeTextView to clock
             timeTextView.timeSec = Util.nanosToSec(service.getElapsedTime()) // Nanoseconds to seconds
             timeTextView.isFlashing = service.getState().recorderState == RecorderState.PAUSED
         }
 
-        private fun showSoundBar(service: RecordingService.API) {
+        private fun updateSoundBar(nanosSinceLastUpdate: Long) {
+            if (!service.getState().micPlugged) {
+                soundVisualizer.volume = 0F
+                soundVisualizer.didClip = false
+                return
+            }
+
             service.resetAudioPeak()?.let { peak ->
-                soundVisualizer.volume = peak
-                if (peak >= 1.0) {
+                val volume = soundVisualizer.sampleToDb(peak)
+
+                if (soundVisualizer.volume < volume)
+                    soundVisualizer.volume = volume
+                else {
+                    SystemClock.elapsedRealtimeNanos()
+                    soundVisualizer.volume = max(volume, soundVisualizer.volume -
+                            VOLUME_BAR_SLOWDOWN_RATE_DB_PER_SEC * (nanosSinceLastUpdate.toFloat() / NANOS_IN_SEC))
+                }
+
+                if (volume >= VOLUME_BAR_CLIP_DB) {
                     soundVisualizer.didClip = true
-                    whenClipped = SystemClock.elapsedRealtimeNanos()
+                    resetClippingTimer.reset()
                 }
             }
-            whenClipped = maybeResetClipBar(whenClipped)
-        }
-
-        private fun hideSoundBar() {
-            soundVisualizer.volume = 0F
-        }
-
-        private fun maybeResetClipBar(whenClipped: Long): Long {
-            if (whenClipped != 0L)
-                if (Util.nanosToSec(SystemClock.elapsedRealtimeNanos() - whenClipped) > DID_CLIP_TIMEOUT_SECS) {
-                    soundVisualizer.didClip = false
-                    return 0L
-                }
-            return whenClipped
         }
     }
 
-    // Going to update Activity UI every minute
-    // Purpose: keep StatusIndicator message up to date
-    inner class InvalidateActivityTimer(private val service: RecordingService.API): Runnable {
-        private val handler = Handler(Looper.getMainLooper())
-
-        override fun run() {
-            Log.d(TAG, "INVALIDATE FROM TIMER")
-            handleServiceInvalidate(service)
-            handler.postDelayed(this, ACTIVITY_INVALIDATE_REFRESH_DELAY)
-        }
-
-        fun stop() {
-            handler.removeCallbacksAndMessages(null)
-        }
-
+    override fun onPause() {
+        super.onPause()
+        uiUpdater?.stop()
     }
 
     override fun onDestroy() {
-        unbindService(serviceConnection)
-        invalidateActivityTimer?.stop()
-        uiUpdater?.stop() // TODO start the thread onResume, and stop it onPause.
         super.onDestroy()
+        unbindService(serviceConnection)
     }
 }
 

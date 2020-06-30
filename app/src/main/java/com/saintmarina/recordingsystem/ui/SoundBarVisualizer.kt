@@ -20,15 +20,17 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
     var didClip: Boolean = false
     var volume: Float = 0F
         set(value) {
-            field = value
-            invalidate()
+            if (field != value) {
+                field = value
+                invalidate()
+            }
         }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
         canvas?.let {
-            val maxPx = DbToPx(sampleToDb(volume))
+            val maxPx = DbToPx(volume)
             val spacer = 3
             val rectWidth = 7
             val fullRectWidth = spacer + rectWidth
@@ -52,11 +54,11 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
         }
     }
 
-    private fun DbToPx(dB: Double): Int {
+    private fun DbToPx(dB: Float): Int {
         return (width*(MIN_DB - dB)/ MIN_DB).roundToInt()
     }
 
-    private fun sampleToDb(value: Float) : Double {
-        return 20 * ln(value.toDouble()) / ln(10.0)
+    fun sampleToDb(value: Float) : Float {
+        return (20 * ln(value.toDouble()) / ln(10.0)).toFloat()
     }
 }

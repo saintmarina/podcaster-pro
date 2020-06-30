@@ -23,7 +23,7 @@ const val ENCODING: Int = AudioFormat.ENCODING_PCM_FLOAT
 // 2MB seems okay, 3MB makes AudioFlinger die with error -12 (ENOMEM) error. We pick 1MB.
 // It can hold ~5s of MONO data. Should be good to avoid losing data.
 const val BUFFER_SIZE: Int = 1 * 1024 * 1024
-const val PUMP_BUF_SIZE: Int = 2 * 1024 // ~10ms of MONO data
+const val PUMP_BUF_SIZE: Int = 256 // ~1ms of MONO data. It makes our UI volume indicator very snappy
 
 // On the emulator, we get values that goes higher than 1.0 (like 1.37).
 // But on the real device, with internal, or external microphone, we get a peak of 1.0

@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import com.saintmarina.recordingsystem.service.RecordingService
 import kotlinx.android.synthetic.main.activity_recording_system.view.*
@@ -31,55 +32,57 @@ class StatusIndicator(context: Context, attributeSet: AttributeSet): View(contex
         isAntiAlias = true }
     private var prettyTime = PrettyTime()
 
+    private var color: Paint = green
+
     var state: RecordingService.State = RecordingService.State()
         set(value) {
             field = value
+            refreshValues()
             invalidate()
         }
+
+    private fun refreshValues() {
+        var status: String
+
+        when {
+            state.audioError != null -> {
+                color = red
+                status = "Contact Nico at +1-646-504-6464. Audio failure: ${state.audioError}"
+            }
+            !state.micPlugged -> {
+                color = red
+                status = "Microphone is not connected"
+            }
+            !state.internetAvailable -> {
+                color = red
+                status = "Internet is not connected"
+            }
+            !state.powerAvailable -> {
+                color = red
+                status = "Power is not connected"
+            }
+            state.fileSyncStatus != null && state.fileSyncStatus!!.error -> {
+                color = red
+                status = state.fileSyncStatus!!.message
+            }
+            else -> {
+                color = green
+                status = generateSuccessMessage()
+            }
+        }
+
+        status = status.replace(".wav", "")
+        rootView.statusTextView.text = status
+    }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
         canvas?.let { it ->
-            val color: Paint
-            var status: String
-
-            when {
-                state.audioError != null -> {
-                    color = red
-                    status = "Contact Nico at +1-646-504-6464. Audio failure: ${state.audioError}"
-                }
-                !state.micPlugged -> {
-                    color = red
-                    status = "Microphone is not connected"
-                }
-                !state.internetAvailable -> {
-                    color = red
-                    status = "Internet is not connected"
-                }
-                !state.powerAvailable -> {
-                    color = red
-                    status = "Power is not connected"
-                }
-                state.fileSyncStatus != null && state.fileSyncStatus!!.error -> {
-                    color = red
-                    status = state.fileSyncStatus!!.message
-                }
-                else -> {
-                    color = green
-                    status = generateSuccessMessage()
-                }
-            }
-
-            {
-                val x = width / 2.toFloat()
-                val y = height / 2.toFloat()
-                val radius = 15.toFloat()
-                it.drawCircle(x, y, radius, color);
-            }()
-
-            status = status.replace(".wav", "")
-            rootView.statusTextView.text = status
+            val x = width / 2.toFloat()
+            val y = height / 2.toFloat()
+            val radius = 15.toFloat()
+            it.drawCircle(x, y, radius, color);
         }
     }
 

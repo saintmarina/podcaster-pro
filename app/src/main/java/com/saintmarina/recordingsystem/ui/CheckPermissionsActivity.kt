@@ -43,8 +43,7 @@ class CheckPermissionsActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        val intent = Intent(this, RecordingSystemActivity::class.java)
-        startActivity(intent)
+        startRecordingSystemActivity()
     }
 
     private fun acquirePermissions(permissions: Array<String>) :Unit {
