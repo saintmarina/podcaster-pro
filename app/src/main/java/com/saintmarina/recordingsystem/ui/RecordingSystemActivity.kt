@@ -18,7 +18,6 @@ import com.saintmarina.recordingsystem.service.NANOS_IN_SEC
 import com.saintmarina.recordingsystem.service.RecordingService.RecorderState
 import kotlinx.android.synthetic.main.activity_recording_system.*
 import java.lang.Float.max
-import java.util.*
 
 
 /* UI:
@@ -93,7 +92,7 @@ class RecordingSystemActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "$this ONRESUME")
+        Log.i(TAG, "$this onResume")
 
         uiUpdater?.reset()
 
@@ -102,13 +101,11 @@ class RecordingSystemActivity : Activity() {
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
                     View.SYSTEM_UI_FLAG_FULLSCREEN or
                     View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-
-        // TODO keep screen on only when we are recording
-        // Try         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); if that doesn't work
         window.decorView.keepScreenOn = true
     }
 
-    private fun handleServiceInvalidate(_service: RecordingService.API) {
+
+    private fun handleServiceInvalidate() {
         this@RecordingSystemActivity.runOnUiThread {
             uiUpdater?.invalidate()
         }
@@ -124,7 +121,7 @@ class RecordingSystemActivity : Activity() {
                 val service = (serviceAPI as RecordingService.API)
 
                 service.registerActivityInvalidate {
-                    handleServiceInvalidate(service)
+                    handleServiceInvalidate()
                 }
 
                 uiUpdater = UiUpdater(service)
@@ -143,7 +140,6 @@ class RecordingSystemActivity : Activity() {
 
                 btnStart.setOnClickListener {
                     if (service.getState().recorderState == RecorderState.IDLE) {
-                        Log.d(TAG, "supposed to fade in")
                         fade_background.alpha = 0f
                         fade_background.setImageResource(service.getDestination().imgPath)
 
@@ -155,7 +151,6 @@ class RecordingSystemActivity : Activity() {
                             start()
                         }
                     } else {
-                        Log.d(TAG, "supposed to fade out")
                         fade_background.animate().apply {
                             cancel()
                             interpolator = AccelerateDecelerateInterpolator()
@@ -171,7 +166,7 @@ class RecordingSystemActivity : Activity() {
                     service.togglePauseResume()
                 }
 
-                handleServiceInvalidate(service)
+                handleServiceInvalidate()
             }
 
             override fun onServiceDisconnected(arg0: ComponentName) {
@@ -230,6 +225,9 @@ class RecordingSystemActivity : Activity() {
 
             when (state.recorderState) {
                 RecorderState.IDLE -> {
+                    // Keeps screed on the default state (not on) while not recording
+                    // Note: has to be done on UI Thread
+                    window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                     btnStart.text = "Start"
                     btnPause.text = "Pause"
                     btnPause.isEnabled = false
@@ -237,6 +235,9 @@ class RecordingSystemActivity : Activity() {
                     destination_pager.isUserInputEnabled = true
                 }
                 RecorderState.RECORDING, RecorderState.PAUSED -> {
+                    // Keeps screen on while recording
+                    // Note: has to be done on UI Thread
+                    window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                     btnStart.text = "Stop"
                     btnPause.text = if (state.recorderState == RecorderState.RECORDING)
                         "Pause"
@@ -269,9 +270,8 @@ class RecordingSystemActivity : Activity() {
         }
 
         private fun updateTimer() {
-            // TODO rename timeTextView to clock
-            timeTextView.timeSec = Util.nanosToSec(service.getElapsedTime()) // Nanoseconds to seconds
-            timeTextView.isFlashing = service.getState().recorderState == RecorderState.PAUSED
+            clock.timeSec = Util.nanosToSec(service.getElapsedTime()) // Nanoseconds to seconds
+            clock.isFlashing = service.getState().recorderState == RecorderState.PAUSED
         }
 
         private fun updateSoundBar(nanosSinceLastUpdate: Long) {

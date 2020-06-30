@@ -33,7 +33,7 @@
 
 
     <com.saintmarina.recordingsystem.ui.TimeTextView
-        android:id="@+id/timeTextView"
+        android:id="@+id/clock"
         android:layout_width="match_parent"
         android:layout_height="120dp"
         android:layout_below="@+id/title"
@@ -44,7 +44,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:weightSum="2"
-        android:layout_below="@id/timeTextView">
+        android:layout_below="@id/clock">
 
         <Button
             android:id="@+id/btnStart"
