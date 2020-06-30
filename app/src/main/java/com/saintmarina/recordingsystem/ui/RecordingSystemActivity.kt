@@ -23,18 +23,29 @@ import java.lang.Float.max
 /* UI:
 All units are in pixels
 
-Cards are at X=274 (horizontally centered), Y=487
+Cards:
+* they are positioned at X=274 (horizontally centered), Y=487
+* they have a 30px rounded corner
+* they have a 32px drop shadow at 70% opacity. If possible with an Y offset of 5px towards the bottom
 
-The first volume rect is at X=142, Y=1320
-Volume rects appear every X=20 (so the second rect ise at X=162px)
-65 rects fill entirely the volume bar
-The volume bar clipping indicator is at X=105, Y=1284
+Timer:
+* The timer text color is #fafafa
 
-The record button is at X=650, Y=1625
-The pause button is at X=1110, Y=1676
+Volume bar:
+* The first volume rect is at X=110, Y=1295
+* Volume rect appear every X=23 (so the second volume rect is at X=133px)
+* 57 volume rect fill entirely the volume bar
+* The volume bar clipping indicator is at X=105, Y=1284
 
-The status error indicator is at X=105, Y=2072
- */
+Buttons:
+* The record button is at X=650, Y=1625
+* The pause button is at X=1110, Y=1676
+
+Status:
+* The status error indicator is at X=105, Y=2072
+* The status message color is #e8e8e8
+
+*/
 
 /*
  * NICE TO HAVE:
