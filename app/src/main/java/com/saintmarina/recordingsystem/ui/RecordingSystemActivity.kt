@@ -5,11 +5,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.drawable.TransitionDrawable
 import android.os.*
 import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.AnimationUtils
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.viewpager2.widget.ViewPager2
 import com.saintmarina.recordingsystem.*
@@ -85,6 +86,8 @@ private const val VOLUME_BAR_SLOWDOWN_RATE_DB_PER_SEC = 100
 private const val VOLUME_BAR_CLIP_DB = -1.0F
 private const val DID_CLIP_TIMEOUT_MILLIS = 5000L
 
+private const val ANIMATION_DURATION = 300L
+
 private const val TAG = "RecordingActivity"
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -123,7 +126,6 @@ class RecordingSystemActivity : Activity() {
     }
 
     private fun startRecordingService() {
-        val fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out);
         Log.i(TAG, "starting Recording service")
         serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName, serviceAPI: IBinder) {
@@ -150,25 +152,23 @@ class RecordingSystemActivity : Activity() {
 
                 btnStart.setOnClickListener {
                     if (service.getState().recorderState == RecorderState.IDLE) {
-                        fade_background.alpha = 0f
-                        fade_background.setImageResource(service.getDestination().imgPath)
-
-                        fade_background.animate().apply {
+                        background_recording.alpha = 0f
+                        background_recording.setImageResource(R.drawable.bg_recording)
+                        background_recording.animate().apply {
                             cancel()
-                            interpolator = AccelerateDecelerateInterpolator()
-                            duration = 800
+                            duration = ANIMATION_DURATION
                             alpha(1f)
                             start()
                         }
                     } else {
-                        fade_background.animate().apply {
+                        background_recording.setImageResource(R.drawable.bg_recording)
+                        background_recording.animate().apply {
                             cancel()
-                            interpolator = AccelerateDecelerateInterpolator()
-                            duration = 800
+                            duration = ANIMATION_DURATION
                             alpha(0f)
                             start()
+                            }
                         }
-                    }
                     service.toggleStartStop()
                 }
 
@@ -238,23 +238,30 @@ class RecordingSystemActivity : Activity() {
                     // Keeps screed on the default state (not on) while not recording
                     // Note: has to be done on UI Thread
                     window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                    btnStart.text = "Start"
-                    btnPause.text = "Pause"
-                    btnPause.isEnabled = false
-                    soundVisualizer.didClip = false
+
+                    clock.visibility = TextView.GONE
+
+                    destination_pager.visibility = TextView.VISIBLE
                     destination_pager.isUserInputEnabled = true
+
+                    btnStart.isSelected = false
+                    btnPause.isEnabled = false
+
+                    soundVisualizer.didClip = false
                 }
                 RecorderState.RECORDING, RecorderState.PAUSED -> {
                     // Keeps screen on while recording
                     // Note: has to be done on UI Thread
                     window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                    btnStart.text = "Stop"
-                    btnPause.text = if (state.recorderState == RecorderState.RECORDING)
-                        "Pause"
-                    else
-                        "Resume"
-                    btnPause.isEnabled = true
+
+                    clock.visibility = TextView.VISIBLE
+
+                    destination_pager.visibility = TextView.GONE
                     destination_pager.isUserInputEnabled = false
+
+                    btnPause.isEnabled = true // This needs a png to set, while it's disabled
+                    btnPause.isSelected = state.recorderState == RecorderState.PAUSED
+                    btnStart.isSelected = true
                 }
             }
 
