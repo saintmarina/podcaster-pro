@@ -31,6 +31,9 @@ import kotlin.math.pow
 // 3) Study power
 // 7) investigate the two hubs, figure out the preference
 // 8) Get shorter charge cable
+// 9) Add expiration to FileSync
+// 10) Know how to clean up the sdcard and the database
+// 11) recordingsystemservice account change to saimaa
 
 /*
  * NICE TO HAVE:
@@ -45,6 +48,8 @@ import kotlin.math.pow
  * Save the destination in the Database
  * UI gradients seems to need some dithering
  * The app should have a lock screen
+ * Get the logs
+ * Delete old files here and there
  */
 
 // TODO

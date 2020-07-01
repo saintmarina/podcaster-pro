@@ -50,7 +50,7 @@ object StatusMessage {
             state.recorderState == RecordingService.RecorderState.IDLE -> {
                 isError = false
 
-                var msg = state.fileSyncStatus?.let { fileSyncStatus ->
+                val msg = state.fileSyncStatus?.let { fileSyncStatus ->
                     val ageOfStatusMessageMins = fileSyncStatus.date?.time?.let {
                         (Date().time - it) / MILLIS_IN_MINUTE
                     }
