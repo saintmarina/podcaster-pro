@@ -173,9 +173,10 @@
         android:layout_width="1250px"
         android:layout_height="300px"
         android:layout_marginLeft="180px"
-        android:layout_marginTop="2140px"
+        android:layout_marginTop="2110px"
         android:lineHeight="42sp"
         android:fontFamily="@font/lora"
+        android:gravity="center_vertical"
 
         android:textSize="32sp"
         android:textColor="#e8e8e8"/>

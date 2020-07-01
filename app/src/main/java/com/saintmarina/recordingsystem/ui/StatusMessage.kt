@@ -18,11 +18,12 @@ private const val FORGET_LAST_RECORDING_MINS: Long = 2*60
 object StatusMessage {
     private var prettyTime = PrettyTime()
 
-    class Content(val message: String, val isError: Boolean)
+    class Content(val message: String, val isError: Boolean, val center: Boolean)
 
     fun fromState(state: RecordingService.State): Content {
         val isError: Boolean
         var message: String
+        var center = false
 
         when {
             state.audioError != null -> {
@@ -31,7 +32,7 @@ object StatusMessage {
             }
             !state.micPlugged -> {
                 isError = true
-                message = "Error: Microphone seems disconnected\nCheck cable connections"
+                message = "Error: Microphone seems disconnected\n\nCheck cable connections"
             }
             !state.internetAvailable && state.recorderState != RecordingService.RecorderState.RECORDING -> {
                 isError = true
@@ -39,20 +40,53 @@ object StatusMessage {
             }
             !state.powerAvailable -> {
                 isError = true
-                message = "Warning: Power outage detected\nThe system is running on battery"
+                message = "Warning: Power outage detected\n\nThe system is running on battery"
             }
             state.fileSyncStatus != null && state.fileSyncStatus!!.error -> {
                 isError = true
                 message = state.fileSyncStatus!!.message
             }
+            // Success messages
+            state.recorderState == RecordingService.RecorderState.IDLE -> {
+                isError = false
+
+                var msg = state.fileSyncStatus?.let { fileSyncStatus ->
+                    val ageOfStatusMessageMins = fileSyncStatus.date?.time?.let {
+                        (Date().time - it) / MILLIS_IN_MINUTE
+                    }
+                    when (ageOfStatusMessageMins) {
+                        null, 0L -> {
+                            // Upload percent progress
+                            fileSyncStatus.message
+                        }
+                        in 1..FORGET_LAST_RECORDING_MINS -> {
+                            "${fileSyncStatus.message} ${prettyTime.format(fileSyncStatus.date)}"
+                        }
+                        else -> {
+                            // It's been a while, display the message to get ready
+                            null
+                        }
+                    }
+                }
+
+                if (msg != null) {
+                    message = msg
+                } else {
+                    message = "Get ready to record\nDon't forget your water"
+                    center = true
+                }
+            }
             else -> {
                 isError = false
-                message = generateSuccessMessage(state)
+                // RECORDING, PAUSED
+                val quoteIndex = ((state.timeWhenStarted?.time ?: 0) % INSPIRATIONS.size).toInt()
+                center = true
+                message = INSPIRATIONS[quoteIndex]
             }
         }
 
         message = message.replace(".wav", "")
-        return Content(message, isError)
+        return Content(message, isError, center)
     }
 
     private fun generateSuccessMessage(state: RecordingService.State): String {
