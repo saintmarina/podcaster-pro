@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="1600px"
     android:layout_height="2560px"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_centerHorizontal="true"
     tools:context=".ui.RecordingSystemActivity">
@@ -60,6 +61,7 @@
 
     <!-- Volume bar -->
     <com.saintmarina.recordingsystem.ui.FadeAnimation
+        app:instant_show="true"
         android:visibility="invisible"
         android:id="@+id/volume_clip_fader"
         android:layout_width="wrap_content"
@@ -151,6 +153,7 @@
 
     <!-- Status message -->
     <com.saintmarina.recordingsystem.ui.FadeAnimation
+        app:instant_show="true"
         android:visibility="invisible"
         android:id="@+id/status_error_fader"
         android:layout_width="wrap_content"
