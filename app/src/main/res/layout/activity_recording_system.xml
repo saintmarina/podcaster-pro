@@ -149,14 +149,9 @@
             android:scaleType="centerCrop"/>
     </com.saintmarina.recordingsystem.ui.FadeAnimation>
 
-    <com.saintmarina.recordingsystem.ui.StatusIndicator
-        android:id="@+id/statusIndicator"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="2072px"/>
-
     <TextView
-        android:id="@+id/statusTextView"
+        android:id="@+id/statusMessage"
+        android:text="Testing Hello"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"

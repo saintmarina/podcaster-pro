@@ -5,11 +5,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.drawable.TransitionDrawable
 import android.os.*
 import android.util.Log
 import android.view.View
-import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.viewpager2.widget.ViewPager2
 import com.saintmarina.recordingsystem.*
@@ -185,7 +183,10 @@ class RecordingSystemActivity : Activity() {
 
         fun invalidate() {
             val state = service.getState()
-            statusIndicator.state = state
+
+            val status = StatusMessage.fromState(state)
+            statusMessage.text = status.message
+            status_error_fader.show = status.isError
 
             when (state.recorderState) {
                 RecorderState.IDLE -> {
@@ -195,10 +196,10 @@ class RecordingSystemActivity : Activity() {
                     destination_pager.isUserInputEnabled = true
                     btn_pause.isEnabled = false
 
-                    btn_rec_fader.hide()
-                    background_recording_fader.hide()
-                    destination_pager_fader.show()
-                    clock_fader.hide()
+                    btn_rec_fader.show = false
+                    background_recording_fader.show = false
+                    destination_pager_fader.show = true
+                    clock_fader.show = false
                 }
                 RecorderState.RECORDING, RecorderState.PAUSED -> {
                     // Keeps screen on while recording
@@ -207,18 +208,14 @@ class RecordingSystemActivity : Activity() {
                     destination_pager.isUserInputEnabled = false
                     btn_pause.isEnabled = true // This needs a png to set, while it's disabled
 
-                    btn_rec_fader.show()
-                    background_recording_fader.show()
-                    destination_pager_fader.hide()
-                    clock_fader.show()
+                    btn_rec_fader.show = true
+                    background_recording_fader.show = true
+                    destination_pager_fader.show = false
+                    clock_fader.show = true
                 }
             }
 
-            if (state.recorderState == RecorderState.PAUSED) {
-                btn_pause_fader.show()
-            } else {
-                btn_pause_fader.hide()
-            }
+            btn_pause_fader.show = state.recorderState == RecorderState.PAUSED
 
             btn_start.isEnabled = state.audioError == null
             btn_pause.isEnabled = state.audioError == null
