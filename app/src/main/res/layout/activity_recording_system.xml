@@ -151,27 +151,12 @@
 
     <TextView
         android:id="@+id/statusMessage"
-        android:text="Testing Hello"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:textSize="30sp"
-        android:textColor="#e8e8e8"
-        android:layout_marginTop="2072px"/>
+        android:text="Testing Hello they have a 30px rou nded corner Testing Hello they have a 30px rounded corner Testing Hello"
+        android:layout_width="1260px"
+        android:layout_height="300px"
+        android:layout_marginLeft="180px"
+        android:layout_marginTop="2130px"
 
-
-<!--    Cards:-->
-<!--    * they are positioned at X=244 (horizontally centered), Y=462-->
-<!--    * they have a 30px rounded corner-->
-<!--    * they have a 32px drop shadow at 70% opacity. If possible with an Y offset of 5px towards the bottom-->
-
-<!--    Timer:-->
-<!--    * The timer text color is #fafafa-->
-
-<!--    Volume bar:-->
-<!--    * The first volume rect is at X=110, Y=1295-->
-<!--    * Volume rect appear every X=23 (so the second volume rect is at X=133px)-->
-<!--    * 57 volume rect fill entirely the volume bar-->
-<!--    * The volume bar clipping indicator is at X=105, Y=1284-->
-
+        android:textSize="32sp"
+        android:textColor="#e8e8e8"/>
 </RelativeLayout>
