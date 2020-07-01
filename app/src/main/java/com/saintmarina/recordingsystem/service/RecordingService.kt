@@ -232,7 +232,7 @@ class RecordingService: Service() {
             if (state.recordingDuration < 3 * SEC_IN_NANOS) { // Deletes all recording that are < 3 seconds long
                 val isDeleted = it.file.delete()
                 Log.i(TAG, "${it.file} is shorter that 3 seconds. It is deleted $isDeleted.")
-                state.fileSyncStatus = FileSyncStatus(message="The recording is discarded, because it was less than 3 seconds", error=false, expiration=1L )
+                state.fileSyncStatus = FileSyncStatus(message="The recording was discarded\nIt was less than 3 seconds", error=false)
             } else {
                 it.renameToDatedFile(state.recordingDuration)
                 val job = fileSync.makeJob(it.file, destination)
