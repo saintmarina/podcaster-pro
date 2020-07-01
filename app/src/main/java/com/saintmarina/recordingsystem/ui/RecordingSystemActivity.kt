@@ -26,13 +26,18 @@ import kotlin.math.pow
 // Before launch:
 // 1) Setup google drive folders
 // 2) Change the uplifting messages
+
+// After luanch:
 // 3) Study power
 // 4) Dong as a playsound when we stop recording
 // 5) Anything under 3 seconds don't upload to Drive
-// 6) Try to make the sound instant
+// 6) Try to make the sound instant. Use SoundPool instead of MediaPlayer
+// 7) investigate the two hubs, figure out the prefference
+// 8) Get shorter charge cable
 
 /*
  * NICE TO HAVE:
+ * If FileSync has files to upload have adifferent message
  * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
  * Make sure that the sound recorded on software on the device is the same as recorded on tablet
@@ -41,6 +46,8 @@ import kotlin.math.pow
  * The audio feedback bipbip should seems delayed. It should not.
  * SaiMaa card should be properly shown
  * Save the destination in the Database
+ * UI gradients seems to need some dithering
+ * The app should have a lock screen
  */
 
 // TODO
