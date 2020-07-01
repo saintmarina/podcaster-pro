@@ -51,7 +51,7 @@ class Clock(context: Context, attributeSet: AttributeSet): View(context, attribu
     private val pauseAnimation = RepeatTimer(PAUSE_BLINK_DELAY) {
         hideText = !hideText
         invalidate()
-    }.apply { stop() } // Repeat timer maybe shouldn't be scheduled right away
+    }.apply { stop() } // TODO Repeat timer shouldn't be scheduled right away
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)

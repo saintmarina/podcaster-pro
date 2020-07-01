@@ -169,11 +169,12 @@
 
     <TextView
         android:id="@+id/statusMessage"
-        android:text="Testing Hello they have a 30px rou nded corner Testing Hello they have a 30px rounded corner Testing Hello"
+        android:text=""
         android:layout_width="1260px"
         android:layout_height="300px"
         android:layout_marginLeft="180px"
         android:layout_marginTop="2130px"
+        android:fontFamily="@font/lora"
 
         android:textSize="32sp"
         android:textColor="#e8e8e8"/>
