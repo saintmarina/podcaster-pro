@@ -245,7 +245,7 @@ class RecordingService: Service() {
         if (state.recorderState != RecorderState.RECORDING)
             return
 
-        soundEffect.playStopSound()
+        soundEffect.playPauseSound()
         stopWatch.stop()
         autoStopTimer.disable()
         state.recorderState = RecorderState.PAUSED
@@ -259,7 +259,7 @@ class RecordingService: Service() {
          if (state.recorderState != RecorderState.PAUSED)
              return
 
-         soundEffect.playStartSound()
+         soundEffect.playResumeSound()
          stopWatch.start()
          autoStopTimer.enable()
          state.recorderState = RecorderState.RECORDING
@@ -271,21 +271,11 @@ class RecordingService: Service() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val sound: Uri =
-                Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + packageName + "/" + R.raw.silence)
-
-            val att = AudioAttributes.Builder().apply {
-                setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            }
-
             val serviceChannel = NotificationChannel(
                 CHANNEL_ID,
                 "Recording System service Channel",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                setSound(sound, att.build())
-            }
+                NotificationManager.IMPORTANCE_LOW
+            )
 
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
                 .createNotificationChannel(serviceChannel)
