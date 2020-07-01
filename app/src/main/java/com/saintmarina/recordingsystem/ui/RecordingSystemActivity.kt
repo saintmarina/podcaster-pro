@@ -74,8 +74,6 @@ private const val VOLUME_BAR_SLOWDOWN_RATE_DB_PER_SEC = 100
 private const val VOLUME_BAR_CLIP_DB = -1.0F
 private const val DID_CLIP_TIMEOUT_MILLIS = 5000L
 
-private const val ANIMATION_DURATION = 300L
-
 private const val TAG = "RecordingActivity"
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -167,7 +165,7 @@ class RecordingSystemActivity : Activity() {
         private val slowTimer = RepeatTimer(ACTIVITY_INVALIDATE_REFRESH_DELAY) { invalidate() }
         private val fastTimer = RepeatTimer(UI_REFRESH_DELAY) { fastInvalidate() }
         private val resetClippingTimer = OneshotTimer(DID_CLIP_TIMEOUT_MILLIS) {
-            soundVisualizer.didClip = false
+            volume_clip_fader.show = false
         }
         private var lastFastFrameUpdate = 0L
 
@@ -246,7 +244,7 @@ class RecordingSystemActivity : Activity() {
         private fun updateSoundBar(nanosSinceLastUpdate: Long) {
             if (!service.getState().micPlugged) {
                 soundVisualizer.volume = 0F
-                soundVisualizer.didClip = false
+                volume_clip_fader.show = false
                 return
             }
 
@@ -262,7 +260,7 @@ class RecordingSystemActivity : Activity() {
                 }
 
                 if (volume >= VOLUME_BAR_CLIP_DB) {
-                    soundVisualizer.didClip = true
+                    volume_clip_fader.show = true
                     resetClippingTimer.reset()
                 }
             }

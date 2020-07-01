@@ -59,6 +59,20 @@
     </com.saintmarina.recordingsystem.ui.FadeAnimation>
 
     <!-- Volume bar -->
+    <com.saintmarina.recordingsystem.ui.FadeAnimation
+        android:visibility="invisible"
+        android:id="@+id/volume_clip_fader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_width="1392px"
+            android:layout_height="160px"
+            android:layout_marginLeft="105px"
+            android:layout_marginTop="1284px"
+            android:src="@drawable/volume_clipping"
+            android:scaleType="centerCrop"/>
+    </com.saintmarina.recordingsystem.ui.FadeAnimation>
+
     <com.saintmarina.recordingsystem.ui.SoundVisualizer
         android:id="@+id/soundVisualizer"
         android:layout_width="match_parent"
