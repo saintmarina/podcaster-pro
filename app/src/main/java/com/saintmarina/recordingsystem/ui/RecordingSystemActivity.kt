@@ -5,19 +5,21 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.drawable.TransitionDrawable
-import android.os.*
+import android.os.Build
+import android.os.Bundle
+import android.os.IBinder
+import android.os.SystemClock
 import android.util.Log
 import android.view.View
-import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.viewpager2.widget.ViewPager2
 import com.saintmarina.recordingsystem.*
-import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.service.NANOS_IN_SEC
+import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.service.RecordingService.RecorderState
 import kotlinx.android.synthetic.main.activity_recording_system.*
 import java.lang.Float.max
+import kotlin.math.abs
 
 
 /* UI:
@@ -97,7 +99,36 @@ class RecordingSystemActivity : Activity() {
         Log.i(TAG, "onCreate of the Recording Activity")
         startRecordingService()
     }
-
+/*
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_recording_system)
+        myViewPager2 = findViewById(R.id.viewpager)
+        MyAdapter = MyAdapter(this)
+        myViewPager2.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL)
+        myViewPager2.setAdapter(MyAdapter)
+        myViewPager2.setOffscreenPageLimit(3)
+        val pageMargin =
+            resources.getDimensionPixelOffset(R.dimen.pageMargin).toFloat()
+        val pageOffset =
+            resources.getDimensionPixelOffset(R.dimen.offset).toFloat()
+        myViewPager2.setPageTransformer({ page, position ->
+            val myOffset: Float = position * -(2 * pageOffset + pageMargin)
+            if (position < -1) {
+                page.setTranslationX(-myOffset)
+            } else if (position <= 1) {
+                val scaleFactor =
+                    Math.max(0.7f, 1 - Math.abs(position - 0.14285715f))
+                page.setTranslationX(myOffset)
+                page.setScaleY(scaleFactor)
+                page.setAlpha(scaleFactor)
+            } else {
+                page.setAlpha(0)
+                page.setTranslationX(myOffset)
+            }
+        })
+    }
+*/
     override fun onResume() {
         super.onResume()
         Log.i(TAG, "$this onResume")
@@ -135,6 +166,31 @@ class RecordingSystemActivity : Activity() {
                 noMicPopup = NoMicPopup(window.decorView.rootView)
                 destination_pager.run {
                     adapter = ViewPagerAdapter()
+                    setPadding(80, 0, 80, 0)
+                    clipToPadding = false
+
+                    val pageMargin = resources.getDimensionPixelOffset(R.dimen.pageMargin).toFloat() //30F
+                    val pageOffset = resources.getDimensionPixelOffset(R.dimen.offset).toFloat() //30F
+
+                    setPageTransformer { page, position ->
+                        val myOffset: Float = position * -(2 * pageOffset + pageMargin)
+                        when {
+                            position < -1 -> {
+                                page.translationX = -myOffset
+                            }
+                            position <= 1 -> {
+                                val scaleFactor =
+                                    0.7f.coerceAtLeast(1 - abs(position - 0.14285715f))
+                                page.translationX = myOffset
+                                page.scaleY = scaleFactor
+                                page.alpha = scaleFactor
+                            }
+                            else -> {
+                                page.alpha = 0F
+                                page.translationX = myOffset
+                            }
+                        }
+                    }
                     currentItem = DESTINATIONS.indexOf(service.getDestination())
                     registerOnPageChangeCallback(object :
                         ViewPager2.OnPageChangeCallback() {
