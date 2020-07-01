@@ -41,7 +41,7 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
     }
 
     private fun rectIndex(dB: Float): Int {
-        return (NUM_RECTS.toFloat() * (MIN_DB - dB) / MIN_DB).roundToInt()
+        return (NUM_RECTS * (MIN_DB - dB) / MIN_DB).roundToInt()
     }
 
     fun sampleToDb(value: Float) : Float {
