@@ -29,15 +29,14 @@ import kotlin.math.pow
 
 // After luanch:
 // 3) Study power
-// 4) Dong as a playsound when we stop recording
 // 5) Anything under 3 seconds don't upload to Drive
 // 6) Try to make the sound instant. Use SoundPool instead of MediaPlayer
-// 7) investigate the two hubs, figure out the prefference
+// 7) investigate the two hubs, figure out the preference
 // 8) Get shorter charge cable
 
 /*
  * NICE TO HAVE:
- * If FileSync has files to upload have adifferent message
+ * If FileSync has files to upload have a different message
  * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
  * Make sure that the sound recorded on software on the device is the same as recorded on tablet

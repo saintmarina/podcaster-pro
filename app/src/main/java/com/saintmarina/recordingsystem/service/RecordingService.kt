@@ -23,6 +23,7 @@ import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.ui.RecordingSystemActivity
 import com.saintmarina.recordingsystem.db.Database
 import com.saintmarina.recordingsystem.googledrive.FileSyncStatus
+import java.io.File
 import java.lang.Exception
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -31,6 +32,7 @@ const val FOREGROUND_ID = 1
 const val CHANNEL_ID: String = "1001"
 private const val MAX_RECORDING_TIME_MILLIS: Long = 3 * 3600 * 1000
 private const val TAG: String = "RecordingService"
+private const val SEC_IN_NANOS: Long = 1000 * 1000 * 1000
 
 @RequiresApi(Build.VERSION_CODES.Q)
 class RecordingService: Service() {
@@ -224,21 +226,25 @@ class RecordingService: Service() {
         //    have when we know the duration of the file
         // 4) We enqueue the file to be synced
         recorder.outputFile = null
+
         outputFile?.let {
             it.close() // Writes .wav header
-            it.renameToDatedFile(state.recordingDuration)
-            // TODO if state.recordingDuration < 3 sec --> delete the file; return from this let statement
-            val job = fileSync.makeJob(it.file, destination)
-            // To show the upload status message early, preventing a status message glitch due to threading
-            job.reportProgress(0)
-            fileSync.addJob(job)
+            if (state.recordingDuration < 3 * SEC_IN_NANOS) { // Deletes all recording that are < 3 seconds long
+                val isDeleted = it.file.delete()
+                Log.i(TAG, "${it.file} is shorter that 3 seconds. It is deleted $isDeleted.")
+            } else {
+                it.renameToDatedFile(state.recordingDuration)
+                val job = fileSync.makeJob(it.file, destination)
+                // To show the upload status message early, preventing a status message glitch due to threading
+                job.reportProgress(0)
+                fileSync.addJob(job)
+                Log.i(TAG, "File successfully recorded and passed for upload to FileSync")
+            }
         }
         outputFile = null
-
         invalidateActivity()
 
         stopForeground(true)
-        Log.i(TAG, "Audio recording stopped. File successfully recorded and passed to fileSync for upload.")
     }
 
     private fun pause() {
