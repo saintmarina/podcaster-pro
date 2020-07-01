@@ -29,15 +29,15 @@ class GoogleDriveFile(
     }
 
     private fun reportSuccessStatus(msg: String) {
-        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg for ${dest.localDir.name}", error=false))
+        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg for ${dest.cardName}", error=false))
     }
 
     private fun reportSuccessStatusWithDate(msg: String) {
-        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg for ${dest.localDir.name}", error=false, date=Date()))
+        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg for ${dest.cardName}", error=false, date=Date()))
     }
 
     fun reportErrorStatus(msg: String) {
-        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg for ${dest.localDir.name}", error=true))
+        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg for ${dest.cardName}", error=true))
     }
 
     fun upload() {
