@@ -9,12 +9,25 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
 
+private const val ANIMATION_DURATION = 300L
+
 class FadeAnimation(context: Context, attributeSet: AttributeSet): RelativeLayout(context, attributeSet) {
-    fun hide() {
+    var show: Boolean = visibility == View.VISIBLE
+    set(value) {
+        if (field != value) {
+            field = value
+            if (value)
+                show()
+            else
+                hide()
+        }
+    }
+
+    private fun hide() {
         visibility = View.INVISIBLE
     }
 
-    fun show() {
+    private fun show() {
         visibility = View.VISIBLE
     }
 }

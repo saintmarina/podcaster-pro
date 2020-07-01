@@ -53,15 +53,11 @@ Status:
  * NICE TO HAVE:
  * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
- * Card view instead of viewPager2
  * Make sure that the sound recorded on software on the device is the same as recorded on tablet
- * Sound notification when recording time reached 2:45 hrs
  * Add max sound bar for the past two seconds
- * Card view instead of viewPager2
  * Recovery files should have their header correctly set when uploaded
  * The audio feedback bipbip should seems delayed. It should not.
  *
- * Tell the user clipping occurred when stopping a recording if it occurred
  */
 // MDM make sure it doesn't have the title bar
 // TODO
@@ -81,8 +77,6 @@ private const val ACTIVITY_INVALIDATE_REFRESH_DELAY = 60000L /*1 minute*/
 private const val VOLUME_BAR_SLOWDOWN_RATE_DB_PER_SEC = 100
 private const val VOLUME_BAR_CLIP_DB = -1.0F
 private const val DID_CLIP_TIMEOUT_MILLIS = 5000L
-
-private const val ANIMATION_DURATION = 300L
 
 private const val TAG = "RecordingActivity"
 
@@ -229,7 +223,7 @@ class RecordingSystemActivity : Activity() {
         private val slowTimer = RepeatTimer(ACTIVITY_INVALIDATE_REFRESH_DELAY) { invalidate() }
         private val fastTimer = RepeatTimer(UI_REFRESH_DELAY) { fastInvalidate() }
         private val resetClippingTimer = OneshotTimer(DID_CLIP_TIMEOUT_MILLIS) {
-            soundVisualizer.didClip = false
+            volume_clip_fader.show = false
         }
         private var lastFastFrameUpdate = 0L
 
@@ -245,7 +239,10 @@ class RecordingSystemActivity : Activity() {
 
         fun invalidate() {
             val state = service.getState()
-            statusIndicator.state = state
+
+            val status = StatusMessage.fromState(state)
+            statusMessage.text = status.message
+            status_error_fader.show = status.isError
 
             when (state.recorderState) {
                 RecorderState.IDLE -> {
@@ -255,10 +252,10 @@ class RecordingSystemActivity : Activity() {
                     destination_pager.isUserInputEnabled = true
                     btn_pause.isEnabled = false
 
-                    btn_rec_fader.hide()
-                    background_recording_fader.hide()
-                    destination_pager_fader.show()
-                    clock_fader.hide()
+                    btn_rec_fader.show = false
+                    background_recording_fader.show = false
+                    destination_pager_fader.show = true
+                    clock_fader.show = false
                 }
                 RecorderState.RECORDING, RecorderState.PAUSED -> {
                     // Keeps screen on while recording
@@ -267,18 +264,14 @@ class RecordingSystemActivity : Activity() {
                     destination_pager.isUserInputEnabled = false
                     btn_pause.isEnabled = true // This needs a png to set, while it's disabled
 
-                    btn_rec_fader.show()
-                    background_recording_fader.show()
-                    destination_pager_fader.hide()
-                    clock_fader.show()
+                    btn_rec_fader.show = true
+                    background_recording_fader.show = true
+                    destination_pager_fader.show = false
+                    clock_fader.show = true
                 }
             }
 
-            if (state.recorderState == RecorderState.PAUSED) {
-                btn_pause_fader.show()
-            } else {
-                btn_pause_fader.hide()
-            }
+            btn_pause_fader.show = state.recorderState == RecorderState.PAUSED
 
             btn_start.isEnabled = state.audioError == null
             btn_pause.isEnabled = state.audioError == null
@@ -309,7 +302,7 @@ class RecordingSystemActivity : Activity() {
         private fun updateSoundBar(nanosSinceLastUpdate: Long) {
             if (!service.getState().micPlugged) {
                 soundVisualizer.volume = 0F
-                soundVisualizer.didClip = false
+                volume_clip_fader.show = false
                 return
             }
 
@@ -325,7 +318,7 @@ class RecordingSystemActivity : Activity() {
                 }
 
                 if (volume >= VOLUME_BAR_CLIP_DB) {
-                    soundVisualizer.didClip = true
+                    volume_clip_fader.show = true
                     resetClippingTimer.reset()
                 }
             }

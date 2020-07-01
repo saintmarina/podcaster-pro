@@ -23,70 +23,47 @@ private const val TAG = "StatusIndicator"
 private const val MILLIS_IN_MINUTE: Long = 60000
 private const val FORGET_LAST_RECORDING_MINS: Long = 2*60
 
-class StatusIndicator(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
-    private val green = Paint().apply {
-        color = Color.parseColor("#32CD32")
-        isAntiAlias = true }
-    private val red = Paint().apply {
-        color = Color.parseColor("#FF0000")
-        isAntiAlias = true }
+object StatusMessage {
     private var prettyTime = PrettyTime()
 
-    private var color: Paint = green
+    class Content(val message: String, val isError: Boolean)
 
-    var state: RecordingService.State = RecordingService.State()
-        set(value) {
-            field = value
-            refreshValues()
-            invalidate()
-        }
-
-    private fun refreshValues() {
-        var status: String
+    fun fromState(state: RecordingService.State): Content {
+        val isError: Boolean
+        var message: String
 
         when {
             state.audioError != null -> {
-                color = red
-                status = "Contact Nico at +1-646-504-6464. Audio failure: ${state.audioError}"
+                isError = true
+                message = "Contact Nico at +1-646-504-6464. Audio failure: ${state.audioError}"
             }
             !state.micPlugged -> {
-                color = red
-                status = "Microphone is not connected"
+                isError = true
+                message = "Microphone is not connected"
             }
             !state.internetAvailable -> {
-                color = red
-                status = "Internet is not connected"
+                isError = true
+                message = "Internet is not connected"
             }
             !state.powerAvailable -> {
-                color = red
-                status = "Power is not connected"
+                isError = true
+                message = "Power is not connected"
             }
             state.fileSyncStatus != null && state.fileSyncStatus!!.error -> {
-                color = red
-                status = state.fileSyncStatus!!.message
+                isError = true
+                message = state.fileSyncStatus!!.message
             }
             else -> {
-                color = green
-                status = generateSuccessMessage()
+                isError = false
+                message = generateSuccessMessage(state)
             }
         }
 
-        status = status.replace(".wav", "")
-        rootView.statusTextView.text = status
+        message = message.replace(".wav", "")
+        return Content(message, isError)
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
-
-        canvas?.let { it ->
-            val x = width / 2.toFloat()
-            val y = height / 2.toFloat()
-            val radius = 15.toFloat()
-            it.drawCircle(x, y, radius, color);
-        }
-    }
-
-    private fun generateSuccessMessage(): String {
+    private fun generateSuccessMessage(state: RecordingService.State): String {
         return when (state.recorderState) {
             RecordingService.RecorderState.IDLE -> {
                 // IDLE

@@ -17,7 +17,6 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
     private val painterYellow = Paint().apply { color = Color.parseColor("#888800") }
     private val painterRed = Paint().apply { color = Color.parseColor("#FF0000") }
 
-    var didClip: Boolean = false
     var volume: Float = 0F
         set(value) {
             if (field != value) {
@@ -46,10 +45,6 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
                 }
 
                 it.drawRect(rect, paintColor)
-            }
-
-            if (didClip) {
-                it.drawRect(clipIndicator, painterRed)
             }
         }
     }
