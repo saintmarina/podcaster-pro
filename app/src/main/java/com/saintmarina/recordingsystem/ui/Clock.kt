@@ -9,13 +9,21 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import android.view.View
+import com.saintmarina.recordingsystem.RepeatTimer
 import com.saintmarina.recordingsystem.Util
 
-private const val TAG = "timeTextView"
-
 private const val TEXT_COLOR = "#fafafa"
+private const val PAUSE_BLINK_DELAY = 600L
 
 class Clock(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
+    private val paint = Paint().apply {
+        color = Color.parseColor(TEXT_COLOR)
+        isAntiAlias = true
+        style = Paint.Style.FILL
+        textSize = 280F
+        setShadowLayer(12f, 0f, 5f, Color.argb(120, 0, 0, 0))
+    }
+
     var timeSec: Int = 0
         set(value) {
             if (field != value) {
@@ -28,25 +36,28 @@ class Clock(context: Context, attributeSet: AttributeSet): View(context, attribu
         set(value) {
             if (field != value) {
                 field = value
-                if (value) flashAnimation.enable() else flashAnimation.disable()
+                if (value) {
+                    hideText = true
+                    pauseAnimation.reset()
+                } else {
+                    pauseAnimation.stop()
+                    hideText = false
+                }
+                invalidate()
             }
         }
 
-    private val paintText = Paint().apply {
-        color = Color.parseColor(TEXT_COLOR)
-        isAntiAlias = true
-        style = Paint.Style.FILL
-        textSize = 280F
-    }
-
-    private val painterTransparent = Paint(paintText).apply {
-        color = Color.TRANSPARENT
-    }
-
-    private var paint: Paint = paintText
+    private var hideText = false
+    private val pauseAnimation = RepeatTimer(PAUSE_BLINK_DELAY) {
+        hideText = !hideText
+        invalidate()
+    }.apply { stop() } // Repeat timer maybe shouldn't be scheduled right away
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
+        if (hideText)
+            return
+
         val timeString = Util.formatAudioDuration(timeSec)
         val bounds = Rect()
         paint.getTextBounds(timeString, 0, timeString.length, bounds)
@@ -59,25 +70,5 @@ class Clock(context: Context, attributeSet: AttributeSet): View(context, attribu
 
         canvas?.translate(0F, textHeight)
         canvas?.drawText(timeString, x, y, paint)
-    }
-
-    private val flashAnimation = object : Runnable {
-        private val handler = Handler(Looper.getMainLooper())
-
-        override fun run() {
-            paint = if (paint == paintText) painterTransparent else paintText
-            invalidate()
-            handler.postDelayed(this, 400L)
-        }
-
-        fun enable() {
-            run()
-        }
-
-        fun disable() {
-            handler.removeCallbacksAndMessages(null)
-            paint = paintText
-            invalidate()
-        }
     }
 }
