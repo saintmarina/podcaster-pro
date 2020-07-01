@@ -28,15 +28,15 @@ class GoogleDriveFile(
     }
 
     private fun reportSuccessStatus(msg: String) {
-        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg for ${dest.cardName}", error=false))
+        onStatusChange?.invoke(FileSyncStatus(message="${dest.cardName}\n${file.name}\n$msg", error=false))
     }
 
     private fun reportSuccessStatusWithDate(msg: String) {
-        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg for ${dest.cardName}", error=false, date=Date()))
+        onStatusChange?.invoke(FileSyncStatus(message="${dest.cardName}\n${file.name}\n$msg", error=false, date=Date()))
     }
 
     fun reportErrorStatus(msg: String) {
-        onStatusChange?.invoke(FileSyncStatus(message= "\"${file.name}\" $msg for ${dest.cardName}", error=true))
+        onStatusChange?.invoke(FileSyncStatus(message="${dest.cardName}: ${file.name}\n$msg", error=true))
     }
 
     fun upload() {
@@ -65,7 +65,7 @@ class GoogleDriveFile(
         metadata.save()
         Log.i(tag, "uploaded")
 
-        reportSuccessStatusWithDate("uploaded")
+        reportSuccessStatusWithDate("File uploaded")
     }
 
     private fun uploadFile(startPosition: Long, sessionUri: String) {
@@ -111,9 +111,9 @@ class GoogleDriveFile(
     fun reportProgress(bytesUploaded: Int) {
         val percent = (bytesUploaded.toDouble()/fileSize * 100).toInt()
         if (percent == 100)
-            reportSuccessStatus("almost done uploading")
+            reportSuccessStatus("File almost done uploading")
         else
-            reportSuccessStatus("$percent% uploaded")
+            reportSuccessStatus("File $percent% uploaded")
     }
 
     private fun createSession(): String {

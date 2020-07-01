@@ -27,7 +27,7 @@ class FilesSync(private val drive: GoogleDrive, val context: Context): Thread() 
                 job.upload()
                 wakeLock.release()
             } catch (e: Exception) {
-                job.reportErrorStatus("failed to upload: ${e.message}. Retrying")
+                job.reportErrorStatus("Failed to upload: ${e.message}. Retrying")
                 Log.e(TAG, "Error: $e")
                 sleep(TIMEOUT_AFTER_FAILURE_MILLIS)
                 jobQueue.add(job)
