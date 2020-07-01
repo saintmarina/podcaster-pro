@@ -15,8 +15,7 @@ private const val TAG = "timeTextView"
 
 private const val TEXT_COLOR = "#fafafa"
 
-class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
-
+class Clock(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
     var timeSec: Int = 0
         set(value) {
             if (field != value) {
@@ -37,7 +36,7 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
         color = Color.parseColor(TEXT_COLOR)
         isAntiAlias = true
         style = Paint.Style.FILL
-        textSize = 250F
+        textSize = 280F
     }
 
     private val painterTransparent = Paint(paintText).apply {

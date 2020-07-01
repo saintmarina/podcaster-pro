@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="1660px"
+    android:layout_height="2560px"
     android:orientation="vertical"
     android:layout_centerHorizontal="true"
     tools:context=".ui.RecordingSystemActivity">
@@ -12,8 +12,7 @@
         android:id="@+id/background_idle"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="true"
+        android:layout_marginTop="0px"
         android:src="@drawable/bg_idle"
         android:scaleType="centerCrop"/>
 
@@ -47,14 +46,15 @@
     <!-- Clock -->
     <com.saintmarina.recordingsystem.ui.FadeAnimation
         android:id="@+id/clock_fader"
+        android:visibility="invisible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
-        <com.saintmarina.recordingsystem.ui.TimeTextView
+        <com.saintmarina.recordingsystem.ui.Clock
             android:id="@+id/clock"
             android:layout_width="match_parent"
             android:layout_height="300px"
             android:visibility="visible"
-            android:layout_marginTop="680px"
+            android:layout_marginTop="670px"
             android:layout_centerHorizontal="true" />
     </com.saintmarina.recordingsystem.ui.FadeAnimation>
 
