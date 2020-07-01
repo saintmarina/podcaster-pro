@@ -75,7 +75,7 @@ object StatusMessage {
                             null
                         }
                     }
-                } ?: "Ready\nMake sure you have water and lip balm"
+                } ?: "Get ready to record. Don't forget your water"
             }
             else -> {
                 // RECORDING, PAUSED
