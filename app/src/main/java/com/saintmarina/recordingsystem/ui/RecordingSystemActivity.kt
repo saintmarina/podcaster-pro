@@ -18,6 +18,7 @@ import com.saintmarina.recordingsystem.service.NANOS_IN_SEC
 import com.saintmarina.recordingsystem.service.RecordingService
 import com.saintmarina.recordingsystem.service.RecordingService.RecorderState
 import kotlinx.android.synthetic.main.activity_recording_system.*
+import java.awt.font.TextAttribute
 import java.lang.Float.max
 import kotlin.math.abs
 import kotlin.math.pow
@@ -184,6 +185,7 @@ class RecordingSystemActivity : Activity() {
             val state = service.getState()
 
             val status = StatusMessage.fromState(state)
+            statusMessage.textAlignment = if (status.center) { View.TEXT_ALIGNMENT_CENTER } else { View.TEXT_ALIGNMENT_GRAVITY }
             statusMessage.text = status.message
             status_error_fader.show = status.isError
 
