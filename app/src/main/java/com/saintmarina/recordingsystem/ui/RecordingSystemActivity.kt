@@ -20,6 +20,7 @@ import com.saintmarina.recordingsystem.service.RecordingService.RecorderState
 import kotlinx.android.synthetic.main.activity_recording_system.*
 import java.lang.Float.max
 import kotlin.math.abs
+import kotlin.math.pow
 
 
 /* UI:
@@ -59,7 +60,7 @@ Status:
  * The audio feedback bipbip should seems delayed. It should not.
  *
  */
-// MDM make sure it doesn't have the title bar
+
 // TODO
 // When the status is error: fade in an image
 // When the sound viz is clipping, fade in an image.
@@ -77,6 +78,8 @@ private const val ACTIVITY_INVALIDATE_REFRESH_DELAY = 60000L /*1 minute*/
 private const val VOLUME_BAR_SLOWDOWN_RATE_DB_PER_SEC = 100
 private const val VOLUME_BAR_CLIP_DB = -1.0F
 private const val DID_CLIP_TIMEOUT_MILLIS = 5000L
+private const val PAGER_MARGIN_OFFSET = 470F
+private const val PAGER_NEXT_CARD_SCALE = 0.8F
 
 private const val TAG = "RecordingActivity"
 
@@ -93,36 +96,7 @@ class RecordingSystemActivity : Activity() {
         Log.i(TAG, "onCreate of the Recording Activity")
         startRecordingService()
     }
-/*
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_recording_system)
-        myViewPager2 = findViewById(R.id.viewpager)
-        MyAdapter = MyAdapter(this)
-        myViewPager2.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL)
-        myViewPager2.setAdapter(MyAdapter)
-        myViewPager2.setOffscreenPageLimit(3)
-        val pageMargin =
-            resources.getDimensionPixelOffset(R.dimen.pageMargin).toFloat()
-        val pageOffset =
-            resources.getDimensionPixelOffset(R.dimen.offset).toFloat()
-        myViewPager2.setPageTransformer({ page, position ->
-            val myOffset: Float = position * -(2 * pageOffset + pageMargin)
-            if (position < -1) {
-                page.setTranslationX(-myOffset)
-            } else if (position <= 1) {
-                val scaleFactor =
-                    Math.max(0.7f, 1 - Math.abs(position - 0.14285715f))
-                page.setTranslationX(myOffset)
-                page.setScaleY(scaleFactor)
-                page.setAlpha(scaleFactor)
-            } else {
-                page.setAlpha(0)
-                page.setTranslationX(myOffset)
-            }
-        })
-    }
-*/
+
     override fun onResume() {
         super.onResume()
         Log.i(TAG, "$this onResume")
@@ -158,32 +132,15 @@ class RecordingSystemActivity : Activity() {
                 uiUpdater = UiUpdater(service)
 
                 noMicPopup = NoMicPopup(window.decorView.rootView)
+
                 destination_pager.run {
                     adapter = ViewPagerAdapter()
-                    setPadding(80, 0, 80, 0)
-                    clipToPadding = false
-
-                    val pageMargin = resources.getDimensionPixelOffset(R.dimen.pageMargin).toFloat() //30F
-                    val pageOffset = resources.getDimensionPixelOffset(R.dimen.offset).toFloat() //30F
-
+                    offscreenPageLimit = 1
+                    // Page transformer implements 'carousel' animation effect
                     setPageTransformer { page, position ->
-                        val myOffset: Float = position * -(2 * pageOffset + pageMargin)
-                        when {
-                            position < -1 -> {
-                                page.translationX = -myOffset
-                            }
-                            position <= 1 -> {
-                                val scaleFactor =
-                                    0.7f.coerceAtLeast(1 - abs(position - 0.14285715f))
-                                page.translationX = myOffset
-                                page.scaleY = scaleFactor
-                                page.alpha = scaleFactor
-                            }
-                            else -> {
-                                page.alpha = 0F
-                                page.translationX = myOffset
-                            }
-                        }
+                        page.translationX = -position * PAGER_MARGIN_OFFSET
+                        page.scaleX = PAGER_NEXT_CARD_SCALE.pow(abs(position))
+                        page.scaleY = page.scaleX
                     }
                     currentItem = DESTINATIONS.indexOf(service.getDestination())
                     registerOnPageChangeCallback(object :
