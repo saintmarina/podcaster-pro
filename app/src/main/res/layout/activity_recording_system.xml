@@ -6,6 +6,8 @@
     android:orientation="vertical"
     android:layout_centerHorizontal="true"
     tools:context=".ui.RecordingSystemActivity">
+
+    <!-- Background images -->
     <ImageView
         android:id="@+id/background_idle"
         android:layout_width="match_parent"
@@ -14,29 +16,49 @@
         android:layout_alignParentBottom="true"
         android:src="@drawable/bg_idle"
         android:scaleType="centerCrop"/>
-    <ImageView
-        android:id="@+id/background_recording"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="true"
-        android:scaleType="centerCrop"/>
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/destination_pager"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:layout_marginTop="130dp">
-    </androidx.viewpager2.widget.ViewPager2>
+    <com.saintmarina.recordingsystem.ui.FadeAnimation
+        android:id="@+id/background_recording_fader"
+        android:visibility="invisible"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/background_recording"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentBottom="true"
+            android:src="@drawable/bg_recording"
+            android:scaleType="centerCrop"/>
+    </com.saintmarina.recordingsystem.ui.FadeAnimation>
 
-    <com.saintmarina.recordingsystem.ui.TimeTextView
-        android:id="@+id/clock"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:visibility="visible"
-        android:layout_marginTop="190dp"
-        android:layout_centerHorizontal="true" />
+    <!-- Destination pager -->
+    <com.saintmarina.recordingsystem.ui.FadeAnimation
+        android:id="@+id/destination_pager_fader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/destination_pager"
+            android:layout_width="match_parent"
+            android:layout_height="588px"
+            android:layout_marginTop="487px" />
+    </com.saintmarina.recordingsystem.ui.FadeAnimation>
 
+    <!-- Clock -->
+    <com.saintmarina.recordingsystem.ui.FadeAnimation
+        android:id="@+id/clock_fader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <com.saintmarina.recordingsystem.ui.TimeTextView
+            android:id="@+id/clock"
+            android:layout_width="match_parent"
+            android:layout_height="300px"
+            android:visibility="visible"
+            android:layout_marginTop="680px"
+            android:layout_centerHorizontal="true" />
+    </com.saintmarina.recordingsystem.ui.FadeAnimation>
+
+    <!-- Volume bar -->
     <com.saintmarina.recordingsystem.ui.SoundVisualizer
         android:id="@+id/soundVisualizer"
         android:layout_width="match_parent"
@@ -44,25 +66,88 @@
         android:layout_marginTop="1295px"
         />
 
-        <ImageButton
-            android:id="@+id/btnStart"
-            android:src="@drawable/selector_start_btn"
-            android:layout_height="298px"
-            android:layout_width="300px"
+    <!-- Rec button -->
+    <FrameLayout
+        android:layout_height="298px"
+        android:layout_width="300px"
+        android:layout_marginLeft="650px"
+        android:layout_marginTop="1625px"
+        >
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/rec_off"
+            android:scaleType="centerCrop"/>
+
+        <com.saintmarina.recordingsystem.ui.FadeAnimation
+            android:visibility="invisible"
+            android:id="@+id/btn_rec_fader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/rec_on"
+                android:scaleType="centerCrop"/>
+        </com.saintmarina.recordingsystem.ui.FadeAnimation>
+
+        <Button
+            android:id="@+id/btn_start"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
             android:scaleType="fitCenter"
-            android:layout_marginLeft="650px"
-            android:layout_marginTop="1625px" />
+            android:background="@android:color/transparent" />
+    </FrameLayout>
 
-        <ImageButton
-            android:id="@+id/btnPause"
-            android:src="@drawable/selector_pause_btn"
-            android:layout_width="197px"
-            android:layout_height="197px"
+    <!-- Pause button -->
+    <FrameLayout
+        android:layout_width="197px"
+        android:layout_height="197px"
+        android:layout_marginLeft="1110px"
+        android:layout_marginTop="1676px"
+        >
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/pause_off"
+            android:scaleType="centerCrop"/>
+
+        <com.saintmarina.recordingsystem.ui.FadeAnimation
+            android:visibility="invisible"
+            android:id="@+id/btn_pause_fader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/pause_on"
+                android:scaleType="centerCrop"/>
+        </com.saintmarina.recordingsystem.ui.FadeAnimation>
+
+        <Button
+            android:id="@+id/btn_pause"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
             android:scaleType="fitCenter"
-            android:layout_marginLeft="1110px"
-            android:layout_marginTop="1676px"/>
+            android:background="@android:color/transparent" />
+    </FrameLayout>
 
-
+    <!-- Status message -->
+    <com.saintmarina.recordingsystem.ui.FadeAnimation
+        android:visibility="invisible"
+        android:id="@+id/status_error_fader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_width="1392px"
+            android:layout_height="393px"
+            android:layout_marginLeft="105px"
+            android:layout_marginTop="2072px"
+            android:src="@drawable/status_error"
+            android:scaleType="centerCrop"/>
+    </com.saintmarina.recordingsystem.ui.FadeAnimation>
 
     <com.saintmarina.recordingsystem.ui.StatusIndicator
         android:id="@+id/statusIndicator"
@@ -76,5 +161,22 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:textSize="30sp"
+        android:textColor="#e8e8e8"
         android:layout_marginTop="2072px"/>
+
+
+<!--    Cards:-->
+<!--    * they are positioned at X=274 (horizontally centered), Y=487-->
+<!--    * they have a 30px rounded corner-->
+<!--    * they have a 32px drop shadow at 70% opacity. If possible with an Y offset of 5px towards the bottom-->
+
+<!--    Timer:-->
+<!--    * The timer text color is #fafafa-->
+
+<!--    Volume bar:-->
+<!--    * The first volume rect is at X=110, Y=1295-->
+<!--    * Volume rect appear every X=23 (so the second volume rect is at X=133px)-->
+<!--    * 57 volume rect fill entirely the volume bar-->
+<!--    * The volume bar clipping indicator is at X=105, Y=1284-->
+
 </RelativeLayout>

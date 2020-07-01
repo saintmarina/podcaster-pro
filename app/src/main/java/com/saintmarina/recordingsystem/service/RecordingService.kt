@@ -75,6 +75,7 @@ class RecordingService: Service() {
             if (state.recorderState == RecorderState.RECORDING)
                 throw Exception("Trying to change destination while recording")
             destination = dest
+            invalidateActivity()
         }
 
         fun toggleStartStop() {

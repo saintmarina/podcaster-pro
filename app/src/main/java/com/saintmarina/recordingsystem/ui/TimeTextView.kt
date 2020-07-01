@@ -13,7 +13,10 @@ import com.saintmarina.recordingsystem.Util
 
 private const val TAG = "timeTextView"
 
+private const val TEXT_COLOR = "#fafafa"
+
 class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, attributeSet) {
+
     var timeSec: Int = 0
         set(value) {
             if (field != value) {
@@ -30,18 +33,18 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
             }
         }
 
-    private val painterBlack = Paint().apply {
-        color = Color.BLACK
+    private val paintText = Paint().apply {
+        color = Color.parseColor(TEXT_COLOR)
         isAntiAlias = true
         style = Paint.Style.FILL
         textSize = 250F
     }
 
-    private val painterTransparent = Paint(painterBlack).apply {
+    private val painterTransparent = Paint(paintText).apply {
         color = Color.TRANSPARENT
     }
 
-    private var paint: Paint = painterBlack
+    private var paint: Paint = paintText
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
@@ -63,7 +66,7 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
         private val handler = Handler(Looper.getMainLooper())
 
         override fun run() {
-            paint = if (paint == painterBlack) painterTransparent else painterBlack
+            paint = if (paint == paintText) painterTransparent else paintText
             invalidate()
             handler.postDelayed(this, 400L)
         }
@@ -74,7 +77,7 @@ class TimeTextView(context: Context, attributeSet: AttributeSet): View(context, 
 
         fun disable() {
             handler.removeCallbacksAndMessages(null)
-            paint = painterBlack
+            paint = paintText
             invalidate()
         }
     }

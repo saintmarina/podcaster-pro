@@ -13,3 +13,4 @@
 .externalNativeBuild
 .cxx
 interface.psd
+app/src/main/assets/credentials.json

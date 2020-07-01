@@ -9,7 +9,6 @@ import android.graphics.drawable.TransitionDrawable
 import android.os.*
 import android.util.Log
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.viewpager2.widget.ViewPager2
@@ -58,6 +57,7 @@ Status:
  * Add max sound bar for the past two seconds
  * Card view instead of viewPager2
  * Recovery files should have their header correctly set when uploaded
+ * The audio feedback bipbip should seems delayed. It should not.
  *
  * Tell the user clipping occurred when stopping a recording if it occurred
  */
@@ -150,29 +150,11 @@ class RecordingSystemActivity : Activity() {
                     })
                 }
 
-                btnStart.setOnClickListener {
-                    if (service.getState().recorderState == RecorderState.IDLE) {
-                        background_recording.alpha = 0f
-                        background_recording.setImageResource(R.drawable.bg_recording)
-                        background_recording.animate().apply {
-                            cancel()
-                            duration = ANIMATION_DURATION
-                            alpha(1f)
-                            start()
-                        }
-                    } else {
-                        background_recording.setImageResource(R.drawable.bg_recording)
-                        background_recording.animate().apply {
-                            cancel()
-                            duration = ANIMATION_DURATION
-                            alpha(0f)
-                            start()
-                            }
-                        }
+                btn_start.setOnClickListener {
                     service.toggleStartStop()
                 }
 
-                btnPause.setOnClickListener {
+                btn_pause.setOnClickListener {
                     service.togglePauseResume()
                 }
 
@@ -186,24 +168,6 @@ class RecordingSystemActivity : Activity() {
                 Thread.sleep(1000L)
                 startRecordingService()
             }
-
-
-            /*
-            imageView.startAnimation(fadeOut);
-
-            fadeOut.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {
-                }
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    Animation fadeIn = AnimationUtils.loadAnimation(YourActivity.this, R.anim.fade_in);
-                    imageView.startAnimation(fadeIn);
-                }
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-                }
-            });*/
         }
 
         val serviceIntent = Intent(this, RecordingService::class.java)
@@ -238,35 +202,36 @@ class RecordingSystemActivity : Activity() {
                     // Keeps screed on the default state (not on) while not recording
                     // Note: has to be done on UI Thread
                     window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-                    clock.visibility = TextView.GONE
-
-                    destination_pager.visibility = TextView.VISIBLE
                     destination_pager.isUserInputEnabled = true
+                    btn_pause.isEnabled = false
 
-                    btnStart.isSelected = false
-                    btnPause.isEnabled = false
-
-                    soundVisualizer.didClip = false
+                    btn_rec_fader.hide()
+                    background_recording_fader.hide()
+                    destination_pager_fader.show()
+                    clock_fader.hide()
                 }
                 RecorderState.RECORDING, RecorderState.PAUSED -> {
                     // Keeps screen on while recording
                     // Note: has to be done on UI Thread
                     window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-                    clock.visibility = TextView.VISIBLE
-
-                    destination_pager.visibility = TextView.GONE
                     destination_pager.isUserInputEnabled = false
+                    btn_pause.isEnabled = true // This needs a png to set, while it's disabled
 
-                    btnPause.isEnabled = true // This needs a png to set, while it's disabled
-                    btnPause.isSelected = state.recorderState == RecorderState.PAUSED
-                    btnStart.isSelected = true
+                    btn_rec_fader.show()
+                    background_recording_fader.show()
+                    destination_pager_fader.hide()
+                    clock_fader.show()
                 }
             }
 
-            btnStart.isEnabled = state.audioError == null
-            btnPause.isEnabled = state.audioError == null
+            if (state.recorderState == RecorderState.PAUSED) {
+                btn_pause_fader.show()
+            } else {
+                btn_pause_fader.hide()
+            }
+
+            btn_start.isEnabled = state.audioError == null
+            btn_pause.isEnabled = state.audioError == null
 
             if (!EXPERT_MODE) {
                 noMicPopup?.isMicPresent = state.micPlugged  // Skipping noMic PopUp for EXPERT MODE
