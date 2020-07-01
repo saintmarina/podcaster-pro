@@ -26,19 +26,19 @@ object StatusMessage {
         when {
             state.audioError != null -> {
                 isError = true
-                message = "Contact Nico at +1-646-504-6464. Audio failure: ${state.audioError}"
+                message = "Error: Something is wrong\nContact Nico at +1-646-504-6464\nAudio failure: ${state.audioError}"
             }
             !state.micPlugged -> {
                 isError = true
-                message = "Microphone is not connected"
+                message = "Error: Microphone is not connected\nCheck microphone connections"
             }
             !state.internetAvailable -> {
                 isError = true
-                message = "Internet is not connected"
+                message = "Warning: Internet connection lost\nYou may record audio but the files will be uploaded once the internet connection is reestablished"
             }
             !state.powerAvailable -> {
                 isError = true
-                message = "Power is not connected"
+                message = "Warning: Power outage detected\nThe Recording System is running on battery"
             }
             state.fileSyncStatus != null && state.fileSyncStatus!!.error -> {
                 isError = true
@@ -75,7 +75,7 @@ object StatusMessage {
                             null
                         }
                     }
-                } ?: "Get ready to record. Don't forget your water"
+                } ?: "Get ready to record\nDon't forget your water"
             }
             else -> {
                 // RECORDING, PAUSED
