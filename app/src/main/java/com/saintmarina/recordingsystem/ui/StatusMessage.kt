@@ -9,7 +9,7 @@ private val INSPIRATIONS = arrayOf(
     "You are an inspiration to others",
     "Speak from the heart",
     "Raise the frequency of the planet",
-    "Your words reaches thousands"
+    "Your words reach thousands"
 )
 
 private const val MILLIS_IN_MINUTE: Long = 60000
