@@ -76,8 +76,9 @@
     <com.saintmarina.recordingsystem.ui.SoundVisualizer
         android:id="@+id/soundVisualizer"
         android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:layout_marginTop="1295px"
+        android:layout_height="177px"
+        android:layout_marginTop="1275px"
+        android:layout_marginLeft="89px"
         />
 
     <!-- Rec button -->

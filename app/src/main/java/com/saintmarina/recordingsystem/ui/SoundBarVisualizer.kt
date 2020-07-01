@@ -1,21 +1,24 @@
 package com.saintmarina.recordingsystem.ui
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
+import android.graphics.*
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
+import android.widget.ImageView
+import com.saintmarina.recordingsystem.R
 import kotlin.math.ln
 import kotlin.math.roundToInt
 
 const val MIN_DB = -50.0
+const val NUM_RECTS = 56
+const val RED_DB_THRESHOLD = -8.0f
+const val RECT_OFFSET_X_PX = 23f
 
 class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(context, attributeSet) {
-    private val painterGreen = Paint().apply { color = Color.parseColor("#32CD32") }
-    private val painterYellow = Paint().apply { color = Color.parseColor("#888800") }
-    private val painterRed = Paint().apply { color = Color.parseColor("#FF0000") }
+    private val whiteRect = BitmapFactory.decodeResource(context.resources, R.drawable.volume_bar_white, BitmapFactory.Options().apply { inScaled = false })
+    private val redRect   = BitmapFactory.decodeResource(context.resources, R.drawable.volume_bar_red, BitmapFactory.Options().apply { inScaled = false })
+    private val redRectsThresholdIndex = rectIndex(RED_DB_THRESHOLD)
 
     var volume: Float = 0F
         set(value) {
@@ -29,28 +32,16 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
         super.onDraw(canvas)
 
         canvas?.let {
-            val maxPx = DbToPx(volume)
-            val spacer = 3
-            val rectWidth = 7
-            val fullRectWidth = spacer + rectWidth
-            val clipIndicator = Rect(width-11, 0, width, height)
-
-            for (px in 0..maxPx step fullRectWidth) {
-                val rect = Rect(px, 0, px+rectWidth, height)
-
-                val paintColor = when {
-                    px > width*0.75 -> painterRed
-                    px > width*0.5 -> painterYellow
-                    else -> painterGreen
-                }
-
-                it.drawRect(rect, paintColor)
+            val numRects = rectIndex(volume)
+            for (i in 0..numRects) {
+                val rect = if (i < redRectsThresholdIndex) whiteRect else redRect
+                it.drawBitmap(rect, i * RECT_OFFSET_X_PX, 0f, null)
             }
         }
     }
 
-    private fun DbToPx(dB: Float): Int {
-        return (width*(MIN_DB - dB)/ MIN_DB).roundToInt()
+    private fun rectIndex(dB: Float): Int {
+        return (NUM_RECTS.toFloat() * (MIN_DB - dB) / MIN_DB).roundToInt()
     }
 
     fun sampleToDb(value: Float) : Float {

@@ -58,7 +58,7 @@ Status:
  * Add max sound bar for the past two seconds
  * Recovery files should have their header correctly set when uploaded
  * The audio feedback bipbip should seems delayed. It should not.
- *
+ * SaiMaa card should be properly shown
  */
 
 // TODO
@@ -141,6 +141,7 @@ class RecordingSystemActivity : Activity() {
                         page.translationX = -position * PAGER_MARGIN_OFFSET
                         page.scaleX = PAGER_NEXT_CARD_SCALE.pow(abs(position))
                         page.scaleY = page.scaleX
+                        page.alpha = page.scaleX.pow(1.5f)
                     }
                     currentItem = DESTINATIONS.indexOf(service.getDestination())
                     registerOnPageChangeCallback(object :
