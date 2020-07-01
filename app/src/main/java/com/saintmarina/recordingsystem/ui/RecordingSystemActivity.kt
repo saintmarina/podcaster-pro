@@ -25,12 +25,9 @@ import kotlin.math.pow
 
 // Before launch:
 // 1) Setup google drive folders
-// 2) Change the uplifting messages
 
 // After luanch:
 // 3) Study power
-// 5) Anything under 3 seconds don't upload to Drive
-// 6) Try to make the sound instant. Use SoundPool instead of MediaPlayer
 // 7) investigate the two hubs, figure out the preference
 // 8) Get shorter charge cable
 
