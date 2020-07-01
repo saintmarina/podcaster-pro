@@ -89,7 +89,7 @@ class RecordingService: Service() {
         fun togglePauseResume() {
             Log.i(TAG, "togglePauseResume invoked")
             when (state.recorderState) {
-                RecorderState.IDLE -> showToast("You are not recording")
+                RecorderState.IDLE -> Log.i(TAG, "Pause pressed while IDLE")
                 RecorderState.RECORDING -> pause()
                 RecorderState.PAUSED -> resume()
             }
