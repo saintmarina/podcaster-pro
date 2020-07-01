@@ -33,24 +33,3 @@ class ViewPagerAdapter : RecyclerView.Adapter<PagerVH>() {
         }
     }
 }
-
-/*
-
-{
-  // main ui
-  "pager": {
-    "currentItem": X,
-    "adapter": { RecyclerAdapter
-
-    }
-    "views": [
-        PagerVH(inflated layout),
-        PagerVH(),
-        PagerVH(),
-        PagerVH(),
-        PagerVH(),
-      ]
-  }
-}
-
- */

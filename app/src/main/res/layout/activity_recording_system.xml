@@ -40,8 +40,8 @@
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/destination_pager"
             android:layout_width="match_parent"
-            android:layout_height="700px"
-            android:layout_marginTop="447px" />
+            android:layout_height="648px"
+            android:layout_marginTop="462px" />
     </com.saintmarina.recordingsystem.ui.FadeAnimation>
 
     <!-- Clock -->
