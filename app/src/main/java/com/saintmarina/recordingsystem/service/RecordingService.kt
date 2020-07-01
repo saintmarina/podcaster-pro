@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.ContentResolver
-import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.net.Uri
@@ -184,6 +183,7 @@ class RecordingService: Service() {
         if (state.recorderState != RecorderState.IDLE)
             return
 
+        soundEffect.playStartSound()
         try {
             outputFile = WavFileOutput(destination.localDir)
             recorder.outputFile = outputFile
@@ -192,10 +192,8 @@ class RecordingService: Service() {
             state.audioError = e.message
             return
         }
-
         stopWatch.reset() // Must be first in start() as other depend on the stopWatch.
         stopWatch.start()
-        soundEffect.playStartSound()
         autoStopTimer.enable()
         state.recorderState = RecorderState.RECORDING
         state.timeWhenStarted = Date()
@@ -210,8 +208,8 @@ class RecordingService: Service() {
         if (state.recorderState == RecorderState.IDLE)
             return
 
-        stopWatch.stop()
         soundEffect.playStopSound()
+        stopWatch.stop()
         autoStopTimer.disable()
         state.timeWhenStarted = null
         state.recordingDuration = stopWatch.getElapsedTimeNanos()
@@ -246,10 +244,9 @@ class RecordingService: Service() {
         if (state.recorderState != RecorderState.RECORDING)
             return
 
-        stopWatch.stop()
         soundEffect.playStopSound()
+        stopWatch.stop()
         autoStopTimer.disable()
-
         state.recorderState = RecorderState.PAUSED
         invalidateActivity()
 
@@ -261,10 +258,9 @@ class RecordingService: Service() {
          if (state.recorderState != RecorderState.PAUSED)
              return
 
-         stopWatch.start()
          soundEffect.playStartSound()
+         stopWatch.start()
          autoStopTimer.enable()
-
          state.recorderState = RecorderState.RECORDING
          invalidateActivity()
 

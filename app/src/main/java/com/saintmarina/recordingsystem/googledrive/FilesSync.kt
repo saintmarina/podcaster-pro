@@ -3,8 +3,6 @@ package com.saintmarina.recordingsystem.googledrive
 import android.content.Context
 import android.os.PowerManager
 import android.util.Log
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.room.RoomSQLiteQuery.acquire
 import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.Destination
 import java.io.File

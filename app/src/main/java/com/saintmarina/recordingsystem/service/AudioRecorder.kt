@@ -34,7 +34,7 @@ class AudioRecorder : Closeable, Thread() {
         @Synchronized get
 
     private var terminationRequested: Boolean = false
-    var peak: Float? = null
+    private var peak: Float? = null
 
     // Once audioError occurred, the application is broken. Assistance is needed
     var onError: ((msg: String) -> Unit)? = null

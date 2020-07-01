@@ -10,7 +10,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
 
-
 const val KB_IN_BYTES = 1000
 
 class FileSyncStatus(val message: String, val error: Boolean, val date: Date? = null)

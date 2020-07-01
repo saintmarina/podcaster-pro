@@ -9,11 +9,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.saintmarina.recordingsystem.R
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_check_permissions.*
 
 private const val TAG = "CheckPermissionActivity"
 private const val REQUEST_CODE: Int = 0
@@ -33,7 +32,7 @@ class CheckPermissionsActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i(TAG, "inside onCreate CheckPermissionActivity")
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_check_permissions)
         acquirePermissions(permissions)
 
         try_again_btn.setOnClickListener {

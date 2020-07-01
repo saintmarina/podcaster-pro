@@ -59,6 +59,7 @@ Status:
  * Recovery files should have their header correctly set when uploaded
  * The audio feedback bipbip should seems delayed. It should not.
  * SaiMaa card should be properly shown
+ * Save the destination in the Database
  */
 
 // TODO
