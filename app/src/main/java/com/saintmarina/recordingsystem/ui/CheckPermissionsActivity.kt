@@ -40,8 +40,8 @@ class CheckPermissionsActivity : Activity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onRestart() {
+        super.onRestart()
         startRecordingSystemActivity()
     }
 

@@ -9,9 +9,10 @@ import java.io.File
 import java.lang.Exception
 import java.util.concurrent.LinkedBlockingQueue
 
-private const val TAG: String = "Files Sync"
+private const val TAG: String = "FilesSync"
 private const val TIMEOUT_AFTER_FAILURE_MILLIS: Long = 10000
 
+// TODO rename to FileSync
 class FilesSync(private val drive: GoogleDrive, val context: Context): Thread() {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: ((FileSyncStatus) -> Unit)? = null
@@ -28,7 +29,7 @@ class FilesSync(private val drive: GoogleDrive, val context: Context): Thread() 
                 wakeLock.release()
             } catch (e: Exception) {
                 job.reportErrorStatus("Failed to upload: ${e.message}. Retrying")
-                Log.e(TAG, "Error: $e")
+                Log.e(TAG, "Error: ${Log.getStackTraceString(e)}")
                 sleep(TIMEOUT_AFTER_FAILURE_MILLIS)
                 jobQueue.add(job)
             }
@@ -51,7 +52,7 @@ class FilesSync(private val drive: GoogleDrive, val context: Context): Thread() 
 
     fun makeJob(file: File, dest: Destination): GoogleDriveFile {
         return GoogleDriveFile(file, dest, drive).apply {
-            onStatusChange = this@FilesSync.onStatusChange
+            onStatusChange = { this@FilesSync.onStatusChange?.invoke(it) }
         }
     }
 

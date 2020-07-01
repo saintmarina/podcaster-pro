@@ -11,15 +11,11 @@ import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
 
-// Google console service account page https://console.cloud.google.com/projectselector2/iam-admin/serviceaccounts?pli=1&supportedpurview=project
-
-//https://drive.google.com/drive/folders/1y8LPodwpaPNI-BwGHyrbk5Ci7TEe0_0l?usp=sharing
-
-
 /*
  * service account token expiration time is 1 hour
  * Found in Drive Credentials source code
  * See source here https://github.com/googleapis/google-api-java-client/blob/master/google-api-client/src/main/java/com/google/api/client/googleapis/auth/oauth2/GoogleCredential.java#L387
+ * If we need a new service account, go to the google console service account page https://console.cloud.google.com/projectselector2/iam-admin/serviceaccounts?pli=1&supportedpurview=project
  */
 private const val TOKEN_EXPIRE_TIME_MILLI: Long = 60 * 60 * 1000
 private const val TAG = "Google Drive"

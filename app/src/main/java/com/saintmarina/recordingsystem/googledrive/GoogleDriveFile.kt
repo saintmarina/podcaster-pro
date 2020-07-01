@@ -36,7 +36,7 @@ class GoogleDriveFile(
     }
 
     fun reportErrorStatus(msg: String) {
-        onStatusChange?.invoke(FileSyncStatus(message="${dest.cardName}: ${file.name}\n$msg", error=true))
+        onStatusChange?.invoke(FileSyncStatus(message="${dest.cardName}: ${file.name}\nFailed to upload\nContact Nico", error=true))
     }
 
     fun upload() {

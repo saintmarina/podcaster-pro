@@ -28,7 +28,7 @@ object StatusMessage {
         when {
             state.audioError != null -> {
                 isError = true
-                message = "Error: Contact Nico\nAudio failure: ${state.audioError}"
+                message = "Error: Audio failure\nContact Nico"
             }
             !state.micPlugged -> {
                 isError = true

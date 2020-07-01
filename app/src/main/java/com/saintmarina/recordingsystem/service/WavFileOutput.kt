@@ -29,7 +29,8 @@ class WavFileOutput(private val recordingDir: File): Closeable {
     init {
         // recordingDir already exists, because it is created in service onCreate()
 
-        val tempFileName = "${baseName}_recovery_file_${getRandomString(RANDOM_LEN)}.wav"
+        // Instead of using a random string, use the next number in line
+        val tempFileName = "${baseName} recovery ${getRandomString(RANDOM_LEN)}.wav"
         file = File(recordingDir, tempFileName)
         Log.i(TAG, "WaveFileOutput $file created")
 

@@ -50,6 +50,7 @@ import kotlin.math.pow
  * The app should have a lock screen
  * Get the logs
  * Delete old files here and there
+ * Test google credential failures
  */
 
 // TODO
@@ -59,6 +60,8 @@ import kotlin.math.pow
 // Have a background image, that flips back and forth between idle and recording screens, using TransitionDrawable
 // Hide the cards gracefully when we start recording. Use TransitionDrawable
 // Same for the timer. Use TransitionDrawable
+// PUT A "TEST DRIVE" overlay on the cards when Destination is in test mode
+// Don't say ready to record if the AudioRecorder has not initialized
 //
 // * Swipe up wallpaper
 

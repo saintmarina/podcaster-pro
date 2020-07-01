@@ -190,7 +190,7 @@ class RecordingService: Service() {
             outputFile = WavFileOutput(destination.localDir)
             recorder.outputFile = outputFile
         } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
+            Log.e(TAG, "Error: ${Log.getStackTraceString(e)}")
             state.audioError = e.message
             return
         }

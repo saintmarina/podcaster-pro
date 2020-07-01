@@ -48,7 +48,7 @@ class AudioRecorder : Closeable, Thread() {
         val recorder = try {
             initRecorder()
         } catch (e: Exception) {
-            Log.e(TAG, "$e")
+            Log.e(TAG, "Error: ${Log.getStackTraceString(e)}")
             onError?.invoke("${e.message}")
             return
         }
@@ -56,7 +56,7 @@ class AudioRecorder : Closeable, Thread() {
         try {
             mainLoop(recorder)
         } catch (e: Exception) {
-            Log.e(TAG, "Audio capture failure: $e")
+            Log.e(TAG, "Audio capture failure: ${Log.getStackTraceString(e)}")
             onError?.invoke("Audio capture failure: ${e.message}")
         }
 
@@ -87,6 +87,7 @@ class AudioRecorder : Closeable, Thread() {
                 return recorder
             }
             Log.e(TAG, "Audio recorder initialization FAILED. Retrying")
+
             sleep(100)
         }
 
