@@ -4,11 +4,12 @@ import com.saintmarina.recordingsystem.service.RecordingService
 import org.ocpsoft.prettytime.PrettyTime
 import java.util.*
 
-private val INSPIRATION = arrayOf(
-    "'Passion is the secret ingredient that drives hard work and excellence.' -- Kelly Ayuote",
-    "'Be someone who knows the way, goes the way and shows the way.' -- John C. Maxwell",
-    "'Strive not to be a success, but rather to be of value.' -- Albert Einstein",
-    "'Don’t find fault, find a remedy.' -- Henry Ford"
+private val INSPIRATIONS = arrayOf(
+    "You have great things to say",
+    "You are an inspiration to others",
+    "Speak from the heart",
+    "Raise the frequency of the planet",
+    "Your words reaches thousands"
 )
 
 private const val MILLIS_IN_MINUTE: Long = 60000
@@ -26,19 +27,19 @@ object StatusMessage {
         when {
             state.audioError != null -> {
                 isError = true
-                message = "Error: Something is wrong\nContact Nico at +1-646-504-6464\nAudio failure: ${state.audioError}"
+                message = "Error: Contact Nico\nAudio failure: ${state.audioError}"
             }
             !state.micPlugged -> {
                 isError = true
-                message = "Error: Microphone is not connected\nCheck microphone connections"
+                message = "Error: Microphone seems disconnected\nCheck cable connections"
             }
-            !state.internetAvailable -> {
+            !state.internetAvailable && state.recorderState != RecordingService.RecorderState.RECORDING -> {
                 isError = true
-                message = "Warning: Internet connection lost\nYou may record audio but the files will be uploaded once the internet connection is reestablished"
+                message = "Warning: Internet connection lost\nRecording is operational\nUploading is delayed"
             }
             !state.powerAvailable -> {
                 isError = true
-                message = "Warning: Power outage detected\nThe Recording System is running on battery"
+                message = "Warning: Power outage detected\nThe system is running on battery"
             }
             state.fileSyncStatus != null && state.fileSyncStatus!!.error -> {
                 isError = true
@@ -79,8 +80,8 @@ object StatusMessage {
             }
             else -> {
                 // RECORDING, PAUSED
-                val quoteIndex = ((state.timeWhenStarted?.time ?: 0) % INSPIRATION.size).toInt()
-                INSPIRATION[quoteIndex]
+                val quoteIndex = ((state.timeWhenStarted?.time ?: 0) % INSPIRATIONS.size).toInt()
+                INSPIRATIONS[quoteIndex]
             }
         }
     }
