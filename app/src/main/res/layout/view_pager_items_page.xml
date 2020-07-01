@@ -11,15 +11,16 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/card"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="40px"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        card_view:cardCornerRadius="8dp"
-        card_view:cardElevation="8dp">
+        android:translationZ="7px"
+        card_view:cardCornerRadius="30px"
+        card_view:cardElevation="32px">
         <ImageView
             android:id="@+id/ivImage"
-            android:layout_width="500dp"
-            android:layout_height="300dp"
+            android:layout_width="1050px"
+            android:layout_height="588px"
             android:scaleType="centerCrop"
             />
     </androidx.cardview.widget.CardView>
