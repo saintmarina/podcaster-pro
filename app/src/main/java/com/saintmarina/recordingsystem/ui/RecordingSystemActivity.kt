@@ -63,12 +63,6 @@ Status:
  */
 // MDM make sure it doesn't have the title bar
 // TODO
-// Buttons should be using https://developer.android.com/reference/android/widget/ImageButton
-// https://developer.android.com/guide/topics/resources/drawable-resource#Transition
-// startTransition(500) reverseTransition(500)
-//
-//
-// For these two, use TransitionDrawable to transition between nothing, and an image
 // When the status is error: fade in an image
 // When the sound viz is clipping, fade in an image.
 //
