@@ -227,6 +227,7 @@ class RecordingService: Service() {
         outputFile?.let {
             it.close() // Writes .wav header
             it.renameToDatedFile(state.recordingDuration)
+            // TODO if state.recordingDuration < 3 sec --> delete the file; return from this let statement
             val job = fileSync.makeJob(it.file, destination)
             // To show the upload status message early, preventing a status message glitch due to threading
             job.reportProgress(0)

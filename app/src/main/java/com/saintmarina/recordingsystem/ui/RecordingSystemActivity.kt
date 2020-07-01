@@ -23,32 +23,13 @@ import kotlin.math.abs
 import kotlin.math.pow
 
 
-/* UI:
-All units are in pixels
-
-Cards:
-* they are positioned at X=274 (horizontally centered), Y=487
-* they have a 30px rounded corner
-* they have a 32px drop shadow at 70% opacity. If possible with an Y offset of 5px towards the bottom
-
-Timer:
-* The timer text color is #fafafa
-
-Volume bar:
-* The first volume rect is at X=110, Y=1295
-* Volume rect appear every X=23 (so the second volume rect is at X=133px)
-* 57 volume rect fill entirely the volume bar
-* The volume bar clipping indicator is at X=105, Y=1284
-
-Buttons:
-* The record button is at X=650, Y=1625
-* The pause button is at X=1110, Y=1676
-
-Status:
-* The status error indicator is at X=105, Y=2072
-* The status message color is #e8e8e8
-
-*/
+// Before launch:
+// 1) Setup google drive folders
+// 2) Change the uplifting messages
+// 3) Study power
+// 4) Dong as a playsound when we stop recording
+// 5) Anything under 3 seconds don't upload to Drive
+// 6) Try to make the sound instant
 
 /*
  * NICE TO HAVE:

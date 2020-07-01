@@ -12,8 +12,8 @@ android {
         minSdkVersion 19
         targetSdkVersion 29
         // When doing updates: 1) Increment versioncode 2) Increment the minor of version name
-        versionCode 5
-        versionName '1.4'
+        versionCode 6
+        versionName '2020.07.01.1'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
