@@ -1,0 +1,5 @@
+<resources>
+    <declare-styleable name="FadeAnimation">
+        <attr name="instant_show" format="boolean" />
+    </declare-styleable>
+</resources>

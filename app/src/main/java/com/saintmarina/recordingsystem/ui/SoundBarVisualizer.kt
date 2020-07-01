@@ -10,7 +10,7 @@ import com.saintmarina.recordingsystem.R
 import kotlin.math.ln
 import kotlin.math.roundToInt
 
-const val MIN_DB = -50.0
+const val MIN_DB = -50.0f
 const val NUM_RECTS = 56
 const val RED_DB_THRESHOLD = -8.0f
 const val RECT_OFFSET_X_PX = 23f
@@ -20,7 +20,7 @@ class SoundVisualizer (context: Context, attributeSet: AttributeSet) : View(cont
     private val redRect   = BitmapFactory.decodeResource(context.resources, R.drawable.volume_bar_red, BitmapFactory.Options().apply { inScaled = false })
     private val redRectsThresholdIndex = rectIndex(RED_DB_THRESHOLD)
 
-    var volume: Float = 0F
+    var volume: Float = MIN_DB-1f
         set(value) {
             if (field != value) {
                 field = value

@@ -8,10 +8,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
+import com.saintmarina.recordingsystem.R
 
 private const val ANIMATION_DURATION = 300L
 
 class FadeAnimation(context: Context, attributeSet: AttributeSet): RelativeLayout(context, attributeSet) {
+    private var instantShow = context.obtainStyledAttributes(attributeSet, R.styleable.FadeAnimation)
+        .getBoolean(R.styleable.FadeAnimation_instant_show, false)
+
     var show: Boolean = visibility == View.VISIBLE
     set(value) {
         if (field != value) {
@@ -23,11 +27,36 @@ class FadeAnimation(context: Context, attributeSet: AttributeSet): RelativeLayou
         }
     }
 
+    private fun convertInvisibilityIntoAlpha() {
+        if (visibility == View.INVISIBLE) {
+            alpha = 0f
+            visibility = View.VISIBLE
+        }
+    }
+
     private fun hide() {
-        visibility = View.INVISIBLE
+        convertInvisibilityIntoAlpha()
+
+        animate().run {
+            cancel()
+            duration = ANIMATION_DURATION
+            alpha(0f)
+            start()
+        }
     }
 
     private fun show() {
-        visibility = View.VISIBLE
+        convertInvisibilityIntoAlpha()
+        if (instantShow) {
+            alpha = 1f
+            return
+        }
+
+        animate().run {
+            cancel()
+            duration = ANIMATION_DURATION
+            alpha(1f)
+            start()
+        }
     }
 }
