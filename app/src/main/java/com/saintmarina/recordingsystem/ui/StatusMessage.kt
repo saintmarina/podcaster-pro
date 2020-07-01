@@ -1,14 +1,6 @@
 package com.saintmarina.recordingsystem.ui
 
-import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.util.AttributeSet
-import android.util.Log
-import android.view.View
 import com.saintmarina.recordingsystem.service.RecordingService
-import kotlinx.android.synthetic.main.activity_recording_system.view.*
 import org.ocpsoft.prettytime.PrettyTime
 import java.util.*
 
@@ -19,7 +11,6 @@ private val INSPIRATION = arrayOf(
     "'Don’t find fault, find a remedy.' -- Henry Ford"
 )
 
-private const val TAG = "StatusIndicator"
 private const val MILLIS_IN_MINUTE: Long = 60000
 private const val FORGET_LAST_RECORDING_MINS: Long = 2*60
 
@@ -84,7 +75,7 @@ object StatusMessage {
                             null
                         }
                     }
-                } ?: "Ready. Make sure you have water and lip balm"
+                } ?: "Ready\nMake sure you have water and lip balm"
             }
             else -> {
                 // RECORDING, PAUSED
