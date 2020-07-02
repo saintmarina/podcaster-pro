@@ -76,8 +76,9 @@ class StatusChecker(val context: Context): BroadcastReceiver() {
                 val status: Int = intent.getIntExtra("state", -1)
                 if (!EXPERT_MODE) {
                     state.micPlugged = status == 1 // Skipping Microphone connection check for EXPERT MODE
+                } else {
+                    state.micPlugged = true // Take this line out for production
                 }
-                state.micPlugged = true // Take this line out for production
             }
         }
         onChange?.invoke()

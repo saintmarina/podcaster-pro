@@ -23,10 +23,6 @@ import java.lang.Float.max
 import kotlin.math.abs
 import kotlin.math.pow
 
-
-// Before launch:
-// 1) Setup google drive folders
-
 // After luanch:
 // 3) Study power
 // 7) investigate the two hubs, figure out the preference
@@ -54,12 +50,6 @@ import kotlin.math.pow
  */
 
 // TODO
-// When the status is error: fade in an image
-// When the sound viz is clipping, fade in an image.
-//
-// Have a background image, that flips back and forth between idle and recording screens, using TransitionDrawable
-// Hide the cards gracefully when we start recording. Use TransitionDrawable
-// Same for the timer. Use TransitionDrawable
 // PUT A "TEST DRIVE" overlay on the cards when Destination is in test mode
 // Don't say ready to record if the AudioRecorder has not initialized
 //
