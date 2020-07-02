@@ -5,10 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.ContentResolver
 import android.content.Intent
-import android.media.AudioAttributes
-import android.net.Uri
 import android.os.*
 import android.telephony.AvailableNetworkInfo.PRIORITY_HIGH
 import android.util.Log
@@ -17,13 +14,12 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.saintmarina.recordingsystem.DESTINATIONS
 import com.saintmarina.recordingsystem.Destination
-import com.saintmarina.recordingsystem.googledrive.FilesSync
+import com.saintmarina.recordingsystem.googledrive.FileSync
 import com.saintmarina.recordingsystem.googledrive.GoogleDrive
 import com.saintmarina.recordingsystem.R
 import com.saintmarina.recordingsystem.ui.RecordingSystemActivity
 import com.saintmarina.recordingsystem.db.Database
 import com.saintmarina.recordingsystem.googledrive.FileSyncStatus
-import java.io.File
 import java.lang.Exception
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -61,7 +57,7 @@ class RecordingService: Service() {
     private lateinit var recorder: AudioRecorder
     private lateinit var soundEffect: SoundEffect
     private var stopWatch: StopWatch = StopWatch()
-    private lateinit var fileSync: FilesSync
+    private lateinit var fileSync: FileSync
     private var destination = DESTINATIONS[0]
 
     inner class API : Binder() {
@@ -138,7 +134,7 @@ class RecordingService: Service() {
         val drive = GoogleDrive(this.assets.open("credentials.json"))
             .also { it.prepare() }
 
-        fileSync = FilesSync(drive, this)
+        fileSync = FileSync(drive, this)
         fileSync.onStatusChange = {
             state.fileSyncStatus = it
             invalidateActivity()

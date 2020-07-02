@@ -13,7 +13,7 @@ private const val TAG: String = "FilesSync"
 private const val TIMEOUT_AFTER_FAILURE_MILLIS: Long = 10000
 
 // TODO rename to FileSync
-class FilesSync(private val drive: GoogleDrive, val context: Context): Thread() {
+class FileSync(private val drive: GoogleDrive, val context: Context): Thread() {
     private val jobQueue = LinkedBlockingQueue<GoogleDriveFile>()
     var onStatusChange: ((FileSyncStatus) -> Unit)? = null
     private val wakeLock = (context.getSystemService(Context.POWER_SERVICE) as PowerManager).run {
@@ -52,7 +52,7 @@ class FilesSync(private val drive: GoogleDrive, val context: Context): Thread() 
 
     fun makeJob(file: File, dest: Destination): GoogleDriveFile {
         return GoogleDriveFile(file, dest, drive).apply {
-            onStatusChange = { this@FilesSync.onStatusChange?.invoke(it) }
+            onStatusChange = { this@FileSync.onStatusChange?.invoke(it) }
         }
     }
 
